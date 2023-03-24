@@ -169,25 +169,24 @@ foo( 3, 4 );    // 2
 
 Будьте осторожны: **никогда** не запрашивайте доступ к аргументам позиционно, например, `arguments[1]`. Придерживайтесь только `arguments.length`, и только в случаях, когда вы должны.
 
-Except, how will you access an argument that was passed in a position beyond the declared parameters? I'll answer that in a moment; but first, take a step back and ask yourself, "Why would I want to do that?" Seriously. Think about that closely for a minute.
+За исключением одного, как вы получите доступ к аргументу, который был передан в позиции, выходящей за рамки объявленных параметров? Я отвечу на это через мнгновение; но сначала сделайте шаг назад и спросите себя: "Почему бы я хотел сделать это?" Серьёзно. Подумайте об этом хорошенько в течение минуты.
 
-It should be pretty rare that this occurs; it shouldn't be something you regularly expect or rely on when writing your functions. If you find yourself in such a scenario, spend an extra 20 minutes trying to design the interaction with that function in a different way. Name that extra argument even if it's exceptional.
+Это должно происходить довольно редко; это не должно быть чем-то, чего вы регулярно ожидаете или на что полагаетесь при написании своих функций. Если вы очутились в такой ситуации, потратьте дополнительные 20 минут, пытаясь спроектировать взаимодействие с этой функцией по-другому. Назовите тот дополнительный аргумент, даже если он исключительный.
 
-A function signature that accepts an indeterminate amount of arguments is referred to as a variadic function. Some people prefer this style of function design, but I think you'll find that often the FPer wants to avoid these where possible.
+Функции, которая принимает произвольное количество аргументов, называется вариативной функцией (variadic). Некоторые предпочитают этот стиль дизайна функции, но, я думаю, вы обнаружите, что часто многие программисты ФП хотят избежать их там, где это возможно.
 
-OK, enough harping on that point.
+Ладно, хватит твердить об этом.
 
-Say you do need to access the arguments in a positional array-like way, possibly because you're accessing an argument that doesn't have a formal parameter at that position. How do we do it?
+Допустим, вам действительно нужно получить доступ к аргументам позиционным подобным массиву способом, возможно, потому, что вы обращаетесь к аргументу, у которого нет формального параметра в этой позиции. Как мы это делаем?
 
-ES6 to the rescue! Let's declare our function with the `...` operator -- variously referred to as "spread", "rest", or (my preference) "gather":
+ES6 на помощь! Давайте объявим нашу функцию с помощью `...` оператора -- по-разному именуемый как "spread", "rest", или (по моему предпочтению) "gather":
 
 ```js
 function foo(x,y,z,...args) {
     // ..
 }
 ```
-
-See the `...args` in the parameter list? That's an ES6 declarative form that tells the engine to collect (ahem, "gather") all remaining arguments (if any) not assigned to named parameters, and put them in a real array named `args`. `args` will always be an array, even if it's empty. But it **will not** include values that are assigned to the `x`, `y`, and `z` parameters, only anything else that's passed in beyond those first three values:
+Видите `...args` в списке параметров? Это декларативная форма ES6, которая сообщает движку собрать (хм, "gather") все оставшиеся аргументы (если таковые имеются), не присвоенные именованным параметрам, и поместить их в реальный массив с именем `args`. `args` всегда будет массивом, даже если он пустой. Однако он **не будет** включать значения, которые назначены `x`, `y`, и `z` параметрам, только все остальные, которые передаются помимо этих первых трёх значений:
 
 ```js
 function foo(x,y,z,...args) {
@@ -200,11 +199,11 @@ foo( 1, 2, 3, 4 );      // 1 2 3 [ 4 ]
 foo( 1, 2, 3, 4, 5 );   // 1 2 3 [ 4, 5 ]
 ```
 
-So, if you *really* want to design a function that can account for an arbitrary number of arguments to be passed in, use `...args` (or whatever name you like) on the end. Now, you'll have a real, non-deprecated, non-yucky array to access those argument values from.
+Итак, если вы *действительно* хотите создать функцию, которая может учитывать произвольное количество передаваемых аргументов, используйте `...args` (или дайте ему другое имя, которое вам нравится) в конце. Теперь у вас будет реальный, не устаревший, не вызывающий отвращения массив для доступа к этим значениям аргументов.
 
-Just pay attention to the fact that the value `4` is at position `0` of that `args`, not position `3`. And its `length` value won't include those three `1`, `2`, and `3` values. `...args` gathers everything else, not including the `x`, `y`, and `z`.
+Просто обратите внимание, что значение `4` на позиции `0` `args`, не позиции `3`. И его `length` значение не будет включать те три `1`, `2`, и `3` значения. `...args` собирает всё остальное, что не включает `x`, `y`, и `z`.
 
-You *can* use the `...` operator in the parameter list even if there's no other formal parameters declared:
+Вы *можете* использовать оператор `...` в списке параметров, даже если там не объявлены другие формальные параметры:
 
 ```js
 function foo(...args) {
@@ -212,9 +211,10 @@ function foo(...args) {
 }
 ```
 
-Now `args` will be the full array of arguments, whatever they are, and you can use `args.length` to know exactly how many arguments have been passed in. And you're safe to use `args[1]` or `args[317]` if you so choose. Please don't pass in 318 arguments, though.
+Теперь `args` будет полным массивом аргументов, какими бы они не были, и вы можете использовать `args.length`, чтобы точно знать, сколько аргументов было передано. И вы без проблем можете использовать `args[1]` или `args[317]`, если вы так решите. Только пожалуйста не передавайте 318 агументов.
 
-### Arrays of Arguments
+
+### Массивы аргументов
 
 What if you wanted to pass along an array of values as the arguments to a function call?
 
