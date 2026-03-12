@@ -1,19 +1,19 @@
-# Functional-Light JavaScript
-# Chapter 3: Managing Function Inputs
+# Функционально-Лёгкий JavaScript
+# Глава 3: Работа с аргументами
 
-[Chapter 2](ch2.md) explored the core nature of JS `function`s, and laid the foundation for what makes a `function` an FP *function*. But to leverage the full power of FP, we also need patterns and practices for manipulating functions to shift and adjust their interactions -- to bend them to our will.
+В [Главе 2](ch2.md) мы исследовали природу JS-функций и заложили основу того, что делает `function` настоящей *функцией* в контексте ФП. Но чтобы использовать всю мощь ФП, нам также нужны паттерны и практики для манипулирования функциями — для изменения и подстройки их взаимодействий, чтобы заставить их работать так, как нам нужно.
 
-Specifically, our attention for this chapter will be on the parameter inputs of functions. As you bring functions of all different shapes together in your programs, you'll quickly face incompatibilities in the number/order/type of inputs, as well as the need to specify some inputs at different times than others.
+В этой главе мы сосредоточимся именно на входных параметрах функций. Когда вы начинаете соединять в программе функции самых разных форм, вы быстро столкнётесь с несовместимостью по количеству, порядку и типам аргументов, а также с необходимостью указывать одни аргументы раньше, а другие — позже.
 
-As a matter of fact, for stylistic purposes of readability, sometimes you'll want to define functions in a way that hides their inputs entirely!
+Более того, иногда из соображений читаемости вы захотите определять функции так, чтобы их входные данные были полностью скрыты!
 
-These kinds of techniques are absolutely essential to making functions truly *function*-al.
+Все эти техники абсолютно необходимы, чтобы функции были по-настоящему *функцио*нальными.
 
-## All for One
+## Всё ради Одного
 
-Imagine you're passing a function to a utility, where the utility will send multiple arguments to that function. But you may only want the function to receive a single argument.
+Представьте, что вы передаёте функцию в некую утилиту, которая вызовет эту функцию с несколькими аргументами. Но вы хотите, чтобы ваша функция получала только один аргумент.
 
-We can design a simple helper that wraps a function call to ensure only one argument will pass through. Since this is effectively enforcing that a function is treated as unary, let's name it as such:
+Мы можем создать простой вспомогательный инструмент, который оборачивает вызов функции так, чтобы через него прошёл только один аргумент. Поскольку это фактически принудительно делает функцию унарной (принимающей один аргумент), давайте так её и назовём:
 
 <a name="unary"></a>
 
@@ -25,7 +25,7 @@ function unary(fn) {
 }
 ```
 
-Many FPers tend to prefer the shorter `=>` arrow function syntax for such code (see [Chapter 2, "Functions without `function`"](ch2.md/#functions-without-function)), such as:
+Многие ФП-разработчики предпочитают более краткий синтаксис стрелочных функций `=>` для подобного кода (см. [Главу 2, "Функции без `function`"](ch2.md/#functions-without-function)):
 
 ```js
 var unary =
@@ -34,20 +34,20 @@ var unary =
             fn( arg );
 ```
 
-**Note:** No question this is more terse, sparse even. But I personally feel that whatever it may gain in symmetry with the mathematical notation, it loses more in overall readability with the functions all being anonymous, and by obscuring the scope boundaries, making deciphering closure a little more cryptic.
+**Примечание:** Да, это лаконичнее — даже слишком. Но я лично считаю, что, несмотря на выигрыш в симметрии с математической нотацией, такой код теряет в читаемости: все функции анонимны, границы областей видимости размыты, а разобраться в замыкании становится чуть сложнее.
 
-A commonly cited example for using `unary(..)` is with the `map(..)` utility (see [Chapter 9, "Map"](ch9.md/#map)) and `parseInt(..)`. `map(..)` calls a mapper function for each item in a list, and each time it invokes the mapper function, it passes in three arguments: `value`, `idx`, `arr`.
+Классический пример использования `unary(..)` — это утилита `map(..)` (см. [Главу 9, "Map"](ch9.md/#map)) в сочетании с `parseInt(..)`. `map(..)` вызывает функцию-маппер для каждого элемента списка, каждый раз передавая ей три аргумента: `value`, `idx`, `arr`.
 
-That's usually not a big deal, unless you're trying to use something as a mapper function that will behave incorrectly if it's passed too many arguments. Consider:
+Обычно это не проблема, если только вы не пытаетесь использовать что-то в качестве функции-маппера, которая ведёт себя неправильно, получив слишком много аргументов. Рассмотрим:
 
 ```js
 ["1","2","3"].map( parseInt );
 // [1,NaN,NaN]
 ```
 
-For the signature `parseInt(str,radix)`, it's clear that when `map(..)` passes `index` in the second argument position, it's interpreted by `parseInt(..)` as the `radix`, which we don't want.
+По сигнатуре `parseInt(str,radix)` очевидно, что когда `map(..)` передаёт `index` вторым аргументом, `parseInt(..)` интерпретирует его как `radix` — а этого мы не хотим.
 
-`unary(..)` creates a function that will ignore all but the first argument passed to it, meaning the passed-in `index` is never received by `parseInt(..)` and mistaken as the `radix`:
+`unary(..)` создаёт функцию, которая игнорирует все аргументы кроме первого. Это значит, что переданный `index` никогда не попадёт в `parseInt(..)` и не будет ошибочно принят за `radix`:
 
 <a name="mapunary"></a>
 
@@ -56,24 +56,24 @@ For the signature `parseInt(str,radix)`, it's clear that when `map(..)` passes `
 // [1,2,3]
 ```
 
-### One on One
+### Один на Один
 
-Speaking of functions with only one argument, another common base utility in the FP toolbelt is a function that takes one argument and does nothing but return the value untouched:
+Раз уж мы говорим о функциях с одним аргументом, вот ещё одна распространённая базовая утилита в арсенале ФП — функция, которая принимает один аргумент и просто возвращает его нетронутым:
 
 ```js
 function identity(v) {
     return v;
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var identity =
     v =>
         v;
 ```
 
-This utility looks so simple as to hardly be useful. But even simple functions can be helpful in the world of FP. Like they say in acting: there are no small parts, only small actors.
+Эта утилита выглядит настолько простой, что кажется почти бесполезной. Но даже самые простые функции могут быть полезны в мире ФП. Как говорят в театре: нет маленьких ролей — есть маленькие актёры.
 
-For example, imagine you'd like to split up a string using a regular expression, but the resulting array may have some empty values in it. To discard those, we can use JS's `filter(..)` array operation (see [Chapter 9, "Filter"](ch9.md/#filter)) with `identity(..)` as the predicate:
+Например, представьте, что вы хотите разбить строку с помощью регулярного выражения, но в результирующем массиве могут оказаться пустые значения. Чтобы от них избавиться, мы можем использовать JS-операцию `filter(..)` над массивом (см. [Главу 9, "Filter"](ch9.md/#filter)) с `identity(..)` в качестве предиката:
 
 ```js
 var words = "   Now is the time for all...  ".split( /\s|\b/ );
@@ -84,11 +84,11 @@ words.filter( identity );
 // ["Now","is","the","time","for","all","..."]
 ```
 
-Because `identity(..)` simply returns the value passed to it, JS coerces each value into either `true` or `false`, and that determines whether to keep or exclude each value in the final array.
+Поскольку `identity(..)` просто возвращает переданное значение, JS приводит каждое значение к `true` или `false`, и на основе этого определяет, оставить его в итоговом массиве или исключить.
 
-**Tip:** Another unary function that can be used as the predicate in the previous example is JS's built-in `Boolean(..)` function, which explicitly coerces a value to `true` or `false`.
+**Подсказка:** Ещё одна унарная функция, которую можно использовать как предикат в предыдущем примере — встроенная JS-функция `Boolean(..)`, которая явно приводит значение к `true` или `false`.
 
-Another example of using `identity(..)` is as a default function in place of a transformation:
+Другой пример использования `identity(..)` — в качестве функции-трансформации по умолчанию:
 
 ```js
 function output(msg,formatFn = identity) {
@@ -104,27 +104,27 @@ output( "Hello World", upper );     // HELLO WORLD
 output( "Hello World" );            // Hello World
 ```
 
-You also may see `identity(..)` used as a default transformation function for `map(..)` calls or as the initial value in a `reduce(..)` of a list of functions; both of these utilities will be covered in [Chapter 9](ch9.md).
+Также вы можете встретить `identity(..)` в качестве функции-трансформации по умолчанию для вызовов `map(..)` или в качестве начального значения в `reduce(..)` по списку функций — обе утилиты мы подробно рассмотрим в [Главе 9](ch9.md).
 
-### Unchanging One
+### Неизменное Одно
 
-Certain APIs don't let you pass a value directly into a method, but require you to pass in a function, even if that function literally just returns the value. One such API is the `then(..)` method on JS Promises:
+Некоторые API не позволяют передавать значение напрямую в метод — они требуют передачи функции, даже если та буквально просто возвращает это значение. Один из таких API — метод `then(..)` у JS-промисов:
 
 ```js
-// doesn't work:
+// не работает:
 p1.then( foo ).then( p2 ).then( bar );
 
-// instead:
+// вместо этого:
 p1.then( foo ).then( function(){ return p2; } ).then( bar );
 ```
 
-Many claim that ES6 `=>` arrow functions are the best "solution":
+Многие считают, что стрелочные функции `=>` из ES6 — лучшее "решение":
 
 ```js
 p1.then( foo ).then( () => p2 ).then( bar );
 ```
 
-But there's an FP utility that's more well suited for the task:
+Но есть ФП-утилита, которая подходит для этой задачи лучше:
 
 ```js
 function constant(v) {
@@ -133,34 +133,34 @@ function constant(v) {
     };
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var constant =
     v =>
         () =>
             v;
 ```
 
-With this tidy little FP utility, we can solve our `then(..)` annoyance properly:
+С помощью этой аккуратной маленькой ФП-утилиты мы можем правильно решить нашу проблему с `then(..)`:
 
 ```js
 p1.then( foo ).then( constant( p2 ) ).then( bar );
 ```
 
-**Warning:** Although the `() => p2` arrow function version is shorter than `constant(p2)`, I would encourage you to resist the temptation to use it. The arrow function is returning a value from outside of itself, which is a bit worse from the FP perspective. We'll cover the pitfalls of such actions later in the book (see [Chapter 5](ch5.md)).
+**Предупреждение:** Несмотря на то, что версия со стрелочной функцией `() => p2` короче, чем `constant(p2)`, я бы советовал удержаться от искушения её использовать. Стрелочная функция возвращает значение извне себя, что с точки зрения ФП несколько хуже. Мы рассмотрим подводные камни таких действий позже в книге (см. [Главу 5](ch5.md)).
 
-## Adapting Arguments to Parameters
+## Адаптация Аргументов к Параметрам
 
-There are a variety of patterns and tricks we can use to adapt a function's signature to match the kinds of arguments we want to provide to it.
+Существует множество паттернов и приёмов, которые мы можем использовать, чтобы адаптировать сигнатуру функции к виду аргументов, которые мы хотим ей передать.
 
-Recall [this function signature from Chapter 2](ch2.md/#user-content-funcparamdestr) which highlights using array parameter destructuring:
+Вспомните [сигнатуру функции из Главы 2](ch2.md/#user-content-funcparamdestr), демонстрирующую деструктуризацию параметров-массивов:
 
 ```js
 function foo( [x,y,...args] = [] ) {
 ```
 
-This pattern is handy if an array will be passed in but you want to treat its contents as individual parameters. `foo(..)` is thus technically unary -- when it's executed, only one argument (an array) will be passed to it. But inside the function, you get to address different inputs (`x`, `y`, etc) individually.
+Этот паттерн удобен, когда в функцию передаётся массив, а внутри вы хотите обращаться к его элементам как к отдельным параметрам. `foo(..)` технически является унарной — при вызове ей передаётся только один аргумент (массив). Но внутри функции вы можете работать с отдельными входными значениями (`x`, `y` и т. д.) по отдельности.
 
-However, sometimes you won't have the ability to change the declaration of the function to use array parameter destructuring. For example, imagine these functions:
+Однако иногда у вас не будет возможности изменить объявление функции, чтобы использовать деструктуризацию параметров-массивов. Представьте, например, такие функции:
 
 ```js
 function foo(x,y) {
@@ -171,16 +171,16 @@ function bar(fn) {
     fn( [ 3, 9 ] );
 }
 
-bar( foo );         // fails
+bar( foo );         // не работает
 ```
 
-Do you spot why `bar(foo)` fails?
+Вы видите, почему `bar(foo)` не работает?
 
-The array `[3,9]` is sent in as a single value to `fn(..)`, but `foo(..)` expects `x` and `y` separately. If we could change the declaration of `foo(..)` to be `function foo([x,y]) { ..`, we'd be fine. Or, if we could change the behavior of `bar(..)` to make the call as `fn(...[3,9])`, the values `3` and `9` would be passed in individually.
+Массив `[3,9]` передаётся в `fn(..)` как одно значение, но `foo(..)` ожидает `x` и `y` по отдельности. Если бы мы могли изменить объявление `foo(..)` на `function foo([x,y]) { ..`, всё было бы в порядке. Или, если бы мы могли изменить поведение `bar(..)` так, чтобы вызов выглядел как `fn(...[3,9])`, значения `3` и `9` были бы переданы по отдельности.
 
-There will be occasions when you have two functions that are incompatible in this way, and you won't be able to change their declarations/definitions. So, how can you use them together?
+Но бывают случаи, когда две функции несовместимы таким образом, и вы не можете изменить их объявления. Как же тогда их использовать вместе?
 
-We can define a helper to adapt a function so that it spreads out a single received array as its individual arguments:
+Мы можем определить вспомогательную функцию, которая адаптирует функцию так, чтобы она раскладывала полученный массив в отдельные аргументы:
 
 <a name="spreadargs"></a>
 
@@ -191,24 +191,24 @@ function spreadArgs(fn) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var spreadArgs =
     fn =>
         argsArr =>
             fn( ...argsArr );
 ```
 
-**Note:** I called this helper `spreadArgs(..)`, but in libraries like Ramda it's commonly called `apply(..)`.
+**Примечание:** Я назвал эту утилиту `spreadArgs(..)`, но в таких библиотеках как Ramda она обычно называется `apply(..)`.
 
-Now we can use `spreadArgs(..)` to adapt `foo(..)` to work as the proper input to `bar(..)`:
+Теперь мы можем использовать `spreadArgs(..)`, чтобы адаптировать `foo(..)` для правильной работы в качестве входных данных для `bar(..)`:
 
 ```js
 bar( spreadArgs( foo ) );           // 12
 ```
 
-It won't seem clear yet why these occasions arise, but you will see them often. Essentially, `spreadArgs(..)` allows us to define functions that `return` multiple values via an array, but still have those multiple values treated independently as inputs to another function.
+Пока неочевидно, как часто будут возникать такие ситуации, но вы будете встречать их постоянно. По сути, `spreadArgs(..)` позволяет определять функции, которые возвращают несколько значений в виде массива, но при этом эти значения по-прежнему воспринимаются как отдельные входные аргументы другой функции.
 
-While we're talking about a `spreadArgs(..)` utility, let's also define a utility to handle the opposite action:
+Раз уж мы говорим о `spreadArgs(..)`, давайте также определим утилиту для обратного действия:
 
 ```js
 function gatherArgs(fn) {
@@ -217,16 +217,16 @@ function gatherArgs(fn) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var gatherArgs =
     fn =>
         (...argsArr) =>
             fn( argsArr );
 ```
 
-**Note:** In Ramda, this utility is referred to as `unapply(..)`, being that it's the opposite of `apply(..)`. I think the "spread"/"gather" terminology is a little more descriptive for what's going on.
+**Примечание:** В Ramda эта утилита называется `unapply(..)` — как противоположность `apply(..)`. На мой взгляд, терминология "spread"/"gather" (разложить/собрать) лучше описывает происходящее.
 
-We can use this utility to gather individual arguments into a single array, perhaps because we want to adapt a function with array parameter destructuring to another utility that passes arguments separately. We will [cover `reduce(..)` more fully in Chapter 9](ch9.md/#reduce); in short, it repeatedly calls its reducer function with two individual parameters, which we can now *gather* together:
+Мы можем использовать эту утилиту, чтобы собрать отдельные аргументы в один массив — например, для адаптации функции с деструктуризацией параметров-массивов к другой утилите, которая передаёт аргументы по отдельности. Мы [подробнее рассмотрим `reduce(..)` в Главе 9](ch9.md/#reduce); вкратце: она многократно вызывает свою функцию-редюсер с двумя отдельными параметрами, которые мы теперь можем *собирать* вместе:
 
 ```js
 function combineFirstTwo([ v1, v2 ]) {
@@ -237,11 +237,11 @@ function combineFirstTwo([ v1, v2 ]) {
 // 15
 ```
 
-## Some Now, Some Later
+## Часть Сейчас, Часть Потом
 
-If a function takes multiple arguments, you may want to specify some of those up front and leave the rest to be specified later.
+Если функция принимает несколько аргументов, вы можете захотеть указать часть из них заранее, оставив остальные на потом.
 
-Consider this function:
+Рассмотрим такую функцию:
 
 ```js
 function ajax(url,data,callback) {
@@ -249,11 +249,11 @@ function ajax(url,data,callback) {
 }
 ```
 
-Let's imagine you'd like to set up several API calls where the URLs are known up front, but the data and the callback to handle the response won't be known until later.
+Представьте, что вы хотите настроить несколько API-вызовов, у которых URL известны заранее, а данные и колбэк для обработки ответа станут известны позже.
 
-Of course, you can just defer making the `ajax(..)` call until all the bits are known, and refer to some global constant for the URL at that time. But another way is to create a function reference that already has the `url` argument preset.
+Конечно, вы можете просто отложить вызов `ajax(..)` до того момента, когда всё будет известно, и обращаться к глобальной константе для URL. Но другой подход — создать ссылку на функцию, у которой аргумент `url` уже задан заранее.
 
-What we're going to do is make a new function that still calls `ajax(..)` under the covers, and it manually sets the first argument to the API URL you care about, while waiting to accept the other two arguments later:
+Мы собираемся создать новую функцию, которая внутри по-прежнему вызывает `ajax(..)`, вручную устанавливая первый аргумент на нужный URL API, и ожидая получения двух оставшихся аргументов позже:
 
 ```js
 function getPerson(data,cb) {
@@ -265,7 +265,7 @@ function getOrder(data,cb) {
 }
 ```
 
-Manually specifying these function call wrappers is certainly possible, but it may get quite tedious, especially if there will also be variations with different arguments preset, like:
+Создавать такие обёртки вручную вполне возможно, но это может стать утомительным, особенно если будут варианты с разными заранее заданными аргументами, например:
 
 ```js
 function getCurrentUser(cb) {
@@ -273,15 +273,15 @@ function getCurrentUser(cb) {
 }
 ```
 
-One practice an FPer gets very used to is looking for patterns where we do the same sorts of things repeatedly, and trying to turn those actions into generic reusable utilities. As a matter of fact, I'm sure that's already the instinct for many of you readers, so that's not uniquely an FP thing. But it's unquestionably important for FP.
+Один из навыков, который хорошо развивается у ФП-разработчиков, — это умение находить паттерны, в которых мы делаем одно и то же снова и снова, и пытаться превращать такие действия в универсальные переиспользуемые утилиты. Уверен, для многих из вас это уже инстинкт — это не уникальная черта ФП. Но для ФП это особенно важно.
 
-To conceive such a utility for argument presetting, let's examine conceptually what's going on, not just looking at the manual implementations shown here.
+Чтобы создать такую утилиту для предустановки аргументов, давайте разберёмся концептуально, что происходит, не ограничиваясь ручными реализациями выше.
 
-One way to articulate what's going on is that the `getOrder(data,cb)` function is a *partial application* of the `ajax(url,data,cb)` function. This terminology comes from the notion that arguments are *applied* to parameters at the function call-site. And as you can see, we're only applying some of the arguments up front -- specifically, the argument for the `url` parameter -- while leaving the rest to be applied later.
+Один из способов описать происходящее: функция `getOrder(data,cb)` является *частичным применением* (partial application) функции `ajax(url,data,cb)`. Эта терминология происходит из концепции, что аргументы *применяются* к параметрам в месте вызова функции. И как вы видите, мы применяем лишь часть аргументов заранее — конкретно, аргумент для параметра `url` — оставляя остальные для применения позже.
 
-To be a tiny bit more formal about this pattern, partial application is strictly a reduction in a function's arity; remember, that's the number of expected parameter inputs. We reduced the original `ajax(..)` function's arity from 3 to 2 for the `getOrder(..)` function.
+Если быть чуть формальнее, частичное применение — это строго уменьшение арности функции; напомним, что это количество ожидаемых входных параметров. Мы уменьшили арность исходной функции `ajax(..)` с 3 до 2 в случае функции `getOrder(..)`.
 
-Let's define a `partial(..)` utility:
+Давайте определим утилиту `partial(..)`:
 
 ```js
 function partial(fn,...presetArgs) {
@@ -290,26 +290,26 @@ function partial(fn,...presetArgs) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var partial =
     (fn,...presetArgs) =>
         (...laterArgs) =>
             fn( ...presetArgs, ...laterArgs );
 ```
 
-**Tip:** Don't just take this snippet at face value. Pause for a few moments to digest what's going on with this utility. Make sure you really *get it*.
+**Подсказка:** Не принимайте этот фрагмент на веру. Остановитесь на несколько минут, чтобы разобраться, что делает эта утилита. Убедитесь, что вы её *понимаете*.
 
-The `partial(..)` function takes an `fn` for which function we are partially applying. Then, any subsequent arguments passed in are gathered into the `presetArgs` array and saved for later.
+Функция `partial(..)` принимает `fn` — функцию, к которой мы применяем частичное применение. Все последующие переданные аргументы собираются в массив `presetArgs` и сохраняются для дальнейшего использования.
 
-A new inner function (called `partiallyApplied(..)` just for clarity) is created and `return`ed; the inner function's own arguments are gathered into an array called `laterArgs`.
+Создаётся и возвращается (`return`) новая внутренняя функция (для ясности названная `partiallyApplied(..)`); собственные аргументы внутренней функции собираются в массив `laterArgs`.
 
-Notice the references to `fn` and `presetArgs` inside this inner function? How does that work? After `partial(..)` finishes running, how does the inner function keep being able to access `fn` and `presetArgs`? If you answered **closure**, you're right on track! The inner function `partiallyApplied(..)` closes over both the `fn` and `presetArgs` variables so it can keep accessing them later, no matter where the function runs. This is why understanding closure is critical!
+Заметили ссылки на `fn` и `presetArgs` внутри этой внутренней функции? Как это работает? После того как `partial(..)` завершает выполнение, как внутренняя функция продолжает иметь доступ к `fn` и `presetArgs`? Если вы ответили **замыкание** — вы на верном пути! Внутренняя функция `partiallyApplied(..)` замыкает (closes over) переменные `fn` и `presetArgs`, благодаря чему может продолжать обращаться к ним позже, где бы эта функция ни выполнялась. Вот почему понимание замыканий так важно!
 
-When the `partiallyApplied(..)` function is later executed somewhere else in your program, it uses the closed over `fn` to execute the original function, first providing any of the (closed over) `presetArgs` partial application arguments, then any further `laterArgs` arguments.
+Когда функция `partiallyApplied(..)` позже выполняется где-то в вашей программе, она использует замкнутый `fn` для вызова исходной функции, сначала предоставляя замкнутые аргументы частичного применения из `presetArgs`, а затем все дополнительные аргументы из `laterArgs`.
 
-If any of that was confusing, stop and go re-read it. Trust me, you'll be glad you did as we get further into the text.
+Если что-то было непонятно — остановитесь и перечитайте. Поверьте, вы будете рады, что сделали это, по мере продвижения в тексте.
 
-Let's now use the `partial(..)` utility to make those earlier partially applied functions:
+Теперь используем утилиту `partial(..)` для создания тех функций с частичным применением из примера выше:
 
 ```js
 var getPerson = partial( ajax, "http://some.api/person" );
@@ -317,7 +317,7 @@ var getPerson = partial( ajax, "http://some.api/person" );
 var getOrder = partial( ajax, "http://some.api/order" );
 ```
 
-Take a moment to consider the shape/internals of `getPerson(..)`. It will look sorta like this:
+Уделите момент, чтобы обдумать устройство/внутренности `getPerson(..)`. Это выглядит примерно так:
 
 ```js
 var getPerson = function partiallyApplied(...laterArgs) {
@@ -325,28 +325,28 @@ var getPerson = function partiallyApplied(...laterArgs) {
 };
 ```
 
-The same will be true of `getOrder(..)`. But what about `getCurrentUser(..)`?
+То же самое верно для `getOrder(..)`. А как насчёт `getCurrentUser(..)`?
 
 ```js
-// version 1
+// версия 1
 var getCurrentUser = partial(
     ajax,
     "http://some.api/person",
     { user: CURRENT_USER_ID }
 );
 
-// version 2
+// версия 2
 var getCurrentUser = partial( getPerson, { user: CURRENT_USER_ID } );
 ```
 
-We can either define `getCurrentUser(..)` with both the `url` and `data` arguments specified directly (version 1), or define `getCurrentUser(..)` as a partial application of the `getPerson(..)` partial application, specifying only the additional `data` argument (version 2).
+Мы можем определить `getCurrentUser(..)` либо с прямым указанием обоих аргументов — `url` и `data` (версия 1), либо как частичное применение уже существующего частичного применения `getPerson(..)`, указав только дополнительный аргумент `data` (версия 2).
 
-Version 2 is a little cleaner to express because it reuses something already defined. As such, I think it fits a little closer to the spirit of FP.
+Версия 2 выражается чуть чище, так как переиспользует уже определённое. Поэтому я думаю, что она чуть ближе к духу ФП.
 
-Just to make sure we understand how these two versions will work under the covers, they look respectively kinda like:
+Чтобы убедиться, что мы понимаем, как эти две версии работают под капотом, они выглядят примерно следующим образом:
 
 ```js
-// version 1
+// версия 1
 var getCurrentUser = function partiallyApplied(...laterArgs) {
     return ajax(
         "http://some.api/person",
@@ -355,7 +355,7 @@ var getCurrentUser = function partiallyApplied(...laterArgs) {
     );
 };
 
-// version 2
+// версия 2
 var getCurrentUser = function outerPartiallyApplied(...outerLaterArgs){
     var getPerson = function innerPartiallyApplied(...innerLaterArgs){
         return ajax( "http://some.api/person", ...innerLaterArgs );
@@ -365,11 +365,11 @@ var getCurrentUser = function outerPartiallyApplied(...outerLaterArgs){
 }
 ```
 
-Again, stop and re-read those code snippets to make sure you understand what's going on there.
+Снова: остановитесь и перечитайте эти фрагменты кода, убедившись, что понимаете происходящее.
 
-**Note:** Version 2 has an extra layer of function wrapping involved. That may smell strange and unnecessary, but this is just one of those things in FP that you'll want to get really comfortable with. We'll be wrapping many layers of functions onto each other as we progress through the text. Remember, this is *function*al programming!
+**Примечание:** В версии 2 задействован дополнительный уровень оборачивания функций. Это может показаться странным и излишним, но это одна из тех вещей в ФП, с которой вам нужно хорошо освоиться. По мере продвижения по тексту мы будем оборачивать много уровней функций друг на друга. Помните: это *функцио*нальное программирование!
 
-Let's take a look at another example of the usefulness of partial application. Consider an `add(..)` function which takes two arguments and adds them together:
+Давайте посмотрим ещё на один пример полезности частичного применения. Рассмотрим функцию `add(..)`, которая принимает два аргумента и складывает их:
 
 ```js
 function add(x,y) {
@@ -377,7 +377,7 @@ function add(x,y) {
 }
 ```
 
-Now imagine we'd like take a list of numbers and add a certain number to each of them. We'll use the `map(..)` utility (see [Chapter 9, "Map"](ch9.md/#map)) built into JS arrays:
+Теперь представьте, что нам нужно взять список чисел и добавить к каждому из них определённое число. Используем утилиту `map(..)` (см. [Главу 9, "Map"](ch9.md/#map)), встроенную в JS-массивы:
 
 ```js
 [1,2,3,4,5].map( function adder(val){
@@ -386,36 +386,36 @@ Now imagine we'd like take a list of numbers and add a certain number to each of
 // [4,5,6,7,8]
 ```
 
-The reason we can't pass `add(..)` directly to `map(..)` is because the signature of `add(..)` doesn't match the mapping function that `map(..)` expects. That's where partial application can help us: we can adapt the signature of `add(..)` to something that will match:
+Причина, по которой мы не можем передать `add(..)` напрямую в `map(..)`, в том, что сигнатура `add(..)` не соответствует ожидаемой `map(..)` функции-маппера. Вот где частичное применение может помочь: мы можем адаптировать сигнатуру `add(..)` к подходящей форме:
 
 ```js
 [1,2,3,4,5].map( partial( add, 3 ) );
 // [4,5,6,7,8]
 ```
 
-The `partial(add,3)` call produces a new unary function which is expecting only one more argument.
+Вызов `partial(add,3)` создаёт новую унарную функцию, которая ожидает только ещё один аргумент.
 
-The `map(..)` utility will loop through the array (`[1,2,3,4,5]`) and repeatedly call this unary function, once for each of those values, respectively. So, the calls made will effectively be `add(3,1)`, `add(3,2)`, `add(3,3)`, `add(3,4)`, and `add(3,5)`. The array of those results is `[4,5,6,7,8]`.
+Утилита `map(..)` пройдёт по массиву (`[1,2,3,4,5]`) и будет многократно вызывать эту унарную функцию — по одному разу для каждого из значений. Таким образом, фактически будут выполнены вызовы `add(3,1)`, `add(3,2)`, `add(3,3)`, `add(3,4)` и `add(3,5)`. Результирующий массив из этих вычислений — `[4,5,6,7,8]`.
 
 ### `bind(..)`
 
-JavaScript functions all have a built-in utility called `bind(..)`. It has two capabilities: presetting the `this` context and partially applying arguments.
+У всех JS-функций есть встроенная утилита `bind(..)`. Она обладает двумя возможностями: предустановка контекста `this` и частичное применение аргументов.
 
-I think it's incredibly misguided to conflate these two capabilities in one utility. Sometimes you'll want to hard-bind the `this` context and not partially apply arguments. Other times you'll want to partially apply arguments but not care about `this` binding at all. I have never needed both at the same time.
+Я считаю объединение этих двух возможностей в одной утилите крайне неудачным решением. Иногда нужно жёстко привязать контекст `this` без частичного применения аргументов. В других случаях нужно частичное применение аргументов, но контекст `this` не важен совсем. Мне никогда не приходилось делать оба действия одновременно.
 
-The latter scenario (partial application without setting `this` context) is awkward because you have to pass an ignorable placeholder for the `this`-binding argument (the first one), usually `null`.
+Второй сценарий (частичное применение без установки контекста `this`) неудобен тем, что приходится передавать игнорируемый заполнитель для аргумента `this`-привязки (первого) — обычно `null`.
 
-Consider:
+Рассмотрим:
 
 ```js
 var getPerson = ajax.bind( null, "http://some.api/person" );
 ```
 
-That `null` just bugs me to no end. Despite this *this* annoyance, it's mildly convenient that JS has a built-in utility for partial application. However, most FP programmers prefer using the dedicated `partial(..)` utility in their chosen FP library.
+Этот `null` меня безмерно раздражает. Несмотря на это неудобство с `this`, несомненно удобно, что в JS есть встроенная утилита для частичного применения. Тем не менее большинство ФП-разработчиков предпочитают использовать специализированную утилиту `partial(..)` из своей ФП-библиотеки.
 
-### Reversing Arguments
+### Изменение Порядка Аргументов
 
-Recall that the signature for our Ajax function is: `ajax( url, data, cb )`. What if we wanted to partially apply the `cb` but wait to specify `data` and `url` later? We could create a utility that wraps a function to reverse its argument order:
+Вспомним, что сигнатура нашей Ajax-функции: `ajax( url, data, cb )`. А что если мы хотим применить частичное применение к `cb`, но оставить `data` и `url` для указания позже? Мы могли бы создать утилиту, которая оборачивает функцию, меняя порядок её аргументов на обратный:
 
 ```js
 function reverseArgs(fn) {
@@ -424,14 +424,14 @@ function reverseArgs(fn) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var reverseArgs =
     fn =>
         (...args) =>
             fn( ...args.reverse() );
 ```
 
-Now we can reverse the order of the `ajax(..)` arguments, so that we can then partially apply from the right rather than the left. To restore the expected order, we'll then reverse the subsequent partially applied function:
+Теперь мы можем изменить порядок аргументов `ajax(..)` на обратный, чтобы частично применять аргументы справа, а не слева. Для восстановления ожидаемого порядка мы затем снова изменим порядок аргументов частично применённой функции:
 
 ```js
 var cache = {};
@@ -442,11 +442,11 @@ var cacheResult = reverseArgs(
     } )
 );
 
-// later:
+// позже:
 cacheResult( "http://some.api/person", { user: CURRENT_USER_ID } );
 ```
 
-Instead of manually using `reverseArgs(..)` (twice!) for this purpose, we can define a `partialRight(..)` which partially applies the rightmost arguments. Under the covers, it can use the same double-reverse trick:
+Вместо того чтобы вручную использовать `reverseArgs(..)` (дважды!) для этой цели, мы можем определить `partialRight(..)`, который частично применяет аргументы справа. Под капотом он может использовать тот же трюк с двойным разворотом:
 
 <a name="partialright"></a>
 
@@ -461,11 +461,11 @@ var cacheResult = partialRight( ajax, function onResult(obj){
     cache[obj.id] = obj;
 });
 
-// later:
+// позже:
 cacheResult( "http://some.api/person", { user: CURRENT_USER_ID } );
 ```
 
-Another more straightforward (and certainly more performant) implementation of `partialRight(..)` that doesn't use the double-reverse trick:
+Вот ещё более простая (и, конечно, более производительная) реализация `partialRight(..)`, не использующая трюк с двойным разворотом:
 
 ```js
 function partialRight(fn,...presetArgs) {
@@ -474,16 +474,16 @@ function partialRight(fn,...presetArgs) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var partialRight =
     (fn,...presetArgs) =>
         (...laterArgs) =>
             fn( ...laterArgs, ...presetArgs );
 ```
 
-None of these implementations of `partialRight(..)` guarantee that a specific parameter will receive a specific partially applied value; it only ensures that the partially applied value(s) appear as the rightmost (aka, last) argument(s) passed to the original function.
+Ни одна из этих реализаций `partialRight(..)` не гарантирует, что конкретный параметр получит конкретное частично применённое значение; она лишь гарантирует, что частично применённые значения окажутся самыми правыми (то есть последними) аргументами, переданными исходной функции.
 
-For example:
+Например:
 
 ```js
 function foo(x,y,z,...rest) {
@@ -501,15 +501,15 @@ f( 1, 2, 3 );       // 1 2 3 ["z:last"]
 f( 1, 2, 3, 4 );    // 1 2 3 [4,"z:last"]
 ```
 
-The value `"z:last"` is only applied to the `z` parameter in the case where `f(..)` is called with exactly two arguments (matching `x` and `y` parameters). In all other cases, the `"z:last"` will just be the rightmost argument, however many arguments precede it.
+Значение `"z:last"` применяется к параметру `z` только в том случае, когда `f(..)` вызывается ровно с двумя аргументами (совпадающими с параметрами `x` и `y`). Во всех остальных случаях `"z:last"` просто будет самым правым аргументом, сколько бы аргументов ни предшествовало ему.
 
-## One at a Time
+## Один за Раз
 
-Let's examine a technique similar to partial application, where a function that expects multiple arguments is broken down into successive chained functions that each take a single argument (arity: 1) and return another function to accept the next argument.
+Давайте рассмотрим технику, похожую на частичное применение: функция, принимающая несколько аргументов, разбивается на последовательность связанных функций, каждая из которых принимает один аргумент (арность: 1) и возвращает другую функцию для принятия следующего аргумента.
 
-This technique is called currying.
+Эта техника называется каррированием (currying).
 
-To first illustrate, let's imagine we had a curried version of `ajax(..)` already created. This is how we'd use it:
+Для начала представим, что у нас уже есть каррированная версия `ajax(..)`. Вот как мы её используем:
 
 ```js
 curriedAjax( "http://some.api/person" )
@@ -517,7 +517,7 @@ curriedAjax( "http://some.api/person" )
         ( function foundUser(user){ /* .. */ } );
 ```
 
-The three sets of `(..)`s denote three chained function calls. But perhaps splitting out each of the three calls helps see what's going on better:
+Три набора `(..)` обозначают три связанных вызова функций. Но, возможно, разделение каждого из трёх вызовов поможет лучше понять, что происходит:
 
 ```js
 var personFetcher = curriedAjax( "http://some.api/person" );
@@ -527,17 +527,17 @@ var getCurrentUser = personFetcher( { user: CURRENT_USER_ID } );
 getCurrentUser( function foundUser(user){ /* .. */ } );
 ```
 
-Instead of taking all the arguments at once (like `ajax(..)`), or some of the arguments up front and the rest later (via `partial(..)`), this `curriedAjax(..)` function receives one argument at a time, each in a separate function call.
+Вместо того чтобы принять все аргументы сразу (как `ajax(..)`), или часть аргументов заранее, а остальные позже (через `partial(..)`), эта функция `curriedAjax(..)` получает по одному аргументу за раз — каждый в отдельном вызове функции.
 
-Currying is similar to partial application in that each successive curried call partially applies another argument to the original function, until all arguments have been passed.
+Каррирование похоже на частичное применение тем, что каждый последующий каррированный вызов частично применяет ещё один аргумент к исходной функции, пока не будут переданы все аргументы.
 
-The main difference is that `curriedAjax(..)` will return a function (we call it `personFetcher(..)`) that expects **only the next argument** `data`, not one that (like the earlier `getPerson(..)`) can receive all the rest of the arguments.
+Главное отличие: `curriedAjax(..)` вернёт функцию (назовём её `personFetcher(..)`), которая ожидает **только следующий аргумент** `data`, а не ту, которая (как более ранний `getPerson(..)`) может принять все оставшиеся аргументы сразу.
 
-If an original function expected five arguments, the curried form of that function would take just the first argument, and return a function to accept the second. That one would take just the second argument, and return a function to accept the third. And so on.
+Если исходная функция ожидает пять аргументов, каррированная версия этой функции принимает только первый аргумент и возвращает функцию для принятия второго. Та принимает только второй аргумент и возвращает функцию для принятия третьего. И так далее.
 
-So currying unwinds a single higher-arity function into a series of chained unary functions.
+Таким образом, каррирование разворачивает одну функцию с высокой арностью в последовательность связанных унарных функций.
 
-How might we define a utility to do this currying? Consider:
+Как можно определить утилиту для выполнения каррирования? Рассмотрим:
 
 <a name="curry"></a>
 
@@ -557,7 +557,7 @@ function curry(fn,arity = fn.length) {
     })( [] );
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var curry =
     (fn,arity = fn.length,nextCurried) =>
         (nextCurried = prevArgs =>
@@ -574,13 +574,13 @@ var curry =
         )( [] );
 ```
 
-The approach here is to start a collection of arguments in `prevArgs` as an empty `[]` array, and add each received `nextArg` to that, calling the concatenation `args`. While `args.length` is less than `arity` (the number of declared/expected parameters of the original `fn(..)` function), make and return another `curried(..)` function to collect the next `nextArg` argument, passing the running `args` collection along as its `prevArgs`. Once we have enough `args`, execute the original `fn(..)` function with them.
+Подход здесь такой: начинаем собирать аргументы в `prevArgs` как пустой массив `[]`, и добавляем каждый полученный `nextArg` в него, называя конкатенацию `args`. Пока `args.length` меньше `arity` (количества объявленных/ожидаемых параметров исходной функции `fn(..)`), создаём и возвращаем ещё одну функцию `curried(..)` для получения следующего `nextArg`, передавая текущую коллекцию `args` как `prevArgs`. Когда `args` достаточно — выполняем исходную функцию `fn(..)` с ними.
 
-By default, this implementation relies on being able to inspect the `length` property of the to-be-curried function to know how many iterations of currying we'll need before we've collected all its expected arguments.
+По умолчанию эта реализация опирается на возможность инспектировать свойство `length` каррируемой функции, чтобы знать, сколько итераций каррирования необходимо перед тем, как будут собраны все ожидаемые аргументы.
 
-**Note:** If you use this implementation of `curry(..)` with a function that doesn't have an accurate `length` property, you'll need to pass the `arity` (the second parameter of `curry(..)`) to ensure `curry(..)` works correctly. `length` will be inaccurate if the function's parameter signature includes default parameter values, parameter destructuring, or is variadic with `...args` (see [Chapter 2](ch2.md)).
+**Примечание:** Если вы используете эту реализацию `curry(..)` с функцией, у которой свойство `length` неточное, вам нужно будет передать `arity` (второй параметр `curry(..)`), чтобы `curry(..)` работал корректно. `length` будет неточным, если сигнатура параметров функции включает значения по умолчанию, деструктуризацию параметров или вариативный `...args` (см. [Главу 2](ch2.md)).
 
-Here's how we would use `curry(..)` for our earlier `ajax(..)` example:
+Вот как мы используем `curry(..)` для нашего раннего примера с `ajax(..)`:
 
 ```js
 var curriedAjax = curry( ajax );
@@ -592,28 +592,28 @@ var getCurrentUser = personFetcher( { user: CURRENT_USER_ID } );
 getCurrentUser( function foundUser(user){ /* .. */ } );
 ```
 
-Each call partially applies one more argument to the original `ajax(..)` call, until all three have been provided and `ajax(..)` is actually invoked.
+Каждый вызов частично применяет ещё один аргумент к исходному вызову `ajax(..)`, пока не будут предоставлены все три и `ajax(..)` не будет фактически вызван.
 
-Remember our example from the discussion of partial application about adding `3` to each value in a list of numbers? As currying is similar to partial application, we could do that task with currying in almost the same way:
+Вспомним пример из обсуждения частичного применения, где мы добавляли `3` к каждому значению в списке чисел. Поскольку каррирование похоже на частичное применение, мы можем решить эту задачу с каррированием почти так же:
 
 ```js
 [1,2,3,4,5].map( curry( add )( 3 ) );
 // [4,5,6,7,8]
 ```
 
-The difference between the two? `partial(add,3)` vs `curry(add)(3)`.
+В чём разница между двумя подходами? `partial(add,3)` против `curry(add)(3)`.
 
-Why might you choose `curry(..)` over `partial(..)`? It might be helpful in the case where you know ahead of time that `add(..)` is the function to be adapted, but the value `3` isn't known yet:
+Когда лучше выбрать `curry(..)` вместо `partial(..)`? Это может быть удобно, когда вы знаете заранее, что `add(..)` — та функция, которую нужно адаптировать, но значение `3` ещё неизвестно:
 
 ```js
 var adder = curry( add );
 
-// later
+// позже
 [1,2,3,4,5].map( adder( 3 ) );
 // [4,5,6,7,8]
 ```
 
-Let's look at another numbers example, this time adding a list of them together:
+Рассмотрим ещё один пример с числами — на этот раз сложим их список:
 
 ```js
 function sum(...nums) {
@@ -626,24 +626,24 @@ function sum(...nums) {
 
 sum( 1, 2, 3, 4, 5 );                       // 15
 
-// now with currying:
-// (5 to indicate how many we should wait for)
+// теперь с каррированием:
+// (5 означает, сколько аргументов нужно накопить)
 var curriedSum = curry( sum, 5 );
 
 curriedSum( 1 )( 2 )( 3 )( 4 )( 5 );        // 15
 ```
 
-The advantage of currying here is that each call to pass in an argument produces another function that's more specialized, and we can capture and use *that* new function later in the program. Partial application specifies all the partially applied arguments up front, producing a function that's waiting for all the rest of the arguments **on the next call**.
+Преимущество каррирования здесь в том, что каждый вызов с передачей аргумента производит ещё одну, более специализированную функцию, которую мы можем захватить и использовать позже в программе. Частичное применение указывает все частично применяемые аргументы заранее, создавая функцию, ожидающую все оставшиеся аргументы **при следующем вызове**.
 
-If you wanted to use partial application to specify one parameter (or several!) at a time, you'd have to keep calling `partial(..)` again on each successive partially applied function. By contrast, curried functions do this automatically, making working with individual arguments one-at-a-time more ergonomic.
+Если бы вы хотели использовать частичное применение для указания одного параметра (или нескольких!) за раз, вам пришлось бы каждый раз снова вызывать `partial(..)` для каждой последовательно частично применённой функции. Каррированные функции делают это автоматически, что делает работу с отдельными аргументами по одному более удобной.
 
-Both currying and partial application use closure to remember the arguments over time until all have been received, and then the original function can be invoked.
+Оба — каррирование и частичное применение — используют замыкание для хранения аргументов во времени, пока не будут получены все, после чего вызывается исходная функция.
 
-### Visualizing Curried Functions
+### Визуализация Каррированных Функций
 
-Let's examine more closely the `curriedSum(..)` from the previous section. Recall its usage: `curriedSum(1)(2)(3)(4)(5)`; five subsequent (chained) function calls.
+Давайте внимательнее рассмотрим `curriedSum(..)` из предыдущего раздела. Вспомним его использование: `curriedSum(1)(2)(3)(4)(5)` — пять последовательных (связанных) вызовов функций.
 
-What if we manually defined a `curriedSum(..)` instead of using `curry(..)`? How would that look?
+Что если бы мы определили `curriedSum(..)` вручную, не используя `curry(..)`? Как бы это выглядело?
 
 ```js
 function curriedSum(v1) {
@@ -659,11 +659,11 @@ function curriedSum(v1) {
 }
 ```
 
-Definitely uglier, no question. But this is an important way to visualize what's going on with a curried function. Each nested function call is returning another function that's going to accept the next argument, and that continues until we've specified all the expected arguments.
+Определённо некрасиво, без вопросов. Но это важный способ визуализировать, что происходит с каррированной функцией. Каждый вложенный вызов функции возвращает ещё одну функцию, которая принимает следующий аргумент — и так продолжается, пока мы не указали все ожидаемые аргументы.
 
-When trying to decipher curried functions, I've found it helps me tremendously if I can unwrap them mentally as a series of nested functions.
+Пытаясь разобраться в каррированных функциях, я обнаружил, что мне очень помогает мысленно разворачивать их как серию вложенных функций.
 
-In fact, to reinforce that point, let's consider the same code but written with ES6 arrow functions:
+На самом деле, чтобы закрепить эту мысль, давайте рассмотрим тот же код, написанный с помощью стрелочных функций ES6:
 
 ```js
 curriedSum =
@@ -675,27 +675,27 @@ curriedSum =
                         sum( v1, v2, v3, v4, v5 );
 ```
 
-And now, all on one line:
+А теперь в одну строку:
 
 ```js
 curriedSum = v1 => v2 => v3 => v4 => v5 => sum( v1, v2, v3, v4, v5 );
 ```
 
-Depending on your perspective, that form of visualizing the curried function may be more or less helpful to you. For me, it's a fair bit more obscured.
+В зависимости от вашего восприятия, такая форма визуализации каррированной функции может быть вам более или менее понятна. Лично мне она кажется чуть более запутанной.
 
-But the reason I show it that way is that it happens to look almost identical to the mathematical notation (and Haskell syntax) for a curried function! That's one reason why those who like mathematical notation (and/or Haskell) like the ES6 arrow function form.
+Но причина, по которой я показываю её именно так, в том, что она практически идентична математической нотации (и синтаксису Haskell) для каррированной функции! Именно поэтому те, кому нравится математическая нотация (и/или Haskell), предпочитают форму стрелочных функций ES6.
 
-### Why Currying and Partial Application?
+### Зачем Нужны Каррирование и Частичное Применение?
 
-With either style -- currying (such as `sum(1)(2)(3)`) or partial application (such as `partial(sum,1,2)(3)`) -- the call-site unquestionably looks stranger than a more common one like `sum(1,2,3)`. So **why would we ever go this direction** when adopting FP? There are multiple layers to answering that question.
+С любым стилем — каррирование (например, `sum(1)(2)(3)`) или частичное применение (например, `partial(sum,1,2)(3)`) — место вызова выглядит неоспоримо более странно, чем обычный `sum(1,2,3)`. Так **зачем вообще идти в этом направлении** при работе с ФП? На этот вопрос есть несколько уровней ответа.
 
-The first and most obvious reason is that both currying and partial application allow you to separate in time/space (throughout your codebase) when and where separate arguments are specified, whereas traditional function calls require all the arguments to be present at the same time. If you have a place in your code where you'll know some of the arguments and another place where the other arguments are determined, currying or partial application are very useful.
+Первая и наиболее очевидная причина: и каррирование, и частичное применение позволяют вам разделить во времени/пространстве (по всей кодовой базе) — когда и где указываются отдельные аргументы, тогда как традиционные вызовы функций требуют наличия всех аргументов одновременно. Если у вас есть место в коде, где известна часть аргументов, и другое место, где определяются остальные аргументы — каррирование или частичное применение очень полезны.
 
-Another layer to this answer, specifically for currying, is that composition of functions is much easier when there's only one argument. So a function that ultimately needs three arguments, if curried, becomes a function that needs just one, three times over. That kind of unary function will be a lot easier to work with when we start composing them. We'll tackle this topic later in [Chapter 4](ch4.md).
+Другой уровень ответа, специфичный для каррирования: компоновка функций значительно проще, когда каждая из них принимает только один аргумент. Поэтому функция, которой в итоге нужны три аргумента, в каррированной форме становится функцией, которой нужен только один аргумент — три раза по одному. С такими унарными функциями будет гораздо удобнее работать при их компоновке. Этой теме мы посвятим [Главу 4](ch4.md).
 
-But the most important layer is specialization of generalized functions, and how such abstraction improves readability of code.
+Но самый важный уровень — это специализация обобщённых функций и то, как такая абстракция улучшает читаемость кода.
 
-Consider our running `ajax(..)` example:
+Рассмотрим наш постоянный пример с `ajax(..)`:
 
 ```js
 ajax(
@@ -705,9 +705,9 @@ ajax(
 );
 ```
 
-The call-site includes all the information necessary to pass to the most generalized version of the utility (`ajax(..)`). The potential readability downside is that it may be the case that the URL and the data are not relevant information at this point in the program, but yet that information is cluttering up the call-site nonetheless.
+Место вызова содержит всю информацию, необходимую для передачи в наиболее общую версию утилиты (`ajax(..)`). Потенциальный недостаток в читаемости: URL и данные могут быть нерелевантными в этой точке программы, и тем не менее они загромождают место вызова.
 
-Now consider:
+Теперь рассмотрим:
 
 ```js
 var getCurrentUser = partial(
@@ -716,38 +716,38 @@ var getCurrentUser = partial(
     { user: CURRENT_USER_ID }
 );
 
-// later
+// позже
 
 getCurrentUser( function foundUser(user){ /* .. */ } );
 ```
 
-In this version, we define a `getCurrentUser(..)` function ahead of time that already has known information like URL and data preset. The call-site for `getCurrentUser(..)` then isn't cluttered by information that **at that point of the code** isn't relevant.
+В этой версии мы заранее определяем функцию `getCurrentUser(..)`, в которой уже предустановлена известная информация — URL и данные. Место вызова `getCurrentUser(..)` не загромождается информацией, которая **в этой точке кода** не релевантна.
 
-Moreover, the semantic name for the function `getCurrentUser(..)` more accurately depicts what is happening than just `ajax(..)` with a URL and data would.
+Более того, семантическое имя функции `getCurrentUser(..)` точнее отражает, что происходит, чем просто `ajax(..)` с URL и данными.
 
-That's what abstraction is all about: separating two sets of details -- in this case, the *how* of getting a current user and the *what* we do with that user -- and inserting a semantic boundary between them, which eases the reasoning of each part independently.
+Вот что такое абстракция: разделение двух наборов деталей — в данном случае, *как* получить текущего пользователя и *что* с ним делать — и вставка семантической границы между ними, что облегчает независимое рассуждение о каждой части.
 
-Whether you use currying or partial application, creating specialized functions from generalized ones is a powerful technique for semantic abstraction and improved readability.
+Используете ли вы каррирование или частичное применение, создание специализированных функций из обобщённых — это мощная техника для семантической абстракции и улучшения читаемости.
 
-### Currying More Than One Argument?
+### Каррирование с Несколькими Аргументами?
 
-The definition and implementation I've given of currying thus far is, I believe, as true to the spirit as we can likely get in JavaScript.
+Определение и реализация каррирования, которые я дал, по моему мнению, настолько близки к его духу, насколько это возможно в JavaScript.
 
-Specifically, if we look briefly at how currying works in Haskell, we can observe that multiple arguments always go in to a function one at a time, one per curried call -- other than tuples (analogous to arrays for our purposes) that transport multiple values in a single argument.
+В частности, если кратко взглянуть на то, как каррирование работает в Haskell, можно заметить, что несколько аргументов всегда поступают в функцию по одному за раз — по одному на каждый каррированный вызов (за исключением кортежей, аналогов массивов для наших целей, которые переносят несколько значений в одном аргументе).
 
-For example, in Haskell:
+Например, в Haskell:
 
 ```haskell
 foo 1 2 3
 ```
 
-This calls the `foo` function, and has the result of passing in three values `1`, `2`, and `3`. But functions are automatically curried in Haskell, which means each value goes in as a separate curried-call. The JS equivalent of that would look like `foo(1)(2)(3)`, which is the same style as the `curry(..)` I presented earlier.
+Это вызов функции `foo` с тремя значениями: `1`, `2` и `3`. Но функции в Haskell каррируются автоматически, то есть каждое значение поступает как отдельный каррированный вызов. JS-эквивалент этого выглядит как `foo(1)(2)(3)` — тот же стиль, что и у представленного мной `curry(..)`.
 
-**Note:** In Haskell, `foo (1,2,3)` is not passing in those three values at once as three separate arguments, but a tuple (kinda like a JS array) as a single argument. To work, `foo` would need to be altered to handle a tuple in that argument position. As far as I can tell, there's no way in Haskell to pass all three arguments separately with just one function call; each argument gets its own curried-call. Of course, the presence of multiple calls is transparent to the Haskell developer, but it's a lot more syntactically obvious to the JS developer.
+**Примечание:** В Haskell `foo (1,2,3)` не передаёт эти три значения как три отдельных аргумента, а передаёт кортеж (аналог JS-массива) как единый аргумент. Чтобы это работало, `foo` нужно изменить для обработки кортежа в этой позиции аргумента. Насколько я могу судить, в Haskell нет способа передать все три аргумента отдельно за один вызов функции; каждый аргумент получает свой каррированный вызов. Конечно, наличие нескольких вызовов прозрачно для разработчика на Haskell, но для JS-разработчика это синтаксически более заметно.
 
-For these reasons, I think the `curry(..)` that I demonstrated earlier is a faithful adaptation, or what I might call "strict currying". However, it's important to note that there's a looser definition used in most popular JavaScript FP libraries.
+По этим причинам я считаю, что представленный мной `curry(..)` — верная адаптация, или то, что я мог бы назвать "строгим каррированием". Однако важно отметить, что в большинстве популярных JS-библиотек для ФП используется более мягкое определение.
 
-Specifically, JS currying utilities typically allow you to specify multiple arguments for each curried-call. Revisiting our `sum(..)` example from before, this would look like:
+В частности, утилиты каррирования для JS обычно позволяют указывать несколько аргументов в каждом каррированном вызове. Возвращаясь к нашему примеру с `sum(..)`, это выглядело бы так:
 
 ```js
 var curriedSum = looseCurry( sum, 5 );
@@ -755,9 +755,9 @@ var curriedSum = looseCurry( sum, 5 );
 curriedSum( 1 )( 2, 3 )( 4, 5 );            // 15
 ```
 
-We see a slight syntax savings of fewer `( )`, and an implied performance benefit of now having three function calls instead of five. But other than that, using `looseCurry(..)` is identical in end result to the narrower `curry(..)` definition from earlier. I would guess the convenience/performance factor is probably why frameworks allow multiple arguments. This seems mostly like a matter of taste.
+Мы видим небольшую экономию синтаксиса за счёт меньшего числа `( )` и подразумеваемый прирост производительности — теперь три вызова функций вместо пяти. Но в остальном использование `looseCurry(..)` идентично по конечному результату более строгому определению `curry(..)` из ранее. Полагаю, удобство/производительность, вероятно, именно поэтому фреймворки допускают несколько аргументов. Это кажется, в основном, вопросом вкуса.
 
-We can adapt our previous currying implementation to this common looser definition:
+Мы можем адаптировать нашу предыдущую реализацию каррирования к этому более распространённому мягкому определению:
 
 <a name="loosecurry"></a>
 
@@ -778,13 +778,13 @@ function looseCurry(fn,arity = fn.length) {
 }
 ```
 
-Now each curried-call accepts one or more arguments (as `nextArgs`). We'll leave it as an exercise for the interested reader to define the ES6 `=>` version of `looseCurry(..)` similar to how we did it for `curry(..)` earlier.
+Теперь каждый каррированный вызов принимает один или несколько аргументов (как `nextArgs`). Определение ES6-версии `looseCurry(..)` со стрелочными функциями по аналогии с тем, как мы это сделали для `curry(..)` ранее, оставим как упражнение для заинтересованного читателя.
 
-### No Curry for Me, Please
+### Нет Каррированию, Пожалуйста
 
-It may also be the case that you have a curried function that you'd like to essentially un-curry -- basically, to turn a function like `f(1)(2)(3)` back into a function like `g(1,2,3)`.
+Может также возникнуть ситуация, когда у вас есть каррированная функция, которую вы хотите, по сути, раскаррировать — то есть превратить функцию вида `f(1)(2)(3)` обратно в функцию вида `g(1,2,3)`.
 
-The standard utility for this is (un)shockingly typically called `uncurry(..)`. Here's a simple naive implementation:
+Стандартная утилита для этого — (не)удивительно — обычно называется `uncurry(..)`. Вот простая наивная реализация:
 
 ```js
 function uncurry(fn) {
@@ -799,7 +799,7 @@ function uncurry(fn) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var uncurry =
     fn =>
         (...args) => {
@@ -813,7 +813,7 @@ var uncurry =
         };
 ```
 
-**Warning:** Don't just assume that `uncurry(curry(f))` has the same behavior as `f`. In some libraries the uncurrying would result in a function like the original, but not all of them; certainly our example here does not. The uncurried function acts (mostly) the same as the original function if you pass as many arguments to it as the original function expected. However, if you pass fewer arguments, you still get back a partially curried function waiting for more arguments; this quirk is illustrated in the following snippet:
+**Предупреждение:** Не считайте само собой разумеющимся, что `uncurry(curry(f))` ведёт себя так же, как `f`. В некоторых библиотеках раскаррирование даёт функцию, аналогичную исходной, но не во всех. Наш пример — точно нет. Раскаррированная функция ведёт себя (в основном) так же, как исходная, если вы передаёте ей столько аргументов, сколько ожидала исходная функция. Однако если передать меньше аргументов, вы всё равно получите обратно частично каррированную функцию, ожидающую дополнительных аргументов; эта особенность проиллюстрирована в следующем фрагменте:
 
 ```js
 function sum(...nums) {
@@ -833,19 +833,19 @@ uncurriedSum( 1, 2, 3, 4, 5 );              // 15
 uncurriedSum( 1, 2, 3 )( 4 )( 5 );          // 15
 ```
 
-Probably the more common case of using `uncurry(..)` is not with a manually curried function as just shown, but with a function that comes out curried as a result of some other set of operations. We'll illustrate that scenario later in this chapter in the ["No Points" discussion](#no-points).
+Вероятно, более распространённый случай использования `uncurry(..)` — не с функцией, каррированной вручную, как только что было показано, а с функцией, которая оказалась каррированной в результате других операций. Мы проиллюстрируем этот сценарий позже в этой главе в [разделе "Без Точек"](#no-points).
 
-## Order Matters
+## Порядок Имеет Значение
 
-In Chapter 2, we explored the [named arguments pattern](ch2.md/#named-arguments). One primary advantage of named arguments is not needing to juggle argument ordering, thereby improving readability.
+В Главе 2 мы рассмотрели [паттерн именованных аргументов](ch2.md/#named-arguments). Одно из главных преимуществ именованных аргументов — отсутствие необходимости следить за порядком аргументов, что улучшает читаемость.
 
-We've looked at the advantages of using currying/partial application to provide individual arguments to a function separately. But the downside is that these techniques are traditionally based on positional arguments; argument ordering is thus an inevitable headache.
+Мы рассмотрели преимущества использования каррирования/частичного применения для передачи отдельных аргументов функции по отдельности. Но недостаток в том, что эти техники традиционно основаны на позиционных аргументах; порядок аргументов, таким образом, неизбежная головная боль.
 
-Utilities like `reverseArgs(..)` (and others) are necessary to juggle arguments to get them into the right order. Sometimes we get lucky and define a function with parameters in the order that we later want to curry them, but other times that order is incompatible and we have to jump through hoops to reorder.
+Утилиты вроде `reverseArgs(..)` (и другие) необходимы для управления аргументами, чтобы расставить их в правильном порядке. Иногда нам везёт, и мы определяем функцию с параметрами в том порядке, в котором хотим их каррировать, но иногда этот порядок несовместим и нам приходится прыгать через обручи, чтобы изменить порядок.
 
-The frustration is not merely that we need to use some utility to juggle the properties, but the fact that the usage of the utility clutters up our code a bit with extra noise. These kinds of things are like little paper cuts; one here or there isn't a showstopper, but the pain can certainly add up.
+Разочарование заключается не просто в том, что нужно использовать какую-то утилиту для управления свойствами, а в том, что её использование немного загромождает наш код лишним шумом. Такие вещи — как маленькие бумажные порезы: один-два — не катастрофа, но боль может накапливаться.
 
-Can we improve currying/partial application to free it from these ordering concerns? Let's apply the tricks from named arguments style and invent some helper utilities for this adaptation:
+Можем ли мы улучшить каррирование/частичное применение, освободив их от этих проблем с порядком? Давайте применим трюки из стиля именованных аргументов и изобретём вспомогательные утилиты для этой адаптации:
 
 ```js
 function partialProps(fn,presetArgsObj) {
@@ -873,9 +873,9 @@ function curryProps(fn,arity = 1) {
 }
 ```
 
-**Tip:** We don't even need a `partialPropsRight(..)` because we don't need to care about what order properties are being mapped; the name mappings make that ordering concern moot!
+**Подсказка:** Нам даже не нужен `partialPropsRight(..)`, потому что нам не нужно беспокоиться о порядке, в котором маппируются свойства; именованные свойства делают проблему порядка неактуальной!
 
-Here's how to use those helpers:
+Вот как использовать эти утилиты:
 
 ```js
 function foo({ x, y, z } = {}) {
@@ -892,13 +892,13 @@ f2( { z: 3, x: 1 } );
 // x:1 y:2 z:3
 ```
 
-Even with currying or partial application, order doesn't matter anymore! We can now specify which arguments we want in whatever sequence makes sense. No more `reverseArgs(..)` or other nuisances. Cool!
+Даже с каррированием или частичным применением порядок больше не имеет значения! Теперь мы можем указывать аргументы в любой последовательности, которая нам удобна. Больше никаких `reverseArgs(..)` и прочих неудобств. Отлично!
 
-**Tip:** If this style of function arguments seems useful or interesting to you, check out coverage of my [FPO library in Appendix C](apC.md/#bonus-fpo).
+**Подсказка:** Если этот стиль аргументов функций кажется вам полезным или интересным, ознакомьтесь с [FPO-библиотекой в Приложении C](apC.md/#bonus-fpo).
 
-### Spreading Properties
+### Разворачивание Свойств
 
-Unfortunately, we can only take advantage of currying with named arguments if we have control over the signature of `foo(..)` and define it to destructure its first parameter. What if we wanted to use this technique with a function that had its parameters individually listed (no parameter destructuring!), and we couldn't change that function signature? For example:
+К сожалению, мы можем воспользоваться преимуществами каррирования с именованными аргументами только в том случае, если у нас есть контроль над сигнатурой `foo(..)` и мы определяем её для деструктуризации первого параметра. А что если мы хотим использовать эту технику с функцией, у которой параметры перечислены по отдельности (без деструктуризации!), и мы не можем изменить сигнатуру этой функции? Например:
 
 ```js
 function bar(x,y,z) {
@@ -906,15 +906,15 @@ function bar(x,y,z) {
 }
 ```
 
-Just like the `spreadArgs(..)` utility earlier, we can define a `spreadArgProps(..)` helper that takes the `key: value` pairs out of an object argument and "spreads" the values out as individual arguments.
+Как и в случае с более ранней утилитой `spreadArgs(..)`, мы можем определить вспомогательную функцию `spreadArgProps(..)`, которая извлекает пары `key: value` из объекта-аргумента и "разворачивает" значения как отдельные аргументы.
 
-There are some quirks to be aware of, though. With `spreadArgs(..)`, we were dealing with arrays, where ordering is well defined and obvious. However, with objects, property order is less clear and not necessarily reliable. Depending on how an object is created and properties set, we cannot be absolutely certain what enumeration order properties would come out.
+Однако нужно учитывать некоторые тонкости. С `spreadArgs(..)` мы работали с массивами, где порядок чётко определён и очевиден. Но с объектами порядок свойств менее однозначен и не всегда предсказуем. В зависимости от того, как создан объект и установлены свойства, мы не можем быть абсолютно уверены, в каком порядке перечислятся свойства.
 
-Such a utility needs a way to let you define what order the function in question expects its arguments (e.g., property enumeration order). We can pass an array like `["x","y","z"]` to tell the utility to pull the properties off the object argument in exactly that order.
+Такой утилите нужен способ, позволяющий вам определить, в каком порядке функция ожидает свои аргументы (например, порядок перечисления свойств). Мы можем передать массив вроде `["x","y","z"]`, чтобы указать утилите извлекать свойства из объекта-аргумента именно в этом порядке.
 
-That's decent, but it's also unfortunate that it then *obligates* us to add that property-name array even for the simplest of functions. Is there any kind of trick we could use to detect what order the parameters are listed for a function, in at least the common simple cases? Fortunately, yes!
+Это нормально, но неудобно тем, что обязывает нас добавлять этот массив имён свойств даже для самых простых функций. Есть ли какой-то трюк для определения порядка параметров функции хотя бы в простых общих случаях? К счастью, да!
 
-JavaScript functions have a `.toString()` method that gives a string representation of the function's code, including the function declaration signature. Dusting off our regular expression parsing skills, we can parse the string representation of the function, and pull out the individually named parameters. The code looks a bit gnarly, but it's good enough to get the job done:
+У JS-функций есть метод `.toString()`, который возвращает строковое представление кода функции, включая сигнатуру объявления функции. Вооружившись навыками разбора регулярных выражений, мы можем разобрать строковое представление функции и извлечь из него имена параметров. Код выглядит немного громоздко, но справляется с задачей:
 
 ```js
 function spreadArgProps(
@@ -932,9 +932,9 @@ function spreadArgProps(
 }
 ```
 
-**Note:** This utility's parameter parsing logic is far from bullet-proof; we're using regular expressions to parse code, which is already a faulty premise! But our only goal here is to handle the common cases, which this does reasonably well. We only need a sensible default detection of parameter order for functions with simple parameters (including those with default parameter values). We don't, for example, need to be able to parse out a complex destructured parameter, because we wouldn't likely be using this utility with such a function, anyway. So, this logic gets the job done 80% of the time; it lets us override the `propOrder` array for any other more complex function signature that wouldn't otherwise be correctly parsed. That's the kind of pragmatic balance this book seeks to find wherever possible.
+**Примечание:** Логика разбора параметров этой утилиты далека от надёжной — мы используем регулярные выражения для разбора кода, что само по себе уже сомнительная предпосылка! Но наша единственная цель — обрабатывать общие случаи, с чем это справляется достаточно хорошо. Нам нужно лишь разумное обнаружение порядка параметров по умолчанию для функций с простыми параметрами (включая те, у которых есть значения по умолчанию). Нам не нужно уметь разбирать сложный деструктурированный параметр, потому что мы вряд ли будем использовать эту утилиту с такой функцией. Так что эта логика работает в 80% случаев; для остальных более сложных сигнатур функций, которые не могут быть правильно разобраны, можно переопределить массив `propOrder`. Это тот прагматичный баланс, который эта книга стремится найти везде, где это возможно.
 
-Let's illustrate using our `spreadArgProps(..)` utility:
+Давайте проиллюстрируем использование утилиты `spreadArgProps(..)`:
 
 ```js
 function bar(x,y,z) {
@@ -951,17 +951,19 @@ f4( { z: 3, x: 1 } );
 // x:1 y:2 z:3
 ```
 
-While order is no longer a concern, usage of functions defined in this style requires you to know what each argument's exact name is. You can't just remember, "oh, the function goes in as the first argument" anymore. Instead, you have to remember, "the function parameter is called 'fn'." Conventions can create consistency of naming that lessens this burden, but it's still something to be aware of.
+Хотя порядок больше не является проблемой, использование функций, определённых в таком стиле, требует, чтобы вы знали точное имя каждого аргумента. Вы больше не можете просто помнить: "о, функция идёт первым аргументом". Вместо этого нужно помнить: "параметр функции называется 'fn'". Соглашения об именах могут создать последовательность, которая снижает это бремя, но о нём всё равно нужно знать.
 
-Weigh these trade-offs carefully.
+Тщательно взвешивайте эти компромиссы.
 
-## No Points
+## Без Точек
 
-A popular style of coding in the FP world aims to reduce some of the visual clutter by removing unnecessary parameter-argument mapping. This style is formally called tacit programming, or more commonly: point-free style. The term "point" here is referring to a function's parameter input.
+<a name="no-points"></a>
 
-**Warning:** Stop for a moment. Let's make sure we're careful not to take this discussion as an unbounded suggestion that you go overboard trying to be point-free in your FP code at all costs. This should be a technique for improving readability, when used in moderation. But as with most things in software development, you can definitely abuse it. If your code gets harder to understand because of the hoops you have to jump through to be point-free, stop. You won't win a blue ribbon just because you found some clever but esoteric way to remove another "point" from your code.
+Популярный стиль написания кода в мире ФП направлен на уменьшение визуального шума путём устранения лишних соответствий параметра-аргумента. Этот стиль формально называется неявным программированием (tacit programming), или более распространённо: бесточечный стиль (point-free). Слово "точка" здесь означает входной параметр функции.
 
-Let's start with a simple example:
+**Предупреждение:** Остановитесь на мгновение. Давайте убедимся, что не воспринимаем это обсуждение как безграничный призыв стараться быть бесточечными в вашем ФП-коде любой ценой. Это техника для улучшения читаемости, применяемая в меру. Но, как и большинство вещей в разработке программного обеспечения, можно злоупотребить ею. Если ваш код становится сложнее для понимания из-за обручей, через которые вам приходится прыгать, чтобы быть бесточечным — остановитесь. Вы не получите синюю ленту только потому, что нашли хитрый, но эзотерический способ убрать ещё одну "точку" из кода.
+
+Начнём с простого примера:
 
 ```js
 function double(x) {
@@ -974,7 +976,7 @@ function double(x) {
 // [2,4,6,8,10]
 ```
 
-Can you see that `mapper(..)` and `double(..)` have the same (or compatible, anyway) signatures? The parameter ("point") `v` can directly map to the corresponding argument in the `double(..)` call. As such, the `mapper(..)` function wrapper is unnecessary. Let's simplify with point-free style:
+Вы видите, что `mapper(..)` и `double(..)` имеют одинаковые (или, во всяком случае, совместимые) сигнатуры? Параметр ("точка") `v` может напрямую соответствовать аргументу в вызове `double(..)`. Таким образом, обёртка `mapper(..)` излишня. Упростим с помощью бесточечного стиля:
 
 ```js
 function double(x) {
@@ -985,7 +987,7 @@ function double(x) {
 // [2,4,6,8,10]
 ```
 
-Let's revisit an example from earlier:
+Вернёмся к более раннему примеру:
 
 ```js
 ["1","2","3"].map( function mapper(v){
@@ -994,28 +996,28 @@ Let's revisit an example from earlier:
 // [1,2,3]
 ```
 
-In this example, `mapper(..)` is actually serving an important purpose, which is to discard the `index` argument that `map(..)` would pass in, because `parseInt(..)` would incorrectly interpret that value as a `radix` for the parsing.
+В этом примере `mapper(..)` фактически служит важной цели — отбрасывать аргумент `index`, который передаёт `map(..)`, поскольку `parseInt(..)` ошибочно интерпретировал бы это значение как `radix` для разбора.
 
-If you recall from the beginning of this chapter, this was an example where `unary(..)` helps us out:
+Если помните, в начале этой главы это был пример, где нам помог `unary(..)`:
 
 ```js
 ["1","2","3"].map( unary( parseInt ) );
 // [1,2,3]
 ```
 
-Point-free!
+Бесточечно!
 
-The key thing to look for is if you have a function with parameter(s) that is/are directly passed to an inner function call. In both of the preceding examples, `mapper(..)` had the `v` parameter that was passed along to another function call. We were able to replace that layer of abstraction with a point-free expression using `unary(..)`.
+Ключ в том, чтобы найти функцию с параметром/параметрами, которые напрямую передаются во внутренний вызов функции. В обоих предыдущих примерах `mapper(..)` имел параметр `v`, который передавался в другой вызов функции. Мы смогли заменить этот уровень абстракции бесточечным выражением с помощью `unary(..)`.
 
-**Warning:** You might have been tempted, as I was, to try `map(partialRight(parseInt,10))` to right-partially apply the `10` value as the `radix`. However, as we saw earlier, `partialRight(..)` only guarantees that `10` will be the last argument passed in, not that it will be specifically the second argument. Since `map(..)` itself passes three arguments (`value`, `index`, `arr`) to its mapping function, the `10` value would just be the fourth argument to `parseInt(..)`; it only pays attention to the first two.
+**Предупреждение:** У вас мог возникнуть соблазн, как у меня, попробовать `map(partialRight(parseInt,10))`, чтобы частично применить значение `10` справа как `radix`. Однако, как мы видели ранее, `partialRight(..)` гарантирует только то, что `10` будет последним переданным аргументом, а не конкретно вторым. Поскольку `map(..)` сам передаёт три аргумента (`value`, `index`, `arr`) в функцию маппинга, значение `10` стало бы четвёртым аргументом `parseInt(..)`; он обращает внимание только на первые два.
 
 <a name="shortlongenough"></a>
 
-Here's another example:
+Вот ещё один пример:
 
 ```js
-// convenience to avoid any potential binding issue
-// with trying to use `console.log` as a function
+// удобство во избежание возможных проблем с привязкой
+// при попытке использовать `console.log` как функцию
 function output(txt) {
     console.log( txt );
 }
@@ -1037,7 +1039,7 @@ printIf( isShortEnough, msg1 );         // Hello
 printIf( isShortEnough, msg2 );
 ```
 
-Now let's say you want to print a message only if it's long enough; in other words, if it's `!isShortEnough(..)`. Your first thought is probably this:
+Теперь предположим, что вы хотите вывести сообщение только если оно достаточно длинное, то есть если оно `!isShortEnough(..)`. Ваша первая мысль, вероятно, такая:
 
 ```js
 function isLongEnough(str) {
@@ -1048,9 +1050,9 @@ printIf( isLongEnough, msg1 );
 printIf( isLongEnough, msg2 );          // Hello World
 ```
 
-Easy enough... but "points" now! See how `str` is passed through? Without re-implementing the `str.length` check, can we refactor this code to point-free style?
+Достаточно просто... но теперь появились "точки"! Видите, как `str` передаётся насквозь? Не переопределяя проверку `str.length`, можно ли рефакторить этот код в бесточечный стиль?
 
-Let's define a `not(..)` negation helper (often referred to as `complement(..)` in FP libraries):
+Давайте определим вспомогательную функцию отрицания `not(..)` (часто называемую `complement(..)` в ФП-библиотеках):
 
 ```js
 function not(predicate) {
@@ -1059,14 +1061,14 @@ function not(predicate) {
     };
 }
 
-// or the ES6 => arrow form
+// или в форме стрелочной функции ES6
 var not =
     predicate =>
         (...args) =>
             !predicate( ...args );
 ```
 
-Next, let's use `not(..)` to alternatively define `isLongEnough(..)` without "points":
+Теперь используем `not(..)` для определения `isLongEnough(..)` без "точек":
 
 ```js
 var isLongEnough = not( isShortEnough );
@@ -1074,9 +1076,9 @@ var isLongEnough = not( isShortEnough );
 printIf( isLongEnough, msg2 );          // Hello World
 ```
 
-That's pretty good, isn't it? But we *could* keep going. `printIf(..)` could be refactored to be point-free itself.
+Неплохо, правда? Но мы *можем* пойти дальше. Саму `printIf(..)` можно рефакторить в бесточечный стиль.
 
-We can express the `if` conditional part with a `when(..)` utility:
+Мы можем выразить условную часть `if` с помощью утилиты `when(..)`:
 
 ```js
 function when(predicate,fn) {
@@ -1087,24 +1089,24 @@ function when(predicate,fn) {
     };
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var when =
     (predicate,fn) =>
         (...args) =>
             predicate( ...args ) ? fn( ...args ) : undefined;
 ```
 
-Let's mix `when(..)` with a few other helper utilities we've seen earlier in this chapter, to make the point-free `printIf(..)`:
+Смешаем `when(..)` с несколькими другими вспомогательными утилитами, которые мы видели ранее в этой главе, чтобы создать бесточечную `printIf(..)`:
 
 ```js
 var printIf = uncurry( partialRight( when, output ) );
 ```
 
-Here's how we did it: we right-partially-applied the `output` method as the second (`fn`) argument for `when(..)`, which leaves us with a function still expecting the first argument (`predicate`). *That* function when called produces another function expecting the message string; it would look like this: `fn(predicate)(str)`.
+Вот как мы это сделали: мы частично применили метод `output` справа как второй аргумент (`fn`) для `when(..)`, что оставляет нам функцию, всё ещё ожидающую первый аргумент (`predicate`). *Эта* функция при вызове создаёт ещё одну функцию, ожидающую строку-сообщение; это выглядело бы как `fn(predicate)(str)`.
 
-A chain of multiple (two) function calls like that looks an awful lot like a curried function, so we `uncurry(..)` this result to produce a single function that expects the two `str` and `predicate` arguments together, which matches the original `printIf(predicate,str)` signature.
+Цепочка из нескольких (двух) вызовов функций очень похожа на каррированную функцию, поэтому мы применяем `uncurry(..)` к этому результату, чтобы получить единую функцию, ожидающую оба аргумента `str` и `predicate` вместе, что соответствует исходной сигнатуре `printIf(predicate,str)`.
 
-Here's the whole example put back together (assuming various utilities we've already detailed in this chapter are present):
+Вот весь пример вместе (при наличии различных утилит, которые мы уже описали в этой главе):
 
 <a name="finalshortlong"></a>
 
@@ -1131,20 +1133,20 @@ printIf( isLongEnough, msg1 );
 printIf( isLongEnough, msg2 );          // Hello World
 ```
 
-Hopefully the FP practice of point-free style coding is starting to make a little more sense. It'll still take a lot of practice to train yourself to think this way naturally. **And you'll still have to make judgement calls** as to whether point-free coding is worth it, as well as what extent will benefit your code's readability.
+Надеюсь, ФП-практика бесточечного стиля кода начинает казаться вам немного более понятной. Всё равно потребуется много практики, чтобы научиться думать в этом направлении естественно. **И вам всё равно придётся принимать взвешенные решения** относительно того, оправдан ли бесточечный код, и в какой мере он улучшает читаемость.
 
-What do you think? Points or no points for you?
+Что вы думаете? С "точками" или без?
 
-**Note:** Want more practice with point-free style coding? We'll revisit this technique in [Chapter 4, "Revisiting Points"](ch4.md/#revisiting-points), based on newfound knowledge of function composition.
+**Примечание:** Хотите больше практики с бесточечным стилем? Мы вернёмся к этой технике в [Главе 4, "Возвращение к Точкам"](ch4.md/#revisiting-points), на основе новых знаний о компоновке функций.
 
-## Summary
+## Резюме
 
-Partial application is a technique for reducing the arity (that is, the expected number of arguments to a function) by creating a new function where some of the arguments are preset.
+Частичное применение — техника для уменьшения арности (то есть ожидаемого числа аргументов функции) путём создания новой функции, в которой часть аргументов задана заранее.
 
-Currying is a special form of partial application where the arity is reduced to 1, with a chain of successive chained function calls, each which takes one argument. Once all arguments have been specified by these function calls, the original function is executed with all the collected arguments. You can also undo a currying.
+Каррирование — особая форма частичного применения, при которой арность уменьшается до 1, с цепочкой последовательных вызовов функций, каждый из которых принимает один аргумент. После того как все аргументы указаны этими вызовами, вызывается исходная функция со всеми собранными аргументами. Каррирование можно также отменить.
 
-Other important utilities like `unary(..)`, `identity(..)`, and `constant(..)` are part of the base toolbox for FP.
+Другие важные утилиты — `unary(..)`, `identity(..)` и `constant(..)` — являются частью базового ФП-инструментария.
 
-Point-free is a style of writing code that eliminates unnecessary verbosity of mapping parameters ("points") to arguments, with the goal of making code easier to read/understand.
+Бесточечный стиль — способ написания кода, который устраняет лишние сопоставления параметров ("точек") с аргументами с целью сделать код легче для чтения и понимания.
 
-All of these techniques twist functions around so they can work together more naturally. With your functions shaped compatibly now, the next chapter will teach you how to combine them to model the flows of data through your program.
+Все эти техники "скручивают" функции так, чтобы они могли работать вместе более естественно. Теперь, когда ваши функции совместимы по форме, в следующей главе вы узнаете, как их комбинировать, чтобы моделировать потоки данных в вашей программе.
