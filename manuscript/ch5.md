@@ -1,23 +1,23 @@
 # Functional-Light JavaScript
-# Chapter 5: Reducing Side Effects
+# Глава 5: Уменьшение побочных эффектов
 
-In [Chapter 2](ch2.md), we discussed how a function can have outputs besides its `return` value. By now you should be very comfortable with the FP definition of a function, so the idea of such side outputs -- side effects! -- should smell.
+В [Главе 2](ch2.md) мы обсуждали, как функция может иметь выходные данные помимо значения `return`. К этому моменту вы должны быть хорошо знакомы с определением функции в ФП, поэтому идея о таких побочных выходных данных — побочных эффектах! — должна настораживать.
 
-We're going to examine the various different forms of side effects and see why they are harmful to our code's quality and readability.
+Мы рассмотрим различные формы побочных эффектов и выясним, почему они вредят качеству и читаемости нашего кода.
 
-But let me not bury the lede here. The punchline to this chapter: it's impossible to write a program with no side effects. Well, not impossible; you certainly can. But that program won't do anything useful or observable. If you wrote a program with zero side effects, you wouldn't be able to tell the difference between it and an empty program.
+Но не буду ходить вокруг да около. Главная мысль этой главы: написать программу без побочных эффектов невозможно. Ну, не то чтобы совсем невозможно — вы вполне можете это сделать. Но такая программа не будет делать ничего полезного или наблюдаемого. Если бы вы написали программу с нулевым количеством побочных эффектов, вы бы не смогли отличить её от пустой программы.
 
-The FPer doesn't eliminate all side effects. Rather, the goal is to limit them as much as possible. To do that, we first need to fully understand them.
+ФП-программист не стремится устранить все побочные эффекты. Цель — ограничить их насколько возможно. А для этого нам сначала нужно полностью их понять.
 
-## Effects on the Side, Please
+## Побочные эффекты, пожалуйста
 
-Cause and effect: one of the most fundamental, intuitive observations we humans can make about the world around us. Push a book off the edge of a table, it falls to the ground. You don't need a physics degree to know that the cause was you pushing the book and the effect was gravity pulling it to the ground. There's a clear and direct relationship.
+Причина и следствие: одно из самых фундаментальных и интуитивных наблюдений, которое мы, люди, делаем об окружающем мире. Столкните книгу с края стола — она упадёт на пол. Вам не нужна степень по физике, чтобы понять: причина — вы толкнули книгу, а следствие — сила тяжести потянула её вниз. Между ними есть чёткая и прямая связь.
 
-In programming, we also deal entirely in cause and effect. If you call a function (cause), it displays a message on the screen (effect).
+В программировании мы тоже имеем дело исключительно с причинами и следствиями. Если вы вызываете функцию (причина), она отображает сообщение на экране (следствие).
 
-When reading a program, it's supremely important that the reader be able to clearly identify each cause and each effect. To any extent where a direct relationship between cause and effect cannot be seen readily upon a read-through of the program, that program's readability is degraded.
+При чтении программы крайне важно, чтобы читатель мог чётко определить каждую причину и каждое следствие. В той мере, в которой прямая связь между причиной и следствием не видна при беглом прочтении программы, её читаемость ухудшается.
 
-Consider:
+Рассмотрим:
 
 ```js
 function foo(x) {
@@ -27,9 +27,9 @@ function foo(x) {
 var y = foo( 3 );
 ```
 
-In this trivial program, it is immediately clear that calling foo (the cause) with value `3` will have the effect of returning the value `6` that is then assigned to `y` (the effect). There's no ambiguity here.
+В этой тривиальной программе сразу очевидно, что вызов `foo` (причина) со значением `3` даст эффект в виде возврата значения `6`, которое затем присваивается `y` (следствие). Никакой двусмысленности.
 
-But now:
+А теперь:
 
 ```js
 function foo(x) {
@@ -41,21 +41,21 @@ var y;
 foo( 3 );
 ```
 
-This program has the exact same outcome. But there's a very big difference. The cause and the effect are disjoint. The effect is indirect. The setting of `y` in this way is what we call a side effect.
+Эта программа даёт точно такой же результат. Но есть очень большая разница. Причина и следствие разъединены. Следствие косвенное. Установка `y` таким способом — это то, что мы называем побочным эффектом.
 
-**Note:** When a function makes a reference to a variable outside itself, this is called a free variable. Not all free variable references will be bad, but we'll want to be very careful with them.
+**Примечание:** Когда функция обращается к переменной, находящейся за её пределами, такая переменная называется свободной переменной. Не все обращения к свободным переменным плохи, но с ними следует быть очень осторожными.
 
-What if I gave you a reference to call a function `bar(..)` that you cannot see the code for, but I told you that it had no such indirect side effects, only an explicit `return` value effect?
+Что если я дам вам ссылку для вызова функции `bar(..)`, код которой вы не можете видеть, но я скажу вам, что она не создаёт никаких косвенных побочных эффектов — только явный эффект в виде значения `return`?
 
 ```js
 bar( 4 );           // 42
 ```
 
-Because you know that the internals of `bar(..)` do not create any side effects, you can now reason about any `bar(..)` call like this one in a much more straightforward way. But if you didn't know that `bar(..)` had no side effects, to understand the outcome of calling it, you'd have to go read and dissect all of its logic. This is extra mental tax burden for the reader.
+Зная, что внутренности `bar(..)` не создают побочных эффектов, вы теперь можете рассуждать о любом вызове `bar(..)` значительно проще. Но если бы вы не знали, что у `bar(..)` нет побочных эффектов, чтобы понять результат её вызова, вам пришлось бы читать и разбирать всю её логику. Это дополнительная умственная нагрузка для читателя.
 
-**The readability of a side effecting function is worse** because it requires more reading to understand the program.
+**Читаемость функции с побочными эффектами хуже**, потому что для понимания программы требуется больше чтения.
 
-But the problem goes deeper than that. Consider:
+Но проблема глубже. Рассмотрим:
 
 ```js
 var x = 1;
@@ -73,19 +73,19 @@ baz();
 console.log( x );
 ```
 
-How sure are you which values are going to be printed at each `console.log(x)`?
+Насколько вы уверены в том, какие значения будут напечатаны в каждом `console.log(x)`?
 
-The correct answer is: not at all. If you're not sure whether `foo()`, `bar()`, and `baz()` are side-effecting or not, you cannot guarantee what `x` will be at each step unless you inspect the implementations of each, **and** then trace the program from line 1 forward, keeping track of all the changes in state as you go.
+Правильный ответ: совсем не уверены. Если вы не знаете, есть ли побочные эффекты у `foo()`, `bar()` и `baz()`, вы не можете гарантировать, каким будет `x` на каждом шаге, не изучив реализацию каждой из них, **и** не проследив программу с первой строки, отслеживая все изменения состояния по мере продвижения.
 
-In other words, the final `console.log(x)` is impossible to analyze or predict unless you've mentally executed the whole program up to that point.
+Иными словами, последний `console.log(x)` невозможно проанализировать или предсказать, не выполнив мысленно всю программу до этой точки.
 
-Guess who's good at running your program? The JS engine. Guess who's not as good at running your program? The reader of your code. And yet, your choice to write code (potentially) with side effects in one or more of those function calls means that you've burdened the reader with having to mentally execute your program in its entirety up to a certain line, for them to read and understand that line.
+Кто хорошо справляется с выполнением вашей программы? Движок JS. Кто справляется хуже? Читатель вашего кода. И всё же, решив написать код (потенциально) с побочными эффектами в одном или нескольких из этих вызовов функций, вы обременяете читателя необходимостью мысленно выполнить всю программу до определённой строки, чтобы прочитать и понять её.
 
-If `foo()`, `bar()`, and `baz()` were all free of side effects, they could not affect `x`, which means we do not need to execute them to mentally trace what happens with `x`. This is less mental tax, and makes the code more readable.
+Если бы `foo()`, `bar()` и `baz()` не имели побочных эффектов, они не могли бы влиять на `x`, а значит, нам не нужно было бы их выполнять, чтобы мысленно отследить, что происходит с `x`. Это меньше умственных затрат, а код становится более читаемым.
 
-### Hidden Causes
+### Скрытые причины
 
-Outputs, changes in state, are the most commonly cited manifestation of side effects. But another readability-harming practice is what some refer to as side causes. Consider:
+Выходные данные, изменения состояния — наиболее часто упоминаемое проявление побочных эффектов. Но есть ещё одна вредящая читаемости практика, которую некоторые называют скрытыми причинами. Рассмотрим:
 
 ```js
 function foo(x) {
@@ -97,7 +97,7 @@ var y = 3;
 foo( 1 );           // 4
 ```
 
-`y` is not changed by `foo(..)`, so it's not the same kind of side effect as we saw before. But now, the calling of `foo(..)` actually depends on the presence and current state of a `y`. If later, we do:
+`y` не изменяется функцией `foo(..)`, так что это не тот же тип побочного эффекта, что мы видели раньше. Но теперь вызов `foo(..)` зависит от наличия и текущего состояния `y`. Если позже мы сделаем:
 
 ```js
 y = 5;
@@ -107,17 +107,17 @@ y = 5;
 foo( 1 );           // 6
 ```
 
-Might we be surprised that the call to `foo(1)` returned different results from call to call?
+Удивит ли нас то, что вызов `foo(1)` вернул разные результаты от вызова к вызову?
 
-`foo(..)` has an indirection of cause that is harmful to readability. The reader cannot see, without inspecting `foo(..)`'s implementation carefully, what causes are contributing to the output effect. It *looks* like the argument `1` is the only cause, but it turns out it's not.
+У `foo(..)` есть косвенность причины, которая вредит читаемости. Читатель не может увидеть без тщательного изучения реализации `foo(..)`, какие причины влияют на выходной эффект. Кажется, что аргумент `1` — единственная причина, но на деле это не так.
 
-To aid readability, all of the causes that will contribute to determining the effect output of `foo(..)` should be made as direct and obvious inputs to `foo(..)`. The reader of the code will clearly see the cause(s) and effect.
+Чтобы помочь читаемости, все причины, которые будут влиять на выходной эффект `foo(..)`, должны быть сделаны прямыми и очевидными входными данными для `foo(..)`. Читатель кода сразу увидит причину(ы) и следствие.
 
-#### Fixed State
+#### Фиксированное состояние
 
-Does avoiding side causes mean the `foo(..)` function cannot reference any free variables?
+Означает ли избегание скрытых причин, что функция `foo(..)` не может ссылаться на какие-либо свободные переменные?
 
-Consider this code:
+Рассмотрим этот код:
 
 ```js
 function foo(x) {
@@ -131,13 +131,13 @@ function bar(x) {
 foo( 3 );           // 9
 ```
 
-It's clear that for both `foo(..)` and `bar(..)`, the only direct cause is the `x` parameter. But what about the `bar(x)` call? `bar` is just an identifier, and in JS it's not even a constant (aka, non-reassignable variable) by default. The `foo(..)` function is relying on the value of `bar` -- a variable that references the second function -- as a free variable.
+Очевидно, что как для `foo(..)`, так и для `bar(..)`, единственная прямая причина — параметр `x`. Но как насчёт вызова `bar(x)`? `bar` — это просто идентификатор, и в JS это даже не константа (т.е. не переменная, которую нельзя переназначить) по умолчанию. Функция `foo(..)` полагается на значение `bar` — переменной, ссылающейся на вторую функцию — как на свободную переменную.
 
-So is this program relying on a side cause?
+Так полагается ли эта программа на скрытую причину?
 
-I say no. Even though it is *possible* to overwrite the `bar` variable's value with some other function, I am not doing so in this code, nor is it a common practice of mine or precedent to do so. For all intents and purposes, my functions are constants (never reassigned).
+Я говорю нет. Хотя *возможно* перезаписать значение переменной `bar` какой-то другой функцией, я не делаю этого в данном коде, и это не является моей обычной практикой или прецедентом. По всем параметрам мои функции являются константами (никогда не переназначаются).
 
-Consider:
+Рассмотрим:
 
 ```js
 const PI = 3.141592;
@@ -149,45 +149,45 @@ function foo(x) {
 foo( 3 );           // 9.424776000000001
 ```
 
-**Note:** JavaScript has `Math.PI` built-in, so we're only using the `PI` example in this text as a convenient illustration. In practice, always use `Math.PI` instead of defining your own!
+**Примечание:** В JavaScript есть встроенный `Math.PI`, так что мы используем пример с `PI` здесь только для удобства иллюстрации. На практике всегда используйте `Math.PI` вместо того, чтобы определять свой!
 
-How about the preceding code snippet? Is `PI` a side cause of `foo(..)`?
+А как насчёт предыдущего фрагмента кода? Является ли `PI` скрытой причиной для `foo(..)`?
 
-Two observations will help us answer that question in a reasonable way:
+Два наблюдения помогут нам ответить на этот вопрос разумным образом:
 
-1. Think about every call you might ever make to `foo(3)`. Will it always return that `9.424..` value? **Yes.** Every single time. If you give it the same input (`x`), it will always return the same output.
+1. Подумайте о каждом вызове `foo(3)`, который вы когда-либо можете сделать. Будет ли он всегда возвращать значение `9.424..`? **Да.** Каждый раз. Если вы передаёте одинаковые входные данные (`x`), он всегда возвращает одинаковые выходные данные.
 
-2. Could you replace every usage of `PI` with its immediate value, and could the program run **exactly** the same as it did before? **Yes.** There's no part of this program that relies on being able to change the value of `PI` -- indeed since it's a `const`, it cannot be reassigned -- so the `PI` variable here is only for readability/maintenance sake. Its value can be inlined without any change in program behavior.
+2. Можно ли заменить каждое использование `PI` его непосредственным значением, и будет ли программа работать **точно** так же, как раньше? **Да.** Нет ни одной части этой программы, которая полагается на возможность изменить значение `PI` — действительно, поскольку это `const`, его нельзя переназначить — так что переменная `PI` здесь существует только ради читаемости и поддержки. Её значение можно подставить напрямую без какого-либо изменения поведения программы.
 
-My conclusion: `PI` here is not a violation of the spirit of minimizing/avoiding side effects (or causes). Nor is the `bar(x)` call in the previous snippet.
+Мой вывод: `PI` здесь не является нарушением духа минимизации/избегания побочных эффектов (или причин). Как и вызов `bar(x)` в предыдущем фрагменте.
 
-In both cases, `PI` and `bar` are not part of the state of the program. They're fixed, non-reassigned references. If they don't change throughout the program, we don't have to worry about tracking them as changing state. As such, they don't harm our readability. And they cannot be the source of bugs related to variables changing in unexpected ways.
+В обоих случаях `PI` и `bar` не являются частью состояния программы. Это фиксированные, никогда не переназначаемые ссылки. Если они не изменяются на протяжении всей программы, нам не нужно беспокоиться об отслеживании их как изменяющегося состояния. Поэтому они не вредят читаемости. И они не могут быть источником ошибок, связанных с неожиданным изменением переменных.
 
-**Note:** The use of `const` here does not, in my opinion, make the case that `PI` is absolved as a side cause; `var PI` would lead to the same conclusion. The lack of reassigning `PI` is what matters, not the inability to do so. We'll discuss [`const` in Chapter 6](ch6.md/#reassignment).
+**Примечание:** Использование `const` здесь, по моему мнению, не означает, что `PI` освобождается от роли скрытой причины; `var PI` привёл бы к тому же выводу. Важно не то, что `PI` нельзя переназначить, а то, что его не переназначают. Мы обсудим [`const` в Главе 6](ch6.md/#reassignment).
 
-#### Randomness
+#### Случайность
 
-You may never have considered it before, but randomness is a side cause. A function that uses `Math.random()` cannot have predictable output based on its input. So any code that generates unique random IDs/etc. will by definition be considered reliant on the program's side causes.
+Возможно, вы никогда об этом не задумывались, но случайность — это скрытая причина. Функция, использующая `Math.random()`, не может иметь предсказуемый вывод на основе своих входных данных. Поэтому любой код, генерирующий уникальные случайные идентификаторы и т.п., по определению считается полагающимся на скрытые причины программы.
 
-In computing, we use what's called pseudo-random algorithms for generation. Turns out true randomness is pretty hard, so we just kinda fake it with complex algorithms that produce values that seem observably random. These algorithms calculate long streams of numbers, but the secret is, the sequence is actually predictable if you know the starting point. This starting point is referred to as a seed.
+В вычислениях мы используем так называемые псевдослучайные алгоритмы для генерации. Оказывается, настоящая случайность — довольно сложная задача, поэтому мы просто имитируем её с помощью сложных алгоритмов, которые производят значения, выглядящие случайными. Эти алгоритмы вычисляют длинные последовательности чисел, но секрет в том, что последовательность на самом деле предсказуема, если знать начальную точку. Эта начальная точка называется зерном (seed).
 
-Some languages let you specify the seed value for the random number generation. If you always specify the same seed, you'll always get the same sequence of outputs from subsequent "pseudo-random number" generations. This is incredibly useful for testing purposes, for example, but incredibly dangerous for real-world application usage.
+Некоторые языки позволяют задать значение зерна для генерации случайных чисел. Если всегда указывать одно и то же зерно, вы всегда будете получать одну и ту же последовательность выходных данных от последующих генераций "псевдослучайных чисел". Это невероятно полезно для целей тестирования, например, но невероятно опасно для реального использования в приложениях.
 
-In JS, the randomness of `Math.random()` calculation is based on an indirect input, because you cannot specify the seed. As such, we have to treat built-in random number generation as a side cause.
+В JS случайность вычисления `Math.random()` основана на косвенных входных данных, поскольку вы не можете задать зерно. Поэтому нам приходится рассматривать встроенную генерацию случайных чисел как скрытую причину.
 
-### I/O Effects
+### Эффекты ввода-вывода
 
-The most common (and essentially unavoidable) form of side cause/effect is input/output (I/O). A program with no I/O is totally pointless, because its work cannot be observed in any way. Useful programs must at a minimum have output, and many also need input. Input is a side cause and output is a side effect.
+Наиболее распространённая (и, по существу, неизбежная) форма скрытых причин/побочных эффектов — это ввод-вывод (I/O). Программа без ввода-вывода абсолютно бессмысленна, потому что результаты её работы невозможно наблюдать. Полезные программы должны как минимум производить вывод, а многие также нуждаются во вводе. Ввод — это скрытая причина, а вывод — побочный эффект.
 
-The typical input for the browser JS programmer is user events (mouse, keyboard), and for output is the DOM. If you work more in Node.js, you may more likely receive input from, and send output to, the file system, network connections, and/or the `stdin`/`stdout` streams.
+Типичным вводом для JS-программиста, работающего в браузере, являются события пользователя (мышь, клавиатура), а выводом — DOM. Если вы больше работаете с Node.js, вероятнее всего, вы получаете ввод из файловой системы, сетевых соединений и/или потоков `stdin`/`stdout` и отправляете вывод туда же.
 
-As a matter of fact, these sources can be both input and output, both cause and effect. Take the DOM, for example. We update (side effect) a DOM element to show text or an image to the user, but the current state of the DOM is an implicit input (side cause) to those operations as well.
+Причём эти источники могут быть как вводом, так и выводом, как причиной, так и следствием. Возьмём, например, DOM. Мы обновляем (побочный эффект) DOM-элемент, чтобы показать пользователю текст или изображение, но текущее состояние DOM является неявным вводом (скрытой причиной) для этих операций.
 
-### Side Bugs
+### Побочные ошибки
 
-The scenarios where side causes and side effects can lead to bugs are as varied as the programs in existence. But let's examine a scenario to illustrate these hazards, in hopes that they help us recognize similar mistakes in our own programs.
+Сценарии, в которых скрытые причины и побочные эффекты могут приводить к ошибкам, столь же разнообразны, как и существующие программы. Но давайте рассмотрим один сценарий, чтобы проиллюстрировать эти опасности, в надежде, что это поможет нам распознать похожие ошибки в наших собственных программах.
 
-Consider:
+Рассмотрим:
 
 ```js
 var users = {};
@@ -204,7 +204,7 @@ function fetchOrders(userId) {
         `http://some.api/orders/${userId}`,
         function onOrders(orders){
             for (let order of orders) {
-                // keep a reference to latest order for each user
+                // сохраняем ссылку на последний заказ для каждого пользователя
                 users[userId].latestOrder = order;
                 userOrders[order.orderId] = order;
             }
@@ -216,7 +216,7 @@ function deleteOrder(orderId) {
     var user = users[ userOrders[orderId].userId ];
     var isLatestOrder = (userOrders[orderId] == user.latestOrder);
 
-    // deleting the latest order for a user?
+    // удаляем последний заказ пользователя?
     if (isLatestOrder) {
         hideLatestOrderDisplay();
     }
@@ -225,7 +225,7 @@ function deleteOrder(orderId) {
         `http://some.api/delete/order/${orderId}`,
         function onDelete(success){
             if (success) {
-                // deleted the latest order for a user?
+                // удалили последний заказ пользователя?
                 if (isLatestOrder) {
                     user.latestOrder = null;
                 }
@@ -240,13 +240,13 @@ function deleteOrder(orderId) {
 }
 ```
 
-I bet for some readers one of the potential bugs here is fairly obvious. If the callback `onOrders(..)` runs before the `onUserData(..)` callback, it will attempt to add a `latestOrder` property to a value (the `user` object at `users[userId]`) that's not yet been set.
+Держу пари, для некоторых читателей одна из потенциальных ошибок здесь довольно очевидна. Если коллбэк `onOrders(..)` выполнится раньше коллбэка `onUserData(..)`, он попытается добавить свойство `latestOrder` к значению (объекту `user` по ключу `users[userId]`), которое ещё не установлено.
 
-So one form of "bug" that can occur with logic that relies on side causes/effects is the race condition of two different operations (async or not!) that we expect to run in a certain order but under some cases may run in a different order. There are strategies for ensuring the order of operations, and it's fairly obvious that order is critical in that case.
+Таким образом, одна из форм "ошибок", которые могут возникнуть в логике, полагающейся на скрытые причины/побочные эффекты, — это гонка состояний двух разных операций (асинхронных или нет!), которые, как мы ожидаем, выполнятся в определённом порядке, но в некоторых случаях могут выполниться в другом порядке. Существуют стратегии для обеспечения порядка операций, и довольно очевидно, что порядок в данном случае критичен.
 
-Another more subtle bug can bite us here. Did you spot it?
+Здесь нас может подстерегать ещё одна, более тонкая ошибка. Вы её заметили?
 
-Consider this order of calls:
+Рассмотрим такой порядок вызовов:
 
 ```js
 fetchUserData( 123 );
@@ -254,7 +254,7 @@ onUserData(..);
 fetchOrders( 123 );
 onOrders(..);
 
-// later
+// позже
 
 fetchOrders( 123 );
 deleteOrder( 456 );
@@ -262,33 +262,33 @@ onOrders(..);
 onDelete(..);
 ```
 
-Do you see the interleaving of `fetchOrders(..)` and `onOrders(..)` with the `deleteOrder(..)` and `onDelete(..)` pair? That potential sequencing exposes a weird condition with our side causes/effects of state management.
+Вы видите чередование `fetchOrders(..)` и `onOrders(..)` с парой `deleteOrder(..)` и `onDelete(..)`? Этот потенциальный порядок выполнения обнажает странное условие, связанное со скрытыми причинами/побочными эффектами управления состоянием.
 
-There's a delay in time (because of the callback) between when we set the `isLatestOrder` flag and when we use it to decide if we should empty the `latestOrder` property of the user data object in `users`. During that delay, if `onOrders(..)` callback fires, it can potentially change which order value that user's `latestOrder` references. When `onDelete(..)` then fires, it will assume it still needs to unset the `latestOrder` reference.
+Существует временная задержка (из-за коллбэка) между моментом установки флага `isLatestOrder` и моментом его использования для принятия решения об очистке свойства `latestOrder` объекта данных пользователя в `users`. В течение этой задержки, если сработает коллбэк `onOrders(..)`, он потенциально может изменить значение `latestOrder` этого пользователя. Когда затем сработает `onDelete(..)`, он будет считать, что ему всё ещё нужно сбросить ссылку `latestOrder`.
 
-The bug: the data (state) *might* now be out of sync. `latestOrder` will be unset, when potentially it should have stayed pointing at a newer order that came in to `onOrders(..)`.
+Ошибка: данные (состояние) *могут* теперь быть рассинхронизированы. `latestOrder` будет сброшен, хотя потенциально он должен был остаться указывающим на более новый заказ, поступивший в `onOrders(..)`.
 
-The worst part of this kind of bug is that you don't get a program-crashing exception like we did with the other bug. We just simply have state that is incorrect; our application's behavior is "silently" broken.
+Худшее в этом типе ошибок то, что вы не получаете исключение, крашащее программу, как в случае с другой ошибкой. У нас просто некорректное состояние; поведение нашего приложения "тихо" сломано.
 
-The sequencing dependency between `fetchUserData(..)` and `fetchOrders(..)` is fairly obvious, and straightforwardly addressed. But the potential sequencing dependency between `fetchOrders(..)` and `deleteOrder(..)` is far less obvious. These two seem to be more independent. And ensuring that their order is preserved is more tricky, because you don't know in advance (before the results from `fetchOrders(..)`) whether that sequencing really must be enforced.
+Зависимость по порядку выполнения между `fetchUserData(..)` и `fetchOrders(..)` довольно очевидна и прямолинейно устраняется. Но потенциальная зависимость по порядку между `fetchOrders(..)` и `deleteOrder(..)` гораздо менее очевидна. Эти две функции кажутся более независимыми. И обеспечение сохранения их порядка более сложно, поскольку вы не знаете заранее (до получения результатов от `fetchOrders(..)`), нужно ли на самом деле соблюдать этот порядок.
 
-Yes, you can recompute the `isLatestOrder` flag once `deleteOrder(..)` fires. But now you have a different problem: your UI state can be out of sync.
+Да, можно пересчитать флаг `isLatestOrder` после срабатывания `deleteOrder(..)`. Но теперь у вас другая проблема: состояние вашего UI может рассинхронизироваться.
 
-If you had called the `hideLatestOrderDisplay()` previously, you'll now need to call the function `showLatestOrderDisplay()`, but only if a new `latestOrder` has in fact been set. So you'll need to track at least three states: was the deleted order the "latest" originally, and is the "latest" set, and are those two orders different? These are solvable problems, of course. But they're not obvious by any means.
+Если вы ранее вызвали `hideLatestOrderDisplay()`, теперь вам нужно вызвать `showLatestOrderDisplay()`, но только если новый `latestOrder` действительно был установлен. Поэтому вам нужно отслеживать как минимум три состояния: был ли удалённый заказ изначально "последним", установлен ли "последний" заказ, и отличаются ли эти два заказа? Это решаемые проблемы, конечно. Но они совсем не очевидны.
 
-All of these hassles are because we decided to structure our code with side causes/effects on a shared set of state.
+Все эти сложности — из-за того, что мы решили структурировать наш код со скрытыми причинами/побочными эффектами на общем наборе состояния.
 
-Functional programmers detest these sorts of side cause/effect bugs because of how much it hurts our ability to read, reason about, validate, and ultimately **trust** the code. That's why they take the principle to avoid side causes/effects so seriously.
+ФП-программисты ненавидят подобные ошибки, связанные со скрытыми причинами/побочными эффектами, из-за того, насколько сильно они вредят нашей способности читать, рассуждать, проверять и в конечном итоге **доверять** коду. Вот почему они так серьёзно относятся к принципу избегания скрытых причин/побочных эффектов.
 
-There are multiple different strategies for avoiding/fixing side causes/effects. We'll talk about some later in this chapter, and others in later chapters. I'll say one thing for certain: **writing with side causes/effects is often of our normal default** so avoiding them is going to require careful and intentional effort.
+Существует несколько различных стратегий для избегания/исправления скрытых причин/побочных эффектов. Мы поговорим о некоторых из них позже в этой главе, а о других — в последующих главах. Скажу одно наверняка: **написание кода со скрытыми причинами/побочными эффектами зачастую является нашим обычным поведением по умолчанию**, поэтому их избегание потребует осторожных и намеренных усилий.
 
-## Once Is Enough, Thanks
+## Достаточно одного раза, спасибо
 
-If you must make side effect changes to state, one class of operations that's useful for limiting the potential trouble is idempotence. If your update of a value is idempotent, then data will be resilient to the case where you might have multiple such updates from different side effect sources.
+Если вы вынуждены вносить изменения состояния через побочные эффекты, один класс операций, полезных для ограничения потенциальных проблем, — это идемпотентность. Если ваше обновление значения идемпотентно, данные будут устойчивы к случаю, когда одно и то же обновление может поступить из нескольких источников побочных эффектов.
 
-If you try to research it, the definition of idempotence can be a little confusing; mathematicians use a slightly different meaning than programmers typically do. However, both perspectives are useful for the functional programmer.
+Если попытаться разобраться в этом, определение идемпотентности может немного запутать; математики используют несколько иное значение, чем программисты. Однако обе точки зрения полезны для ФП-программиста.
 
-First, let's give a counter example that is neither mathematically nor programmingly idempotent:
+Для начала приведём контрпример, который не является идемпотентным ни с математической, ни с программной точки зрения:
 
 ```js
 function updateCounter(obj) {
@@ -301,13 +301,13 @@ function updateCounter(obj) {
 }
 ```
 
-This function mutates an object via reference by incrementing `obj.count`, so it produces a side effect on that object. If `updateCounter(o)` is called multiple times -- while `o.count` is less than `10`, that is -- the program state changes each time. Also, the output of `updateCounter(..)` is a Boolean, which is not suitable to feed back into a subsequent call of `updateCounter(..)`.
+Эта функция мутирует объект по ссылке, инкрементируя `obj.count`, тем самым производя побочный эффект на этот объект. Если `updateCounter(o)` вызывается несколько раз — пока `o.count` меньше `10` — состояние программы изменяется каждый раз. Кроме того, выходное значение `updateCounter(..)` — это булево значение, что не подходит для повторной передачи в последующий вызов `updateCounter(..)`.
 
-### Mathematical Idempotence
+### Математическая идемпотентность
 
-From the mathematical point of view, idempotence means an operation whose output won't ever change after the first call, if you feed that output back into the operation over and over again. In other words, `foo(x)` would produce the same output as `foo(foo(x))` and `foo(foo(foo(x)))`.
+С математической точки зрения идемпотентность означает, что выходное значение операции не будет меняться после первого вызова, если снова и снова передавать это выходное значение обратно в операцию. Иными словами, `foo(x)` будет производить тот же вывод, что `foo(foo(x))` и `foo(foo(foo(x)))`.
 
-A typical mathematical example is `Math.abs(..)` (absolute value). `Math.abs(-2)` is `2`, which is the same result as `Math.abs(Math.abs(Math.abs(Math.abs(-2))))`. Other idempotent mathematical utilities include:
+Типичный математический пример — `Math.abs(..)` (абсолютное значение). `Math.abs(-2)` равно `2`, что является тем же результатом, что и `Math.abs(Math.abs(Math.abs(Math.abs(-2))))`. Другие идемпотентные математические утилиты включают:
 
 * `Math.min(..)`
 * `Math.max(..)`
@@ -315,7 +315,7 @@ A typical mathematical example is `Math.abs(..)` (absolute value). `Math.abs(-2)
 * `Math.floor(..)`
 * `Math.ceil(..)`
 
-Some custom mathematical operations we could define with this same characteristic:
+Некоторые пользовательские математические операции, которые мы могли бы определить с той же характеристикой:
 
 ```js
 function toPower0(x) {
@@ -331,7 +331,7 @@ toPower0( 3 ) == toPower0( toPower0( 3 ) );         // true
 snapUp3( 3.14 ) == snapUp3( snapUp3( 3.14 ) );      // true
 ```
 
-Mathematical-style idempotence is **not** restricted to mathematical operations. Another place we can illustrate this form of idempotence is with JavaScript primitive type coercions:
+Математическая идемпотентность **не** ограничивается математическими операциями. Ещё одно место, где можно проиллюстрировать эту форму идемпотентности, — приведение примитивных типов JavaScript:
 
 ```js
 var x = 42, y = "hello";
@@ -341,13 +341,13 @@ String( x ) === String( String( x ) );              // true
 Boolean( y ) === Boolean( Boolean( y ) );           // true
 ```
 
-Earlier in the text, we explored a common FP tool that fulfills this form of idempotence:
+Ранее в тексте мы рассматривали распространённый инструмент ФП, отвечающий этой форме идемпотентности:
 
 ```js
 identity( 3 ) === identity( identity( 3 ) );    // true
 ```
 
-Certain string operations are also naturally idempotent, such as:
+Некоторые строковые операции также являются естественно идемпотентными, например:
 
 ```js
 function upper(x) {
@@ -365,7 +365,7 @@ upper( str ) == upper( upper( str ) );              // true
 lower( str ) == lower( lower( str ) );              // true
 ```
 
-We can even design more sophisticated string formatting operations in an idempotent way, such as:
+Мы можем даже проектировать более сложные операции форматирования строк идемпотентным образом, например:
 
 ```js
 function currency(val) {
@@ -381,54 +381,54 @@ currency( -3.1 );                                   // "-$3.10"
 currency( -3.1 ) == currency( currency( -3.1 ) );   // true
 ```
 
-`currency(..)` illustrates an important technique: in some cases the developer can take extra steps to normalize an input/output operation to ensure the operation is idempotent where it normally wouldn't be.
+`currency(..)` иллюстрирует важную технику: в некоторых случаях разработчик может предпринять дополнительные шаги для нормализации операции ввода-вывода, чтобы обеспечить идемпотентность там, где её обычно нет.
 
-Wherever possible, restricting side effects to idempotent operations is much better than unrestricted updates.
+Везде, где возможно, ограничение побочных эффектов идемпотентными операциями значительно лучше, чем неограниченные обновления.
 
-### Programming Idempotence
+### Программная идемпотентность
 
-The programming-oriented definition for idempotence is similar, but less formal. Instead of requiring `f(x) === f(f(x))`, this view of idempotence is just that `f(x);` results in the same program behavior as `f(x); f(x);`. In other words, the result of calling `f(x)` subsequent times after the first call doesn't change anything.
+Определение идемпотентности, ориентированное на программирование, похоже, но менее формально. Вместо требования `f(x) === f(f(x))`, эта точка зрения на идемпотентность сводится к тому, что `f(x);` приводит к тому же поведению программы, что и `f(x); f(x);`. Иными словами, результат последующих вызовов `f(x)` после первого ничего не меняет.
 
-That perspective fits more with our observations about side effects, because it's more likely that such an `f(..)` operation creates an idempotent side effect rather than necessarily returning an idempotent output value.
+Эта точка зрения больше соответствует нашим наблюдениям о побочных эффектах, поскольку более вероятно, что такая операция `f(..)` создаёт идемпотентный побочный эффект, а не обязательно возвращает идемпотентное выходное значение.
 
-This idempotence-style is often cited for HTTP operations (verbs) such as GET or PUT. If an HTTP REST API is properly following the specification guidance for idempotence, PUT is defined as an update operation that fully replaces a resource. As such, a client could either send a PUT request once or multiple times (with the same data), and the server would have the same resultant state regardless.
+Этот тип идемпотентности часто упоминается в контексте HTTP-операций (методов), таких как GET или PUT. Если HTTP REST API правильно следует спецификации по идемпотентности, PUT определяется как операция обновления, полностью заменяющая ресурс. Таким образом, клиент может отправить запрос PUT один раз или несколько раз (с теми же данными), и сервер будет иметь одно и то же результирующее состояние в любом случае.
 
-Thinking about this in more concrete terms with programming, let's examine some side effect operations for their idempotence (or lack thereof):
+Если рассматривать это в более конкретных терминах программирования, давайте изучим некоторые операции с побочными эффектами с точки зрения их идемпотентности (или её отсутствия):
 
 ```js
-// idempotent:
+// идемпотентные:
 obj.count = 2;
 a[a.length - 1] = 42;
 person.name = upper( person.name );
 
-// non-idempotent:
+// неидемпотентные:
 obj.count++;
 a[a.length] = 42;
 person.lastUpdated = Date.now();
 ```
 
-Remember: the notion of idempotence here is that each idempotent operation (like `obj.count = 2`) could be repeated multiple times and not change the program state beyond the first update. The non-idempotent operations change the state each time.
+Запомните: понятие идемпотентности здесь означает, что каждая идемпотентная операция (например, `obj.count = 2`) может быть повторена несколько раз без изменения состояния программы после первого обновления. Неидемпотентные операции изменяют состояние каждый раз.
 
-What about DOM updates?
+А как насчёт обновлений DOM?
 
 ```js
 var hist = document.getElementById( "orderHistory" );
 
-// idempotent:
+// идемпотентное:
 hist.innerHTML = order.historyText;
 
-// non-idempotent:
+// неидемпотентное:
 var update = document.createTextNode( order.latestUpdate );
 hist.appendChild( update );
 ```
 
-The key difference illustrated here is that the idempotent update replaces the DOM element's content. The current state of the DOM element is irrelevant, because it's unconditionally overwritten. The non-idempotent operation adds content to the element; implicitly, the current state of the DOM element is part of computing the next state.
+Ключевое различие здесь в том, что идемпотентное обновление заменяет содержимое DOM-элемента. Текущее состояние DOM-элемента не имеет значения, поскольку оно безусловно перезаписывается. Неидемпотентная операция добавляет содержимое к элементу; неявно, текущее состояние DOM-элемента является частью вычисления следующего состояния.
 
-It won't always be possible to define your operations on data in an idempotent way, but if you can, it will definitely help reduce the chances that your side effects will crop up to break your expectations when you least expect it.
+Не всегда будет возможно определить ваши операции с данными идемпотентным образом, но если сможете, это определённо поможет снизить вероятность того, что побочные эффекты возникнут и нарушат ваши ожидания в самый неожиданный момент.
 
-## Pure Bliss
+## Чистое блаженство
 
-A function with no side causes/effects is called a pure function. A pure function is idempotent in the programming sense, because it cannot have any side effects. Consider:
+Функция без скрытых причин/побочных эффектов называется чистой функцией. Чистая функция является идемпотентной в программном смысле, поскольку не может иметь побочных эффектов. Рассмотрим:
 
 ```js
 function add(x,y) {
@@ -436,9 +436,9 @@ function add(x,y) {
 }
 ```
 
-All the inputs (`x` and `y`) and outputs (`return ..`) are direct; there are no free variable references. Calling `add(3,4)` multiple times would be indistinguishable from only calling it once. `add(..)` is pure and programming-style idempotent.
+Все входные данные (`x` и `y`) и выходные данные (`return ..`) прямые; нет ссылок на свободные переменные. Несколько вызовов `add(3,4)` были бы неотличимы от одного вызова. `add(..)` — чистая функция и идемпотентная в программном смысле.
 
-However, not all pure functions are idempotent in the mathematical sense, because they don't have to return a value that would be suitable for feeding back in as their own input. Consider:
+Однако не все чистые функции являются идемпотентными в математическом смысле, поскольку им не обязательно возвращать значение, подходящее для повторной передачи в качестве собственного входного параметра. Рассмотрим:
 
 ```js
 function calculateAverage(nums) {
@@ -452,11 +452,11 @@ function calculateAverage(nums) {
 calculateAverage( [1,2,4,7,11,16,22] );         // 9
 ```
 
-The output `9` is not an array, so you cannot pass it back in: `calculateAverage(calculateAverage( .. ))`.
+Выходное значение `9` — не массив, поэтому его нельзя передать обратно: `calculateAverage(calculateAverage( .. ))`.
 
-As we discussed earlier, a pure function *can* reference free variables, as long as those free variables aren't side causes.
+Как мы обсуждали ранее, чистая функция *может* ссылаться на свободные переменные, при условии, что эти свободные переменные не являются скрытыми причинами.
 
-Some examples:
+Несколько примеров:
 
 ```js
 const PI = 3.141592;
@@ -470,9 +470,9 @@ function cylinderVolume(radius,height) {
 }
 ```
 
-`circleArea(..)` references the free variable `PI`, but it's a constant so it's not a side cause. `cylinderVolume(..)` references the free variable `circleArea`, which is also not a side cause because this program treats it as, in effect, a constant reference to its function value. Both these functions are pure.
+`circleArea(..)` ссылается на свободную переменную `PI`, но это константа, поэтому она не является скрытой причиной. `cylinderVolume(..)` ссылается на свободную переменную `circleArea`, что тоже не является скрытой причиной, поскольку программа относится к ней, по сути, как к константной ссылке на значение функции. Обе эти функции — чистые.
 
-Another example where a function can still be pure but reference free variables is with closure:
+Ещё один пример, где функция может оставаться чистой, но ссылаться на свободные переменные, — это замыкания:
 
 ```js
 function unary(fn) {
@@ -482,25 +482,25 @@ function unary(fn) {
 }
 ```
 
-`unary(..)` itself is clearly pure -- its only input is `fn` and its only output is the `return`ed function -- but what about the inner function `onlyOneArg(..)`, which closes over the free variable `fn`?
+`unary(..)` сама по себе явно чистая — её единственный вход — `fn`, а её единственный выход — возвращаемая функция — но как насчёт внутренней функции `onlyOneArg(..)`, которая замыкается на свободную переменную `fn`?
 
-It's still pure because `fn` never changes. In fact, we have full confidence in that fact because lexically speaking, those few lines are the only ones that could possibly reassign `fn`.
+Она всё ещё чистая, потому что `fn` никогда не изменяется. На самом деле мы полностью уверены в этом, поскольку с лексической точки зрения несколько этих строк — единственные, которые теоретически могли бы переназначить `fn`.
 
-**Note:** `fn` is a reference to a function object, which is by default a mutable value. Somewhere else in the program *could*, for example, add a property to this function object, which technically "changes" the value (mutation, not reassignment). However, because we're not relying on anything about `fn` other than our ability to call it, and it's not possible to affect the callability of a function value, `fn` is still effectively unchanging for our reasoning purposes; it cannot be a side cause.
+**Примечание:** `fn` — это ссылка на объект функции, который по умолчанию является изменяемым значением. Где-то ещё в программе *можно*, например, добавить свойство к этому объекту функции, что технически "изменяет" значение (мутация, а не переназначение). Однако, поскольку мы не полагаемся ни на что в `fn`, кроме способности её вызвать, и невозможно повлиять на возможность вызова значения-функции, `fn` по-прежнему является эффективно неизменной с точки зрения нашего рассуждения; она не может быть скрытой причиной.
 
-Another common way to articulate a function's purity is: **given the same input(s), it always produces the same output.** If you pass `3` to `circleArea(..)`, it will always output the same result (`28.274328`).
+Ещё один распространённый способ сформулировать чистоту функции: **при одинаковых входных данных она всегда производит одинаковый вывод.** Если вы передаёте `3` в `circleArea(..)`, она всегда будет выводить одинаковый результат (`28.274328`).
 
-If a function *can* produce a different output each time it's given the same inputs, it is impure. Even if such a function always `return`s the same value, if it produces an indirect output side effect, the program state is changed each time it's called; this is impure.
+Если функция *может* производить разный вывод при каждом вызове с одинаковыми входными данными, она нечистая. Даже если такая функция всегда `return`ит одно и то же значение, если она производит косвенный побочный эффект на выходе, состояние программы изменяется при каждом вызове; это нечисто.
 
-Impure functions are undesirable because they make all of their calls harder to reason about. A pure function's call is perfectly predictable. When someone reading the code sees multiple `circleArea(3)` calls, they won't have to spend any extra effort to figure out what its output will be *each time*.
+Нечистые функции нежелательны, потому что они делают все свои вызовы труднее для анализа. Вызов чистой функции абсолютно предсказуем. Когда кто-то, читая код, видит несколько вызовов `circleArea(3)`, им не нужно тратить дополнительные усилия, чтобы понять, каким будет вывод *каждый раз*.
 
-**Note:** An interesting thing to ponder: is the heat produced by the CPU while performing any given operation an unavoidable side effect of even the most pure functions/programs? What about just the CPU time delay as it spends time on a pure operation before it can do another one?
+**Примечание:** Интересный повод для размышления: является ли тепло, выделяемое процессором при выполнении любой данной операции, неизбежным побочным эффектом даже самых чистых функций/программ? А как насчёт просто задержки процессорного времени, пока он занят чистой операцией, прежде чем сможет выполнить другую?
 
-### Purely Relative
+### Чистота относительна
 
-We have to be very careful when talking about a function being pure. JavaScript's dynamic value nature makes it all too easy to have non-obvious side causes/effects.
+Нам нужно быть очень осторожными, когда мы говорим о том, что функция является чистой. Динамическая природа значений в JavaScript делает слишком лёгким появление неочевидных скрытых причин/побочных эффектов.
 
-Consider:
+Рассмотрим:
 
 ```js
 function rememberNumbers(nums) {
@@ -514,9 +514,9 @@ var list = [1,2,3,4,5];
 var simpleList = rememberNumbers( list );
 ```
 
-`simpleList(..)` looks like a pure function, as it's a reference to the inner function `caller(..)`, which just closes over the free variable `nums`. However, there's multiple ways that `simpleList(..)` can actually turn out to be impure.
+`simpleList(..)` выглядит как чистая функция — это ссылка на внутреннюю функцию `caller(..)`, которая просто замыкается на свободную переменную `nums`. Однако есть несколько способов, которыми `simpleList(..)` может на самом деле оказаться нечистой.
 
-First, our assertion of purity is based on the array value (referenced both by `list` and `nums`) never changing:
+Во-первых, наше утверждение о чистоте основано на том, что значение массива (на которое ссылаются и `list`, и `nums`) никогда не изменяется:
 
 ```js
 function median(nums) {
@@ -534,13 +534,13 @@ list.push( 6 );
 simpleList( median );       // 3.5
 ```
 
-When we mutate the array, the `simpleList(..)` call changes its output. So, is `simpleList(..)` pure or impure? Depends on your perspective. It's pure for a given set of assumptions. It could be pure in any program that didn't have the `list.push(6)` mutation.
+Когда мы мутируем массив, вызов `simpleList(..)` изменяет свой вывод. Так является ли `simpleList(..)` чистой или нечистой? Зависит от точки зрения. Она чистая при заданном наборе допущений. Она могла бы быть чистой в любой программе, где нет мутации `list.push(6)`.
 
-We could guard against this kind of impurity by altering the definition of `rememberNumbers(..)`. One approach is to duplicate the `nums` array:
+Мы могли бы защититься от такой нечистоты, изменив определение `rememberNumbers(..)`. Один из подходов — продублировать массив `nums`:
 
 ```js
 function rememberNumbers(nums) {
-    // make a copy of the array
+    // делаем копию массива
     nums = [...nums];
 
     return function caller(fn){
@@ -549,28 +549,28 @@ function rememberNumbers(nums) {
 }
 ```
 
-But an even trickier hidden side effect could be lurking:
+Но ещё более хитрый скрытый побочный эффект может притаиться:
 
 ```js
 var list = [1,2,3,4,5];
 
-// make `list[0]` be a getter with a side effect
+// делаем `list[0]` геттером с побочным эффектом
 Object.defineProperty(
     list,
     0,
     {
         get: function(){
-            console.log( "[0] was accessed!" );
+            console.log( "[0] был доступен!" );
             return 1;
         }
     }
 );
 
 var simpleList = rememberNumbers( list );
-// [0] was accessed!
+// [0] был доступен!
 ```
 
-A perhaps more robust option is to change the signature of `rememberNumbers(..)` to not receive an array in the first place, but rather the numbers as individual arguments:
+Более надёжный вариант — изменить сигнатуру `rememberNumbers(..)`, чтобы она вовсе не принимала массив, а вместо этого принимала числа как отдельные аргументы:
 
 ```js
 function rememberNumbers(...nums) {
@@ -580,17 +580,17 @@ function rememberNumbers(...nums) {
 }
 
 var simpleList = rememberNumbers( ...list );
-// [0] was accessed!
+// [0] был доступен!
 ```
 
-The two `...`s have the effect of copying `list` into `nums` instead of passing it by reference.
+Два оператора `...` копируют `list` в `nums` вместо передачи по ссылке.
 
-**Note:** The console message side effect here comes not from `rememberNumbers(..)` but from the `...list` spreading. So in this case, both `rememberNumbers(..)` and `simpleList(..)` are pure.
+**Примечание:** Сообщение в консоли — побочный эффект, происходящий не из `rememberNumbers(..)`, а из распространения `...list`. Таким образом, в данном случае и `rememberNumbers(..)`, и `simpleList(..)` являются чистыми.
 
-But what if the mutation is even harder to spot? Composition of a pure function with an impure function **always** produces an impure function. If we pass an impure function into the otherwise pure `simpleList(..)`, it's now impure:
+Но что, если мутацию ещё сложнее обнаружить? Композиция чистой функции с нечистой функцией **всегда** производит нечистую функцию. Если мы передадим нечистую функцию в иначе чистый `simpleList(..)`, он теперь станет нечистым:
 
 ```js
-// yes, a silly contrived example :)
+// да, это нарочито надуманный пример :)
 function firstValue(nums) {
     return nums[0];
 }
@@ -606,22 +606,22 @@ list;                       // [1,2,3,4,5] -- OK!
 simpleList( lastValue );    // 1
 ```
 
-**Note:** Despite `reverse()` looking safe (like other array methods in JS) in that it returns a reversed array, it actually mutates the array rather than creating a new one.
+**Примечание:** Несмотря на то что `reverse()` выглядит безопасным (как другие методы массивов в JS) в том смысле, что возвращает перевёрнутый массив, на самом деле он мутирует массив, а не создаёт новый.
 
-We need a more robust definition of `rememberNumbers(..)` to guard against the `fn(..)` mutating its closed over `nums` via reference:
+Нам нужно более надёжное определение `rememberNumbers(..)`, защищающее от того, что `fn(..)` будет мутировать замкнутый `nums` по ссылке:
 
 ```js
 function rememberNumbers(...nums) {
     return function caller(fn){
-        // send in a copy!
+        // передаём копию!
         return fn( [...nums] );
     };
 }
 ```
 
-So is `simpleList(..)` reliably pure yet!? **Nope.** :(
+Так является ли `simpleList(..)` теперь надёжно чистым!? **Нет.** :(
 
-We're only guarding against side effects we can control (mutating by reference). Any function we pass that has other side effects will have polluted the purity of `simpleList(..)`:
+Мы защищаемся только от тех побочных эффектов, которые можем контролировать (мутация по ссылке). Любая передаваемая нами функция с другими побочными эффектами загрязнит чистоту `simpleList(..)`:
 
 ```js
 simpleList( function impureIO(nums){
@@ -629,21 +629,21 @@ simpleList( function impureIO(nums){
 } );
 ```
 
-In fact, there's no way to define `rememberNumbers(..)` to make a perfectly pure `simpleList(..)` function.
+На самом деле, нет никакого способа определить `rememberNumbers(..)` так, чтобы сделать `simpleList(..)` абсолютно чистым.
 
-Purity is about confidence. But we have to admit that in many cases, **any confidence we feel is actually relative to the context** of our program and what we know about it. In practice (in JavaScript) the question of function purity is not about being absolutely pure or not, but about a range of confidence in its purity.
+Чистота — это вопрос уверенности. Но нам нужно признать, что во многих случаях **любая уверенность, которую мы испытываем, на самом деле относительна к контексту** нашей программы и тому, что мы знаем о ней. На практике (в JavaScript) вопрос чистоты функции касается не абсолютной чистоты или её отсутствия, а степени уверенности в её чистоте.
 
-The more pure, the better. The more effort you put into making a function pure(r), the higher your confidence will be when you read code that uses it, and that will make that part of the code more readable.
+Чем чище, тем лучше. Чем больше усилий вы вкладываете в то, чтобы сделать функцию более чистой, тем выше будет ваша уверенность при чтении кода, который её использует, и тем более читаемой будет эта часть кода.
 
-## There or Not
+## Есть или нет
 
-So far, we've defined function purity both as a function without side causes/effects and as a function that, given the same input(s), always produces the same output. These are just two different ways of looking at the same characteristics.
+До сих пор мы определяли чистоту функции и как функцию без скрытых причин/побочных эффектов, и как функцию, которая при одинаковых входных данных всегда производит одинаковый вывод. Это просто два разных способа взглянуть на одни и те же характеристики.
 
-But a third way of looking at function purity, and perhaps the most widely accepted definition, is that a pure function has referential transparency.
+Но есть третий способ взглянуть на чистоту функции, и, пожалуй, наиболее широко принятое определение: чистая функция обладает ссылочной прозрачностью.
 
-Referential transparency is the assertion that a function call could be replaced by its output value, and the overall program behavior wouldn't change. In other words, it would be impossible to tell from the program's execution whether the function call was made or its return value was inlined in place of the function call.
+Ссылочная прозрачность — это утверждение, что вызов функции можно заменить её выходным значением, и общее поведение программы не изменится. Иными словами, было бы невозможно определить по выполнению программы, был ли сделан вызов функции или её возвращаемое значение было вставлено непосредственно на место вызова.
 
-From the perspective of referential transparency, both of these programs have identical behavior as they are built with pure functions:
+С точки зрения ссылочной прозрачности, обе эти программы имеют одинаковое поведение, поскольку построены на чистых функциях:
 
 ```js
 function calculateAverage(nums) {
@@ -677,27 +677,27 @@ var avg = 9;
 console.log( "The average is:", avg );      // The average is: 9
 ```
 
-The only difference between these two snippets is that in the latter one, we skipped the `calculateAverage(nums)` call and just inlined its output (`9`). Since the rest of the program behaves identically, `calculateAverage(..)` has referential transparency, and is thus a pure function.
+Единственное различие между этими двумя фрагментами в том, что в последнем мы пропустили вызов `calculateAverage(nums)` и просто подставили его вывод (`9`). Поскольку остальная часть программы ведёт себя идентично, `calculateAverage(..)` обладает ссылочной прозрачностью и, следовательно, является чистой функцией.
 
-### Mentally Transparent
+### Мысленная прозрачность
 
-The notion that a referentially transparent pure function *can be* replaced with its output does not mean that it *should literally be* replaced. Far from it.
+То, что ссылочно прозрачную чистую функцию *можно* заменить её выводом, не означает, что она *должна буквально* быть заменена. Совсем наоборот.
 
-The reasons we build functions into our programs instead of using pre-computed magic constants are not just about responding to changing data, but also about readability with proper abstractions. The function call to calculate the average of that list of numbers makes that part of the program more readable than the line that just assigns the value explicitly. It tells the story to the reader of where `avg` comes from, what it means, and so on.
+Причины, по которым мы встраиваем функции в наши программы вместо использования заранее вычисленных магических констант, связаны не только с реакцией на изменяющиеся данные, но и с читаемостью благодаря правильным абстракциям. Вызов функции для вычисления среднего значения этого списка чисел делает эту часть программы более читаемой, чем строка, которая просто явно присваивает значение. Она рассказывает читателю историю о том, откуда берётся `avg`, что он означает, и так далее.
 
-What we're really suggesting with referential transparency is that as you're reading a program, once you've mentally computed what a pure function call's output is, you no longer need to think about what that exact function call is doing when you see it in code, especially if it appears multiple times.
+Что мы на самом деле предлагаем с ссылочной прозрачностью — это то, что, читая программу, как только вы мысленно вычислили вывод вызова чистой функции, вам больше не нужно думать о том, что именно делает этот конкретный вызов функции, когда вы видите его в коде, особенно если он встречается несколько раз.
 
-That result becomes kinda like a mental `const` declaration, which as you're reading you can transparently swap in and not spend any more mental energy working out.
+Этот результат становится чем-то вроде мысленного объявления `const`, которое при чтении вы можете прозрачно подставлять, не тратя больше умственной энергии на его обдумывание.
 
-Hopefully the importance of this characteristic of a pure function is obvious. We're trying to make our programs more readable. One way we can do that is to give the reader less work, by providing assistance to skip over the unnecessary stuff so they can focus on the important stuff.
+Надеюсь, важность этой характеристики чистой функции очевидна. Мы пытаемся сделать наши программы более читаемыми. Один из способов сделать это — дать читателю меньше работы, помогая пропустить ненужное, чтобы они могли сосредоточиться на важном.
 
-The reader shouldn't need to keep re-computing some outcome that isn't going to change (and doesn't need to). If you define a pure function with referential transparency, the reader won't have to.
+Читателю не нужно постоянно пересчитывать некий результат, который не будет меняться (и не должен). Если вы определяете чистую функцию со ссылочной прозрачностью, читателю не придётся этого делать.
 
-### Not So Transparent?
+### Не так прозрачно?
 
-What about a function that has a side effect, but this side effect isn't ever observed or relied upon anywhere else in the program? Does that function still have referential transparency?
+Что насчёт функции, которая имеет побочный эффект, но этот побочный эффект нигде больше в программе не наблюдается и не используется? Обладает ли такая функция всё ещё ссылочной прозрачностью?
 
-Here's one:
+Вот пример:
 
 ```js
 function calculateAverage(nums) {
@@ -714,26 +714,26 @@ var numbers = [1,2,4,7,11,16,22];
 var avg = calculateAverage( numbers );
 ```
 
-Did you spot it?
+Вы заметили?
 
-`sum` is an outer free variable that `calculateAverage(..)` uses to do its work. But, every time we call `calculateAverage(..)` with the same list, we're going to get `9` as the output. And this program couldn't be distinguished in terms of behavior from a program that replaced the `calculateAverage(nums)` call with the value `9`. No other part of the program cares about the `sum` variable, so it's an unobserved side effect.
+`sum` — это внешняя свободная переменная, которую `calculateAverage(..)` использует в своей работе. Но при каждом вызове `calculateAverage(..)` с тем же списком мы будем получать `9` на выходе. И эту программу нельзя было бы отличить по поведению от программы, в которой вызов `calculateAverage(nums)` заменён значением `9`. Никакой другой части программы не важна переменная `sum`, так что это ненаблюдаемый побочный эффект.
 
-Is a side cause/effect that's unobserved like this tree:
+Похож ли ненаблюдаемый побочный эффект/скрытая причина на это дерево:
 
-> If a tree falls in the forest, but no one is around to hear it, does it still make a sound?
+> Если дерево падает в лесу, но рядом никого нет, издаёт ли оно звук?
 
-By the narrowest definition of referential transparency, I think you'd have to say `calculateAverage(..)` is still a pure function. However, because we're trying to avoid a strictly academic approach in favor of balancing it with pragmatism, I also think this conclusion needs more perspective. Let's explore.
+По самому строгому определению ссылочной прозрачности, я думаю, вам пришлось бы сказать, что `calculateAverage(..)` всё ещё является чистой функцией. Однако, поскольку мы стараемся избегать сугубо академического подхода в пользу балансирования с прагматизмом, я также думаю, что этот вывод требует дополнительного рассмотрения. Давайте исследуем.
 
-#### Performance Effects
+#### Влияние на производительность
 
-You'll generally find these kind of side-effects-that-go-unobserved being used to optimize the performance of an operation. For example:
+Как правило, подобные ненаблюдаемые побочные эффекты используются для оптимизации производительности операции. Например:
 
 ```js
 var cache = [];
 
 function specialNumber(n) {
-    // if we've already calculated this special number,
-    // skip the work and just return it from the cache
+    // если мы уже вычислили это особое число,
+    // пропускаем вычисление и возвращаем его из кэша
     if (cache[n] !== undefined) {
         return cache[n];
     }
@@ -756,27 +756,27 @@ specialNumber( 1E6 );           // 500001
 specialNumber( 987654321 );     // 493827162
 ```
 
-This silly `specialNumber(..)` algorithm is deterministic and thus pure from the definition that it always gives the same output for the same input. It's also pure from the referential transparency perspective -- replace any call to `specialNumber(42)` with `22` and the end result of the program is the same.
+Этот незамысловатый алгоритм `specialNumber(..)` детерминирован и, таким образом, является чистым по определению: он всегда даёт одинаковый вывод для одинаковых входных данных. Он также чист с точки зрения ссылочной прозрачности — замените любой вызов `specialNumber(42)` на `22`, и конечный результат программы останется тем же.
 
-However, the function has to do quite a bit of work to calculate some of the bigger numbers, especially the `987654321` input. If we needed to get that particular special number multiple times throughout our program, the `cache`ing of the result means that subsequent calls are far more efficient.
+Однако функции приходится проделывать немало работы для вычисления некоторых больших чисел, особенно входного значения `987654321`. Если бы нам нужно было получать это конкретное особое число несколько раз в нашей программе, кэширование результата означало бы, что последующие вызовы значительно эффективнее.
 
-Don't be so quick to assume that you could just run the calculation `specialNumber(987654321)` once and manually stick that result in some variable/constant. Programs are often highly modularized and globally accessible scopes are not usually the way you want to share state between those independent pieces. Having `specialNumber(..)` do its own caching (even though it happens to be using a global variable to do so!) is a more preferable abstraction of that state sharing.
+Не торопитесь предполагать, что можно просто выполнить вычисление `specialNumber(987654321)` один раз и вручную поместить результат в какую-то переменную/константу. Программы зачастую сильно модуляризированы, и глобально доступные области видимости — обычно не тот способ, которым вы хотите делиться состоянием между этими независимыми частями. Лучше, если `specialNumber(..)` сам будет выполнять кэширование (даже если для этого он использует глобальную переменную!) — это более предпочтительная абстракция для такого разделения состояния.
 
-The point is that if `specialNumber(..)` is the only part of the program that accesses and updates the `cache` side cause/effect, the referential transparency perspective observably holds true, and this might be seen as an acceptable pragmatic "cheat" of the pure function ideal.
+Дело в том, что если `specialNumber(..)` является единственной частью программы, которая обращается к скрытой причине/побочному эффекту `cache` и обновляет его, ссылочная прозрачность с наблюдаемой точки зрения сохраняется, и это может считаться приемлемым прагматичным "читом" от идеала чистой функции.
 
-But should it?
+Но должно ли это быть так?
 
-Typically, this sort of performance optimization side effecting is done by hiding the caching of results so they *cannot* be observed by any other part of the program. This process is referred to as memoization. I always think of that word as "memorization"; I have no idea if that's even remotely where it comes from, but it certainly helps me understand the concept better.
+Как правило, такие побочные эффекты оптимизации производительности реализуются путём скрытия кэшированных результатов так, чтобы никакая другая часть программы *не могла* их наблюдать. Этот процесс называется мемоизацией. Я всегда воспринимаю это слово как "меморизацию" (запоминание); понятия не имею, откуда оно на самом деле происходит, но это определённо помогает мне лучше понять концепцию.
 
-Consider:
+Рассмотрим:
 
 ```js
 var specialNumber = (function memoization(){
     var cache = [];
 
     return function specialNumber(n){
-        // if we've already calculated this special number,
-        // skip the work and just return it from the cache
+        // если мы уже вычислили это особое число,
+        // пропускаем вычисление и возвращаем его из кэша
         if (cache[n] !== undefined) {
             return cache[n];
         }
@@ -795,27 +795,27 @@ var specialNumber = (function memoization(){
 })();
 ```
 
-We've contained the `cache` side causes/effects of `specialNumber(..)` inside the scope of the `memoization()` IIFE, so now we're sure that no other parts of the program *can* observe them, not just that they *don't* observe them.
+Мы заключили скрытые причины/побочные эффекты `cache` функции `specialNumber(..)` внутрь области видимости IIFE `memoization()`, поэтому теперь мы уверены, что никакие другие части программы *не смогут* их наблюдать, а не просто *не наблюдают*.
 
-That last sentence may seem like a subtle point, but actually I think it might be **the most important point of the entire chapter**. Read it again.
+Последнее предложение может показаться тонким замечанием, но я думаю, что это может быть **самым важным тезисом всей главы**. Перечитайте его ещё раз.
 
-Recall this philosophical musing:
+Вспомним это философское рассуждение:
 
-> If a tree falls in the forest, but no one is around to hear it, does it still make a sound?
+> Если дерево падает в лесу, но рядом никого нет, издаёт ли оно звук?
 
-Going with the metaphor, what I'm getting at is: whether the sound is made or not, it would be better if we never create a scenario where the tree can fall without us being around; we'll always hear the sound when a tree falls.
+Используя эту метафору, я имею в виду следующее: независимо от того, издаётся ли звук, было бы лучше никогда не создавать сценарий, в котором дерево может упасть в наше отсутствие; мы всегда будем слышать звук, когда дерево падает.
 
-The purpose of reducing side causes/effects is not per se to have a program where they aren't observed, but to design a program where fewer of them are possible, because this makes the code easier to reason about. A program with side causes/effects that *just happen* to not be observed is not nearly as effective in this goal as a program that *cannot* observe them.
+Цель уменьшения скрытых причин/побочных эффектов состоит не в том, чтобы иметь программу, где они не наблюдаются, а в том, чтобы спроектировать программу, где возможностей для них меньше, поскольку это делает код проще для анализа. Программа со скрытыми причинами/побочными эффектами, которые *случайно* не наблюдаются, значительно менее эффективна в достижении этой цели, чем программа, которая *не может* их наблюдать.
 
-If side causes/effects can happen, the writer and reader must mentally juggle them. Make it so they can't happen, and both writer and reader will find more confidence over what can and cannot happen in any part.
+Если скрытые причины/побочные эффекты могут происходить, автор и читатель должны мысленно их жонглировать. Сделайте так, чтобы они не могли происходить, — и у автора, и у читателя появится больше уверенности в том, что может и что не может произойти в любой части кода.
 
-## Purifying
+## Очищение
 
-The first best option in writing functions is that you design them from the beginning to be pure. But you'll spend plenty of time maintaining existing code, where those kinds of decisions were already made; you'll run across a lot of impure functions.
+Лучший первый вариант при написании функций — проектировать их с самого начала чистыми. Но вы будете немало времени проводить за поддержкой существующего кода, где такие решения уже были приняты; вам будет попадаться много нечистых функций.
 
-If possible, refactor the impure function to be pure. Sometimes you can just shift the side effects out of a function to the part of the program where the call of that function happens. The side effect wasn't eliminated, but it was made more obvious by showing up at the call-site.
+Если возможно, рефакторьте нечистую функцию до чистой. Иногда вы можете просто вынести побочные эффекты из функции в ту часть программы, где происходит вызов этой функции. Побочный эффект не был устранён, но стал более очевидным, поскольку теперь появляется на месте вызова.
 
-Consider this trivial example:
+Рассмотрим этот тривиальный пример:
 
 ```js
 function addMaxNum(arr) {
@@ -830,7 +830,7 @@ addMaxNum( nums );
 nums;       // [4,2,7,3,8]
 ```
 
-The `nums` array needs to be modified, but we don't have to obscure that side effect by containing it in `addMaxNum(..)`. Let's move the `push(..)` mutation out, so that `addMaxNum(..)` becomes a pure function, and the side effect is now more obvious:
+Массив `nums` нужно изменить, но нам не обязательно скрывать этот побочный эффект внутри `addMaxNum(..)`. Давайте вынесем мутацию через `push(..)` наружу, чтобы `addMaxNum(..)` стала чистой функцией, а побочный эффект стал более очевидным:
 
 ```js
 function addMaxNum(arr) {
@@ -847,17 +847,17 @@ nums.push(
 nums;       // [4,2,7,3,8]
 ```
 
-**Note:** Another technique for this kind of task could be to use an immutable data structure, which we cover in the next chapter.
+**Примечание:** Ещё одна техника для этого типа задач — использование неизменяемой структуры данных, о чём мы расскажем в следующей главе.
 
-But what can you do if you have an impure function where the refactoring is not as easy?
+Но что вы можете сделать, если у вас есть нечистая функция, рефакторинг которой не так прост?
 
-You need to figure what kind of side causes/effects the function has. It may be that the side causes/effects come variously from lexical free variables, mutations-by-reference, or even `this` binding. We'll look at approaches that address each of these scenarios.
+Нужно разобраться, какого рода скрытые причины/побочные эффекты у функции. Возможно, они происходят от лексических свободных переменных, мутаций по ссылке или даже привязки `this`. Мы рассмотрим подходы, решающие каждый из этих сценариев.
 
-### Containing Effects
+### Содержание эффектов
 
-If the nature of the concerned side causes/effects is with lexical free variables, and you have the option to modify the surrounding code, you can encapsulate them using scope.
+Если природа рассматриваемых скрытых причин/побочных эффектов связана с лексическими свободными переменными, и у вас есть возможность изменить окружающий код, вы можете инкапсулировать их с помощью области видимости.
 
-Recall:
+Вспомним:
 
 ```js
 var users = {};
@@ -869,23 +869,23 @@ function fetchUserData(userId) {
 }
 ```
 
-One option for purifying this code is to create a wrapper around both the variable and the impure function. Essentially, the wrapper has to receive as input "the entire universe" of state it can operate on.
+Один из способов очистить этот код — создать обёртку вокруг переменной и нечистой функции. По существу, обёртка должна получать в качестве входных данных "всю вселенную" состояния, с которым она может работать.
 
 ```js
 function safer_fetchUserData(userId,users) {
-    // simple, naive ES6+ shallow object copy, could also
-    // be done w/ various libs or frameworks
+    // простое, наивное неглубокое копирование объекта в стиле ES6+,
+    // также можно сделать с помощью различных библиотек и фреймворков
     users = Object.assign( {}, users );
 
     fetchUserData( userId );
 
-    // return the copied state
+    // возвращаем скопированное состояние
     return users;
 
 
     // ***********************
 
-    // original untouched impure function:
+    // оригинальная нетронутая нечистая функция:
     function fetchUserData(userId) {
         ajax(
             `http://some.api/user/${userId}`,
@@ -897,19 +897,19 @@ function safer_fetchUserData(userId,users) {
 }
 ```
 
-**Warning:** `safer_fetchUserData(..)` is *more* pure, but is not strictly pure in that it still relies on the I/O of making an Ajax call. There's no getting around the fact that an Ajax call is an impure side effect, so we'll just leave that detail unaddressed.
+**Внимание:** `safer_fetchUserData(..)` *более* чистая, но не является строго чистой, поскольку всё ещё полагается на I/O при выполнении Ajax-вызова. Нельзя обойти тот факт, что Ajax-вызов — нечистый побочный эффект, поэтому мы просто оставим эту деталь без рассмотрения.
 
-Both `userId` and `users` are input for the original `fetchUserData`, and `users` is also output. The `safer_fetchUserData(..)` takes both of these inputs, and returns `users`. To make sure we're not creating a side effect on the outside when `users` is mutated, we make a local copy of `users`.
+И `userId`, и `users` являются входными данными для оригинальной `fetchUserData`, а `users` также является выходными данными. `safer_fetchUserData(..)` принимает оба этих входных параметра и возвращает `users`. Чтобы при мутации `users` не создавать побочного эффекта снаружи, мы создаём локальную копию `users`.
 
-This technique has limited usefulness mostly because if you cannot modify a function itself to be pure, you're not that likely to be able to modify its surrounding code either. However, it's helpful to explore it if possible, as it's the simplest of our fixes.
+Эта техника имеет ограниченную полезность в основном потому, что если вы не можете изменить функцию, чтобы сделать её чистой, вам вряд ли удастся изменить и окружающий код. Однако полезно исследовать её, если это возможно, поскольку это самое простое из наших исправлений.
 
-Regardless of whether this will be a practical technique for refactoring to pure functions, the more important take-away is that function purity only need be skin deep. That is, the **purity of a function is judged from the outside**, regardless of what goes on inside. As long as a function's usage behaves pure, it is pure. Inside a pure function, impure techniques can be used -- in moderation! -- for a variety of reasons, including most commonly, for performance. It's not necessarily, as they say, "turtles all the way down".
+Независимо от того, будет ли это практичной техникой рефакторинга к чистым функциям, более важный вывод заключается в том, что чистота функции должна быть лишь поверхностной. То есть **чистота функции оценивается снаружи**, независимо от того, что происходит внутри. Пока использование функции ведёт себя чисто, она является чистой. Внутри чистой функции нечистые техники могут использоваться — в меру! — по ряду причин, наиболее часто — ради производительности. Это не обязательно, как говорят, "черепахи до самого дна".
 
-Be very careful, though. Any part of the program that's impure, even if it's wrapped with and only ever used via a pure function, is a potential source of bugs and confusion for readers of the code. The overall goal is to reduce side effects wherever possible, not just hide them.
+Однако будьте очень осторожны. Любая нечистая часть программы, даже если она обёрнута в и используется только через чистую функцию, является потенциальным источником ошибок и путаницы для читателей кода. Общая цель — уменьшить побочные эффекты везде, где возможно, а не просто их скрыть.
 
-### Covering Up Effects
+### Маскировка эффектов
 
-Many times you will be unable to modify the code to encapsulate the lexical free variables inside the scope of a wrapper function. For example, the impure function may be in a third-party library file that you do not control, containing something like:
+Во многих случаях вы не сможете изменить код для инкапсуляции лексических свободных переменных внутри области видимости функции-обёртки. Например, нечистая функция может находиться в файле сторонней библиотеки, который вы не контролируете, и содержать что-то вроде:
 
 ```js
 var nums = [];
@@ -932,50 +932,50 @@ function generateMoreRandoms(count) {
 }
 ```
 
-The brute-force strategy to *quarantine* the side causes/effects when using this utility in the rest of our program is to create an interface function that performs the following steps:
+Стратегия грубой силы для *карантина* скрытых причин/побочных эффектов при использовании этой утилиты в остальной части нашей программы — создать функцию-интерфейс, которая выполняет следующие шаги:
 
-1. Capture the to-be-affected current states
-2. Set initial input states
-3. Run the impure function
-4. Capture the side effect states
-5. Restore the original states
-6. Return the captured side effect states
+1. Захватить текущие состояния, которые будут затронуты
+2. Установить начальные входные состояния
+3. Выполнить нечистую функцию
+4. Захватить состояния побочного эффекта
+5. Восстановить исходные состояния
+6. Вернуть захваченные состояния побочного эффекта
 
 ```js
 function safer_generateMoreRandoms(count,initial) {
-    // (1) Save original state
+    // (1) Сохраняем исходное состояние
     var orig = {
         nums,
         smallCount,
         largeCount
     };
 
-    // (2) Set up initial pre-side effects state
+    // (2) Устанавливаем начальное состояние до побочных эффектов
     nums = [...initial.nums];
     smallCount = initial.smallCount;
     largeCount = initial.largeCount;
 
-    // (3) Beware impurity!
+    // (3) Осторожно: нечистота!
     generateMoreRandoms( count );
 
-    // (4) Capture side effect state
+    // (4) Захватываем состояние побочного эффекта
     var sides = {
         nums,
         smallCount,
         largeCount
     };
 
-    // (5) Restore original state
+    // (5) Восстанавливаем исходное состояние
     nums = orig.nums;
     smallCount = orig.smallCount;
     largeCount = orig.largeCount;
 
-    // (6) Expose side effect state directly as output
+    // (6) Выставляем состояние побочного эффекта напрямую как вывод
     return sides;
 }
 ```
 
-And to use `safer_generateMoreRandoms(..)`:
+Чтобы использовать `safer_generateMoreRandoms(..)`:
 
 ```js
 var initialStates = {
@@ -992,21 +992,21 @@ smallCount;     // 0
 largeCount;     // 0
 ```
 
-That's a lot of manual work to avoid a few side causes/effects; it'd be a lot easier if we just didn't have them in the first place. But if we have no choice, this extra effort is well worth it to avoid surprises in our programs.
+Это много ручной работы, чтобы избежать нескольких скрытых причин/побочных эффектов; было бы намного проще, если бы их просто не было с самого начала. Но если у нас нет выбора, эти дополнительные усилия вполне стоят того, чтобы избежать неожиданностей в наших программах.
 
-**Note:** This technique really only works when you're dealing with synchronous code. Asynchronous code can't reliably be managed with this approach because it can't prevent surprises if other parts of the program access/modify the state variables in the interim.
+**Примечание:** Эта техника действительно работает только при работе с синхронным кодом. Асинхронным кодом нельзя надёжно управлять с помощью этого подхода, поскольку он не может предотвратить неожиданности, если другие части программы обращаются к переменным состояния или изменяют их в промежутке.
 
-### Evading Effects
+### Уклонение от эффектов
 
-When the nature of the side effect to be dealt with is a mutation of a direct input value (object, array, etc.) via reference, we can again create an interface function to interact with instead of the original impure function.
+Когда природа побочного эффекта, с которым нужно работать, — это мутация прямого входного значения (объекта, массива и т.д.) по ссылке, мы снова можем создать функцию-интерфейс для взаимодействия вместо оригинальной нечистой функции.
 
-Consider:
+Рассмотрим:
 
 ```js
 function handleInactiveUsers(userList,dateCutoff) {
     for (let i = 0; i < userList.length; i++) {
         if (userList[i].lastLogin == null) {
-            // remove the user from the list
+            // удаляем пользователя из списка
             userList.splice( i, 1 );
             i--;
         }
@@ -1017,31 +1017,31 @@ function handleInactiveUsers(userList,dateCutoff) {
 }
 ```
 
-Both the `userList` array itself, plus the objects in it, are mutated. One strategy to protect against these side effects is to do a deep (well, just not shallow) copy first:
+И сам массив `userList`, и объекты в нём мутируются. Одна из стратегий защиты от этих побочных эффектов — сначала сделать глубокую (ну, не совсем поверхностную) копию:
 
 ```js
 function safer_handleInactiveUsers(userList,dateCutoff) {
-    // make a copy of both the list and its user objects
+    // делаем копию и списка, и объектов пользователей в нём
     let copiedUserList = userList.map( function mapper(user){
-        // copy a `user` object
+        // копируем объект `user`
         return Object.assign( {}, user );
     } );
 
-    // call the original function with the copy
+    // вызываем оригинальную функцию с копией
     handleInactiveUsers( copiedUserList, dateCutoff );
 
-    // expose the mutated list as a direct output
+    // выставляем мутированный список напрямую как вывод
     return copiedUserList;
 }
 ```
 
-The success of this technique will be dependent on the thoroughness of the *copy* you make of the value. Using `[...userList]` would not work here, since that only creates a shallow copy of the `userList` array itself. Each element of the array is an object that needs to be copied, so we need to take extra care. Of course, if those objects have objects inside them (they might!), the copying needs to be even more robust.
+Успех этой техники будет зависеть от тщательности *копирования* значения. Использование `[...userList]` здесь не подойдёт, поскольку это создаёт только поверхностную копию самого массива `userList`. Каждый элемент массива — объект, который нужно скопировать, поэтому нам нужно проявить дополнительную осторожность. Конечно, если эти объекты содержат другие объекты (а они могут!), копирование должно быть ещё более надёжным.
 
-### `this` Revisited
+### Пересматривая `this`
 
-Another variation of the via-reference side cause/effect is with `this`-aware functions having `this` as an implicit input. See [Chapter 2, "What's This"](ch2.md/#whats-this) for more info on why the `this` keyword is problematic for FPers.
+Ещё одна разновидность побочного эффекта/скрытой причины через ссылку — это функции, осведомлённые о `this`, где `this` является неявным вводом. Смотрите [Главу 2, "Что такое this"](ch2.md/#whats-this) для получения дополнительной информации о том, почему ключевое слово `this` проблематично для ФП-программистов.
 
-Consider:
+Рассмотрим:
 
 ```js
 var ids = {
@@ -1052,7 +1052,7 @@ var ids = {
 };
 ```
 
-Our strategy is similar to the previous section's discussion: create an interface function that forces the `generate()` function to use a predictable `this` context:
+Наша стратегия похожа на обсуждение из предыдущего раздела: создать функцию-интерфейс, которая принудит функцию `generate()` использовать предсказуемый контекст `this`:
 
 ```js
 function safer_generate(context) {
@@ -1065,16 +1065,16 @@ safer_generate( { prefix: "foo" } );
 // "foo0.8988802158307285"
 ```
 
-These strategies are in no way fool-proof; the safest protection against side causes/effects is to not do them. But if you're trying to improve the readability and confidence level of your program, reducing the side causes/effects wherever possible is a huge step forward.
+Эти стратегии никоим образом не являются надёжными на все сто процентов; самая безопасная защита от скрытых причин/побочных эффектов — просто не использовать их. Но если вы пытаетесь улучшить читаемость и уровень уверенности в вашей программе, уменьшение скрытых причин/побочных эффектов везде, где это возможно, — огромный шаг вперёд.
 
-Essentially, we're not really eliminating side causes/effects, but rather containing and limiting them, so that more of our code is verifiable and reliable. If we later run into program bugs, we know that the parts of our code still using side causes/effects are the most likely culprits.
+По существу, мы не столько устраняем скрытые причины/побочные эффекты, сколько сдерживаем и ограничиваем их, чтобы больше нашего кода было верифицируемым и надёжным. Если позже мы столкнёмся с ошибками в программе, мы знаем, что части кода, по-прежнему использующие скрытые причины/побочные эффекты, являются наиболее вероятными виновниками.
 
-## Summary
+## Резюме
 
-Side effects are harmful to code readability and quality because they make your code much harder to understand. Side effects are also one of the most common *causes* of bugs in programs, because juggling them is hard. Idempotence is a strategy for restricting side effects by essentially creating one-time-only operations.
+Побочные эффекты вредны для читаемости и качества кода, потому что делают его значительно сложнее для понимания. Побочные эффекты также являются одной из наиболее распространённых *причин* ошибок в программах, поскольку жонглировать ими сложно. Идемпотентность — стратегия ограничения побочных эффектов путём создания, по существу, однократных операций.
 
-Pure functions are how we best avoid side effects. A pure function is one that always returns the same output given the same input, and has no side causes or side effects. Referential transparency further states that -- more as a mental exercise than a literal action -- a pure function's call could be replaced with its output and the program would not have altered behavior.
+Чистые функции — лучший способ избежать побочных эффектов. Чистая функция — это та, которая всегда возвращает одинаковый вывод при одинаковом вводе и не имеет скрытых причин или побочных эффектов. Ссылочная прозрачность далее утверждает — скорее как мысленное упражнение, а не буквальное действие — что вызов чистой функции можно заменить её выводом без изменения поведения программы.
 
-Refactoring an impure function to be pure is the preferred option. But if that's not possible, try encapsulating the side causes/effects, or creating a pure interface against them.
+Рефакторинг нечистой функции до чистой — предпочтительный вариант. Но если это невозможно, попробуйте инкапсулировать скрытые причины/побочные эффекты или создать для них чистый интерфейс.
 
-No program can be entirely free of side effects. But prefer pure functions in as many places as that's practical. Collect impure functions side effects together as much as possible, so that it's easier to identify and audit these most likely culprits of bugs when they arise.
+Ни одна программа не может быть полностью свободна от побочных эффектов. Но отдавайте предпочтение чистым функциям везде, где это практично. Собирайте побочные эффекты нечистых функций вместе насколько возможно, чтобы было легче выявлять и аудировать этих наиболее вероятных виновников ошибок в случае их появления.
