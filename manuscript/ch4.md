@@ -1,41 +1,41 @@
-# Functional-Light JavaScript
-# Chapter 4: Composing Functions
+# Функционально-Лёгкий JavaScript
+# Глава 4: Композиция
 
-By now, I hope you're feeling much more comfortable with what it means to use functions for functional programming.
+К этому моменту я надеюсь, что вы чувствуете себя значительно увереннее в понимании того, что значит использовать функции в функциональном программировании.
 
-A functional programmer sees every function in their program like a simple little Lego piece. They recognize the blue 2x2 brick at a glance, and know exactly how it works and what they can do with it. When they begin building a bigger, more complex Lego model, as they need each next piece, they already have an instinct for which of their many spare pieces to grab.
+ФП-разработчик воспринимает каждую функцию в программе как маленький кирпичик Lego. Он с первого взгляда узнаёт синий кубик 2x2 и точно знает, как он работает и что с ним можно сделать. Когда приходит время строить что-то большое и сложное, у него уже есть инстинкт — какой из множества кирпичиков взять следующим.
 
-But sometimes you take the blue 2x2 brick and the gray 4x1 brick and put them together in a certain way, and you realize, "that's a useful piece that I need often".
+Но иногда берёшь синий кубик 2x2 и серый 4x1 и соединяешь их определённым образом — и понимаешь: «вот полезная деталь, которая мне часто нужна».
 
-So now you've come up with a new "piece", a combination of two other pieces, and you can reach for that kind of piece now anytime you need it. It's more effective to recognize and use this compound blue-gray L-brick thing where it's needed than to separately think about assembling the two individual bricks each time.
+Так у вас появляется новая "деталь" — комбинация двух других, и теперь вы можете взять её в любой момент. Гораздо эффективнее узнавать и использовать этот сине-серый Г-образный кирпич там, где он нужен, чем каждый раз заново думать о том, как собрать два отдельных кубика.
 
-Functions come in a variety of shapes and sizes. And we can define a certain combination of them to make a new compound function that will be handy in various parts of the program. This process of using functions together is called composition.
+Функции бывают разных форм и размеров. Мы можем определить определённую комбинацию из них, создав новую составную функцию, которая будет полезна в разных частях программы. Этот процесс объединения функций называется **композицией**.
 
-Composition is how an FPer models the flow of data through the program. In some senses, it's the most foundational concept in all of FP, because without it, you can't declaratively model data and state changes. In other words, everything else in FP would collapse without composition.
+Именно с помощью композиции ФП-разработчик моделирует поток данных через программу. В каком-то смысле это самая фундаментальная концепция во всём ФП, потому что без неё нельзя декларативно моделировать данные и изменения состояния. Другими словами, без композиции всё остальное в ФП рассыпается.
 
-## Output to Input
+## Вывод в Ввод
 
-We've already seen a few examples of composition. For example, our discussion of [`unary(..)` in Chapter 3](ch3.md/#user-content-unary) included this expression: [`[..].map(unary(parseInt))`](ch3.md/#user-content-mapunary). Think about what's happening there.
+Мы уже видели несколько примеров композиции. Например, в обсуждении [`unary(..)` в Главе 3](ch3.md/#user-content-unary) встречалось такое выражение: [`[..].map(unary(parseInt))`](ch3.md/#user-content-mapunary). Давайте разберёмся, что здесь происходит.
 
-To compose two functions together, pass the output of the first function call as the input of the second function call. In `map(unary(parseInt))`, the `unary(parseInt)` call returns a value (a function); that value is directly passed as an argument to `map(..)`, which returns an array.
+Чтобы скомпоновать две функции, нужно передать вывод первого вызова функции как ввод второго. В `map(unary(parseInt))` вызов `unary(parseInt)` возвращает значение (функцию); это значение напрямую передаётся аргументом в `map(..)`, который возвращает массив.
 
-To take a step back and visualize the conceptual flow of data, consider:
+Если отступить назад и визуализировать концептуальный поток данных, получится:
 
 ```txt
 arrayValue <-- map <-- unary <-- parseInt
 ```
 
-`parseInt` is the input to `unary(..)`. The output of `unary(..)` is the input to `map(..)`. The output of `map(..)` is `arrayValue`. This is the composition of `map(..)` and `unary(..)`.
+`parseInt` является вводом для `unary(..)`. Вывод `unary(..)` является вводом для `map(..)`. Вывод `map(..)` — это `arrayValue`. Это и есть композиция `map(..)` и `unary(..)`.
 
-**Note:** The right-to-left orientation here is on purpose, though it may seem strange at this point in your learning. We'll come back to explain that more fully later.
+**Примечание:** Ориентация справа налево здесь не случайна — хотя на этом этапе изучения может казаться странной. Мы вернёмся и объясним это подробнее чуть позже.
 
-Think of this flow of data like a conveyor belt in a candy factory, where each operation is a step in the process of cooling, cutting, and wrapping a piece of candy. We'll use the candy factory metaphor throughout this chapter to explain what composition is.
+Думайте об этом потоке данных как о конвейерной ленте на кондитерской фабрике, где каждая операция — это этап в процессе охлаждения, нарезки и упаковки конфеты. Мы будем использовать метафору кондитерской фабрики на протяжении всей этой главы для объяснения того, что такое композиция.
 
 <p align="center">
     <img src="images/fig2.png">
 </p>
 
-Let's examine composition in action one step at a time. Consider these two utilities you might have in your program:
+Давайте рассмотрим композицию в действии шаг за шагом. Представим, что в вашей программе есть две такие утилиты:
 
 ```js
 function words(str) {
@@ -51,7 +51,7 @@ function unique(list) {
     var uniqList = [];
 
     for (let v of list) {
-        // value not yet in the new list?
+        // значение ещё не в новом списке?
         if (uniqList.indexOf( v ) === -1 ) {
             uniqList.push( v );
         }
@@ -61,9 +61,9 @@ function unique(list) {
 }
 ```
 
-`words(..)` splits a string into an array of words. `unique(..)` takes a list of words and filters it to not have any repeat words in it.
+`words(..)` разбивает строку на массив слов. `unique(..)` принимает список слов и фильтрует его, убирая повторяющиеся.
 
-To use these two utilities to analyze a string of text:
+Чтобы использовать эти две утилиты для анализа строки текста:
 
 ```js
 var text = "To compose two functions together, pass the \
@@ -79,35 +79,35 @@ wordsUsed;
 // "input","second"]
 ```
 
-We name the array output of `words(..)` as `wordsFound`. The input of `unique(..)` is also an array, so we can pass the `wordsFound` into it.
+Мы называем вывод массива из `words(..)` как `wordsFound`. Ввод `unique(..)` тоже является массивом, поэтому мы можем передать в него `wordsFound`.
 
-Back to the candy factory assembly line: the first machine takes as "input" the melted chocolate, and its "output" is a chunk of formed and cooled chocolate. The next machine a little down the assembly line takes as its "input" the chunk of chocolate, and its "output" is a cut-up piece of chocolate candy. Next, a machine on the line takes small pieces of chocolate candy from the conveyor belt and outputs wrapped candies ready to bag and ship.
+Возвращаясь к конвейеру кондитерской фабрики: первая машина принимает расплавленный шоколад как "ввод", а её "вывод" — это кусок сформированного и охлаждённого шоколада. Следующая машина на конвейере принимает как ввод кусок шоколада, а на выходе — нарезанная шоколадная конфета. Дальше машина берёт маленькие кусочки шоколадных конфет с конвейера и выдаёт завёрнутые конфеты, готовые к упаковке и отправке.
 
 <img src="images/fig3.png" align="right" width="9%" hspace="20">
 
-The candy factory is fairly successful with this process, but as with all businesses, management keeps searching for ways to grow.
+На фабрике дела идут неплохо с этим процессом, но, как и в любом бизнесе, руководство постоянно ищет способы роста.
 
-To keep up with demand for more candy production, they decide to take out the conveyor belt contraption and just stack all three machines on top of one another, so that the output valve of one is connected directly to the input valve of the one below it. There's no longer sprawling wasted space where a chunk of chocolate slowly and noisily rumbles down a conveyor belt from the first machine to the second.
+Чтобы успевать за спросом на большее количество конфет, они решают убрать конвейерную систему и просто поставить все три машины друг на друга, соединив выходной клапан одной напрямую с входным клапаном следующей. Больше нет растянутого пустого пространства, по которому кусок шоколада медленно и шумно катится с первой машины на вторую.
 
-This innovation saves a lot of room on the factory floor, so management is happy they'll get to make more candy each day!
+Это нововведение освобождает много места на фабрике, и руководство довольно, что теперь можно производить больше конфет в день!
 
-The code equivalent of this improved candy factory configuration is to skip the intermediate step (the `wordsFound` variable in the earlier snippet), and just use the two function calls together:
+Эквивалент в коде этой улучшенной конфигурации — пропустить промежуточный шаг (переменную `wordsFound` из предыдущего примера) и просто использовать два вызова функций вместе:
 
 ```js
 var wordsUsed = unique( words( text ) );
 ```
 
-**Note:** Though we typically read the function calls left-to-right -- `unique(..)` and then `words(..)` -- the order of operations will actually be more right-to-left, or inner-to-outer. `words(..)` will run first and then `unique(..)`. Later we'll talk about a pattern that matches the order of execution to our natural left-to-right reading, called `pipe(..)`.
+**Примечание:** Хотя мы обычно читаем вызовы функций слева направо — `unique(..)`, затем `words(..)` — порядок выполнения операций фактически будет справа налево, или изнутри наружу. Сначала выполнится `words(..)`, затем `unique(..)`. Позже мы поговорим о паттерне, который приводит порядок выполнения в соответствие с нашим естественным чтением слева направо — он называется `pipe(..)`.
 
-The stacked machines are working fine, but it's kind of clunky to have the wires hanging out all over the place. The more of these machine-stacks they create, the more cluttered the factory floor gets. And the effort to assemble and maintain all these machine stacks is awfully time intensive.
+Сложенные машины работают нормально, но как-то неудобно, когда провода торчат в разные стороны. Чем больше таких стопок машин создаётся, тем более загромождённым становится пол фабрики. А усилия по сборке и обслуживанию всех этих стопок чудовищно трудозатратны.
 
 <img src="images/fig4.png" align="left" width="15%" hspace="20">
 
-One morning, an engineer at the candy factory has a great idea. She figures that it'd be much more efficient if she made an outer box to hide all the wires; on the inside, all three of the machines are hooked up together, and on the outside everything is now neat and tidy. On the top of this fancy new machine is a valve to pour in melted chocolate and on the bottom is a valve that spits out wrapped chocolate candies. Brilliant!
+Однажды утром у инженера на кондитерской фабрике появляется отличная идея. Она понимает, что было бы гораздо эффективнее сделать внешний корпус, скрывающий все провода: внутри все три машины соединены между собой, а снаружи всё аккуратно и опрятно. Сверху на этой новой машине — клапан для заливки расплавленного шоколада, а снизу — клапан, из которого выходят завёрнутые шоколадные конфеты. Блестяще!
 
-This single compound machine is much easier to move around and install wherever the factory needs it. The workers on the factory floor are even happier because they don't need to fidget with buttons and dials on three individual machines anymore; they quickly prefer using the single fancy machine.
+Эту единую составную машину гораздо легче перемещать и устанавливать там, где её требует фабрика. Рабочие на полу тоже довольны, потому что им больше не нужно возиться с кнопками и ручками трёх отдельных машин — они быстро начинают предпочитать единую новую машину.
 
-Relating back to the code: we now realize that the pairing of `words(..)` and `unique(..)` in that specific order of execution (think: compound Lego) is something we could use in several other parts of our application. So, let's define a compound function that combines them:
+Возвращаясь к коду: мы понимаем, что пара `words(..)` и `unique(..)` в определённом порядке выполнения (думайте: составной кубик Lego) — это то, что можно использовать в нескольких других частях нашего приложения. Поэтому давайте определим составную функцию, которая их объединяет:
 
 ```js
 function uniqueWords(str) {
@@ -115,27 +115,27 @@ function uniqueWords(str) {
 }
 ```
 
-`uniqueWords(..)` takes a string and returns an array. It's a composition of the two functions: `unique(..)` and `words(..)`; it creates this flow of data:
+`uniqueWords(..)` принимает строку и возвращает массив. Это композиция двух функций: `unique(..)` и `words(..)`; она создаёт такой поток данных:
 
 ```txt
 wordsUsed <-- unique <-- words <-- text
 ```
 
-You probably recognize it by now: the unfolding revolution in candy factory design is function composition.
+Вы, наверное, уже узнаёте: разворачивающаяся революция в дизайне кондитерской фабрики — это и есть композиция функций.
 
-### Machine Making
+### Машина по Производству Машин
 
-The candy factory is humming along nicely, and thanks to all the saved space, they now have plenty of room to try out making new kinds of candies. Building on the earlier success, management is keen to keep inventing new fancy compound machines for their growing candy assortment.
+На кондитерской фабрике всё работает как надо, и благодаря освободившемуся пространству теперь есть достаточно места, чтобы попробовать производить новые виды конфет. Воодушевлённое прежними успехами, руководство стремится продолжать изобретать новые составные машины для расширяющегося ассортимента.
 
-But the factory engineers struggle to keep up, because each time a new kind of fancy compound machine needs to be made, they spend quite a bit of time making the new outer box and fitting the individual machines into it.
+Но инженеры фабрики с трудом успевают, потому что каждый раз, когда нужно сделать новую составную машину, они тратят немало времени на создание нового корпуса и установку в него отдельных машин.
 
-So the factory engineers contact an industrial machine vendor for help. They're amazed to find out that this vendor offers a **machine-making** machine! As incredible as it sounds, they purchase a machine that can take a couple of the factory's smaller machines -- the chocolate cooling one and the cutting one, for example -- and wire them together automatically, even wrapping a nice clean bigger box around them. This is surely going to make the candy factory really take off!
+Поэтому инженеры фабрики обращаются к поставщику промышленного оборудования за помощью. К своему изумлению, они узнают, что этот поставщик предлагает **машину по производству машин**! Как бы невероятно это ни звучало, они приобретают машину, которая может взять несколько меньших машин с фабрики — например, машину для охлаждения шоколада и машину для нарезки — и автоматически соединить их вместе, даже обернув аккуратным большим корпусом. Это точно даст кондитерской фабрике новый толчок к росту!
 
 <p align="center">
     <img src="images/fig5.png" width="50%">
 </p>
 
-Back to code land, let's consider a utility called `compose2(..)` that creates a composition of two functions automatically, exactly the same way we did manually:
+Возвращаясь в мир кода, рассмотрим утилиту `compose2(..)`, которая автоматически создаёт композицию двух функций — точно так же, как мы делали это вручную:
 
 ```js
 function compose2(fn2,fn1) {
@@ -144,30 +144,30 @@ function compose2(fn2,fn1) {
     };
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var compose2 =
     (fn2,fn1) =>
         origValue =>
             fn2( fn1( origValue ) );
 ```
 
-Did you notice that we defined the parameter order as `fn2,fn1`, and furthermore that it's the second function listed (aka `fn1` parameter name) that runs first, then the first function listed (`fn2`)? In other words, the functions compose from right-to-left.
+Вы заметили, что мы определили порядок параметров как `fn2,fn1`, и при этом именно вторая перечисленная функция (с именем параметра `fn1`) выполняется первой, а затем первая (`fn2`)? Другими словами, функции компонуются справа налево.
 
-That may seem like a strange choice, but there are some reasons for it. Most typical FP libraries define their `compose(..)` to work right-to-left in terms of ordering, so we're sticking with that convention.
+Это может показаться странным выбором, но для этого есть причины. Большинство типичных ФП-библиотек определяют свой `compose(..)` так, чтобы он работал справа налево по порядку, и мы придерживаемся этого соглашения.
 
-But why? I think the easiest explanation (but perhaps not the most historically accurate) is that we're listing them to match the order they are written in code manually, or rather the order we encounter them when reading from left-to-right.
+Но почему? Думаю, самое простое объяснение (хотя, возможно, не самое исторически точное) состоит в том, что мы перечисляем функции в том порядке, в котором они написаны в коде вручную, — или, точнее, в том порядке, в котором мы встречаем их при чтении слева направо.
 
-`unique(words(str))` lists the functions in the left-to-right order `unique, words`, so we make our `compose2(..)` utility accept them in that order, too. The execution order is right-to-left, but the code order is left-to-right. Pay close attention to keep those distinct in your mind.
+`unique(words(str))` перечисляет функции в порядке слева направо: `unique, words`, поэтому мы делаем `compose2(..)` так, чтобы она принимала их в таком же порядке. Порядок выполнения — справа налево, но порядок кода — слева направо. Постарайтесь чётко разграничить это в голове.
 
-Now, the more efficient definition of the candy making machine is:
+Теперь более эффективное определение машины по производству конфет выглядит так:
 
 ```js
 var uniqueWords = compose2( unique, words );
 ```
 
-### Composition Variation
+### Вариации Композиции
 
-It may seem like the `<-- unique <-- words` combination is the only order these two functions can be composed. But we could actually compose them in the opposite order to create a utility with a bit of a different purpose:
+Может показаться, что комбинация `<-- unique <-- words` — единственный порядок, в котором эти две функции можно скомпоновать. Но мы могли бы скомпоновать их в обратном порядке, получив утилиту с несколько другим назначением:
 
 ```js
 var letters = compose2( words, unique );
@@ -177,15 +177,15 @@ chars;
 // ["h","o","w","a","r","e","y","u","n"]
 ```
 
-This works because the `words(..)` utility, for value-type safety sake, first coerces its input to a string using `String(..)`. So the array that `unique(..)` returns -- now the input to `words(..)` -- becomes the string `"H,o,w, ,a,r,e,y,u,n,?"`, and then the rest of the behavior in `words(..)` processes that string into the `chars` array.
+Это работает, потому что утилита `words(..)`, ради безопасности типов, сначала приводит свой ввод к строке с помощью `String(..)`. Таким образом, массив, который возвращает `unique(..)` — теперь ввод для `words(..)` — превращается в строку `"H,o,w, ,a,r,e,y,u,n,?"`, и остальная логика `words(..)` обрабатывает эту строку в массив `chars`.
 
-Admittedly, this is a contrived example. But the point is that function compositions are not always unidirectional. Sometimes we put the gray brick on top of the blue brick, and sometimes we put the blue brick on top.
+Признаём, это надуманный пример. Но суть в том, что композиция функций не всегда однонаправленна. Иногда мы кладём серый кирпичик поверх синего, а иногда — синий поверх серого.
 
-The candy factory better be careful if they try to feed the wrapped candies into the machine that mixes and cools the chocolate!
+На кондитерской фабрике лучше быть осторожными, если вдруг попытаются пропустить завёрнутые конфеты через машину, которая смешивает и охлаждает шоколад!
 
-## General Composition
+## Обобщённая Композиция
 
-If we can define the composition of two functions, we can just keep going to support composing any number of functions. The general data visualization flow for any number of functions being composed looks like this:
+Если мы можем определить композицию двух функций, то можем и дальше продолжать, поддерживая компоновку любого количества функций. Общая визуализация потока данных для любого количества компонуемых функций выглядит так:
 
 ```txt
 finalValue <-- func1 <-- func2 <-- ... <-- funcN <-- origValue
@@ -195,21 +195,21 @@ finalValue <-- func1 <-- func2 <-- ... <-- funcN <-- origValue
     <img src="images/fig6.png" width="50%">
 </p>
 
-Now the candy factory owns the best machine of all: a machine that can take any number of separate smaller machines and spit out a big fancy machine that does every step in order. That's one heck of a candy operation! It's Willy Wonka's dream!
+Теперь кондитерская фабрика владеет лучшей из всех машин: машиной, которая может принять любое количество отдельных меньших машин и выдать большую сложную машину, выполняющую каждый шаг по порядку. Вот это операция! Мечта Вилли Вонки!
 
-We can implement a general `compose(..)` utility like this:
+Мы можем реализовать универсальную утилиту `compose(..)` вот так:
 
 <a name="generalcompose"></a>
 
 ```js
 function compose(...fns) {
     return function composed(result){
-        // copy the array of functions
+        // копируем массив функций
         var list = [...fns];
 
         while (list.length > 0) {
-            // take the last function off the end of the list
-            // and execute it
+            // берём последнюю функцию из конца списка
+            // и выполняем её
             result = list.pop()( result );
         }
 
@@ -217,15 +217,15 @@ function compose(...fns) {
     };
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var compose =
     (...fns) =>
         result => {
             var list = [...fns];
 
             while (list.length > 0) {
-                // take the last function off the end of the list
-                // and execute it
+                // берём последнюю функцию из конца списка
+                // и выполняем её
                 result = list.pop()( result );
             }
 
@@ -233,9 +233,9 @@ var compose =
         };
 ```
 
-**Warning:** `fns` is a collected array of arguments, not a passed-in array, and as such, it's local to `compose(..)`. It may be tempting to think the `[...fns]` would thus be unnecessary. However, in this particular implementation, `.pop()` inside the inner `composed(..)` function is mutating the list, so if we didn't make a copy each time, the returned composed function could only be used reliably once. We'll revisit this hazard in [Chapter 6](ch6.md/#user-content-hiddenmutation).
+**Предупреждение:** `fns` — это собранный массив аргументов, а не переданный массив, и поэтому он локален для `compose(..)`. Может возникнуть соблазн подумать, что `[...fns]` не нужен. Однако в данной реализации `.pop()` внутри внутренней функции `composed(..)` мутирует список, поэтому если бы мы не делали копию каждый раз, возвращённую составную функцию можно было бы надёжно использовать только один раз. Мы вернёмся к этой опасности в [Главе 6](ch6.md/#user-content-hiddenmutation).
 
-Now let's look at an example of composing more than two functions. Recalling our `uniqueWords(..)` composition example, let's add a `skipShortWords(..)` to the mix:
+Теперь рассмотрим пример компоновки более двух функций. Вспомнив пример с `uniqueWords(..)`, добавим к нему `skipShortWords(..)`:
 
 ```js
 function skipShortWords(words) {
@@ -251,7 +251,7 @@ function skipShortWords(words) {
 }
 ```
 
-Let's define `biggerWords(..)` that includes `skipShortWords(..)`. The manual composition equivalent is `skipShortWords( unique( words( text ) ) )`, so let's do that with `compose(..)`:
+Определим `biggerWords(..)`, включив `skipShortWords(..)`. Ручной эквивалент композиции — `skipShortWords( unique( words( text ) ) )`, поэтому сделаем это с помощью `compose(..)`:
 
 ```js
 var text = "To compose two functions together, pass the \
@@ -267,13 +267,13 @@ wordsUsed;
 // "function","input","second"]
 ```
 
-To do something more interesting with composition, let's use [`partialRight(..)`, which we first looked at in Chapter 3](ch3.md/#user-content-partialright). We can build a right-partial application of `compose(..)` itself, pre-specifying the second and third arguments (`unique(..)` and `words(..)`, respectively); we'll call it `filterWords(..)`.
+Чтобы сделать что-то поинтереснее с композицией, используем [`partialRight(..)`, который мы впервые рассмотрели в Главе 3](ch3.md/#user-content-partialright). Мы можем построить частичное применение справа самой `compose(..)`, предварительно указав второй и третий аргументы (`unique(..)` и `words(..)` соответственно); назовём это `filterWords(..)`.
 
-Then, we can complete the composition multiple times by calling `filterWords(..)`, but with different first-arguments respectively:
+Затем мы можем несколько раз завершать композицию, вызывая `filterWords(..)`, но с разными первыми аргументами:
 
 ```js
-// Note: uses a `<= 4` check instead of the `> 4` check
-// that `skipShortWords(..)` uses
+// Примечание: использует проверку `<= 4` вместо `> 4`,
+// которую использует `skipShortWords(..)`
 function skipLongWords(list) { /* .. */ }
 
 var filterWords = partialRight( compose, unique, words );
@@ -289,23 +289,23 @@ shorterWords( text );
 // ["to","two","pass","the","of","call","as"]
 ```
 
-Take a moment to consider what the right-partial application on `compose(..)` gives us. It allows us to specify ahead of time the first step(s) of a composition, and then create specialized variations of that composition with different subsequent steps (`biggerWords(..)` and `shorterWords(..)`). This is one of the most powerful tricks of FP!
+Уделите момент, чтобы осмыслить, что нам даёт частичное применение справа для `compose(..)`. Это позволяет заранее задать первый шаг (или шаги) композиции, а затем создавать специализированные вариации этой композиции с разными последующими шагами (`biggerWords(..)` и `shorterWords(..)`). Это один из самых мощных приёмов в ФП!
 
-You can also `curry(..)` a composition instead of partial application, though because of right-to-left ordering, you might more often want to `curry( reverseArgs(compose), ..)` rather than just `curry( compose, ..)` itself.
+Вы также можете применить `curry(..)` к композиции вместо частичного применения, хотя из-за порядка справа налево вы, вероятно, чаще будете хотеть использовать `curry( reverseArgs(compose), ..)`, а не просто `curry( compose, ..)`.
 
-**Note:** Because `curry(..)` (at least [the way we implemented it in Chapter 3](ch3.md/#user-content-curry)) relies on either detecting the arity (`length`) or having it manually specified, and `compose(..)` is a variadic function, you'll need to manually specify the intended arity like `curry(.. , 3)`.
+**Примечание:** Поскольку `curry(..)` (по крайней мере, [в реализации из Главы 3](ch3.md/#user-content-curry)) опирается либо на определение арности через `length`, либо на её ручное указание, а `compose(..)` является вариативной функцией, вам нужно будет вручную указать предполагаемую арность, например `curry(.. , 3)`.
 
-### Alternative Implementations
+### Альтернативные Реализации
 
-While you may very well never implement your own `compose(..)` to use in production, and rather just use a library's implementation as provided, I've found that understanding how it works under the covers actually helps solidify general FP concepts very well.
+Хотя в продакшене вы, вероятно, никогда не будете реализовывать собственный `compose(..)` и скорее воспользуетесь реализацией из библиотеки, я обнаружил, что понимание того, как он работает под капотом, действительно хорошо помогает закрепить общие концепции ФП.
 
-So let's examine some different implementation options for `compose(..)`. We'll also see there are some pros/cons to each implementation, especially performance.
+Итак, давайте рассмотрим несколько различных вариантов реализации `compose(..)`. Мы также увидим, что у каждой реализации есть свои плюсы и минусы — особенно в плане производительности.
 
-We'll be looking at the [`reduce(..)` utility in detail in Chapter 9](ch9.md/#reduce), but for now, just know that it reduces a list (array) to a single finite value. It's like a fancy loop.
+Мы [подробно рассмотрим утилиту `reduce(..)` в Главе 9](ch9.md/#reduce), но пока просто знайте, что она сводит список (массив) к одному конечному значению — это как причудливый цикл.
 
-For example, if you did an addition-reduction across a list of numbers (such as `[1,2,3,4,5,6]`), you'd loop over them adding them together as you go. The reduction would add `1` to `2`, and add that result to `3`, and then add that result to `4`, and so on, resulting in the final summation: `21`.
+Например, если выполнить свёртку с суммированием по списку чисел (например, `[1,2,3,4,5,6]`), вы пройдёте по ним, последовательно складывая. Свёртка сложит `1` и `2`, затем добавит `3` к результату, затем `4` и т.д., в итоге получив суммарное значение: `21`.
 
-The original version of `compose(..)` uses a loop and eagerly (aka, immediately) calculates the result of one call to pass into the next call. This is a reduction of a list of functions, so we can do that same thing with `reduce(..)`:
+Оригинальная версия `compose(..)` использует цикл и нетерпеливо (то есть немедленно) вычисляет результат одного вызова для передачи в следующий. Это свёртка списка функций, поэтому мы можем сделать то же самое с `reduce(..)`:
 
 <a name="composereduce"></a>
 
@@ -318,7 +318,7 @@ function compose(...fns) {
     };
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var compose = (...fns) =>
     result =>
         [...fns].reverse().reduce(
@@ -328,15 +328,15 @@ var compose = (...fns) =>
         );
 ```
 
-**Note:** This implementation of `compose(..)` uses `[...fns].reverse().reduce(..)` to reduce from right-to-left. We'll [revisit `compose(..)` in Chapter 9](ch9.md/#user-content-composereduceright), instead using `reduceRight(..)` for that purpose.
+**Примечание:** Эта реализация `compose(..)` использует `[...fns].reverse().reduce(..)` для свёртки справа налево. Мы [вернёмся к `compose(..)` в Главе 9](ch9.md/#user-content-composereduceright), используя там `reduceRight(..)` для той же цели.
 
-Notice that the `reduce(..)` looping happens each time the final `composed(..)` function is run, and that each intermediate `result(..)` is passed along to the next iteration as the input to the next call.
+Обратите внимание, что цикл `reduce(..)` выполняется каждый раз, когда запускается итоговая функция `composed(..)`, и каждый промежуточный `result(..)` передаётся следующей итерации как ввод для следующего вызова.
 
-The advantage of this implementation is that the code is more concise and also that it uses a well-known FP construct: `reduce(..)`. And the performance of this implementation is also similar to the original `for`-loop version.
+Преимущество этой реализации в том, что код более лаконичен и использует хорошо известную ФП-конструкцию `reduce(..)`. Производительность этой реализации также сопоставима с оригинальной версией с циклом `for`.
 
-However, this implementation is limited in that the outer composed function (aka, the first function in the composition) can only receive a single argument. Most other implementations pass along all arguments to that first call. If every function in the composition is unary, this is no big deal. But if you need to pass multiple arguments to that first call, you'd want a different implementation.
+Однако эта реализация ограничена: внешняя составная функция (то есть первая функция в композиции) может принимать только один аргумент. Большинство других реализаций передают все аргументы в этот первый вызов. Если каждая функция в композиции является унарной — это не проблема. Но если нужно передать несколько аргументов в этот первый вызов, понадобится другая реализация.
 
-To fix that first call single-argument limitation, we can still use `reduce(..)` but produce a lazy-evaluation function wrapping:
+Чтобы устранить ограничение первого вызова на один аргумент, можно всё ещё использовать `reduce(..)`, но создать ленивовычисляемую обёртку:
 
 ```js
 function compose(...fns) {
@@ -347,7 +347,7 @@ function compose(...fns) {
     } );
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var compose =
     (...fns) =>
         fns.reverse().reduce( (fn1,fn2) =>
@@ -356,29 +356,29 @@ var compose =
         );
 ```
 
-Notice that we return the result of the `reduce(..)` call directly, which is itself a function, not a computed result. *That* function lets us pass in as many arguments as we want, passing them all down the line to the first function call in the composition, then bubbling up each result through each subsequent call.
+Обратите внимание, что мы возвращаем результат вызова `reduce(..)` напрямую — это сама функция, а не вычисленный результат. *Эта* функция позволяет передать столько аргументов, сколько нужно, направляя их все в первый вызов функции в композиции, а затем передавая каждый результат через последующие вызовы.
 
-Instead of calculating the running result and passing it along as the `reduce(..)` looping proceeds, this implementation runs the `reduce(..)` looping **once** up front at composition time, and defers all the function call calculations -- referred to as lazy calculation. Each partial result of the reduction is a successively more wrapped function.
+Вместо того чтобы вычислять промежуточный результат и передавать его по ходу выполнения `reduce(..)`, эта реализация запускает `reduce(..)` **один раз** заранее, во время компоновки, и откладывает все вычисления вызовов функций — это называется ленивым вычислением. Каждый частичный результат свёртки — это последовательно оборачиваемая функция.
 
-When you call the final composed function and provide one or more arguments, all the levels of the big nested function, from the inner most call to the outer, are executed in reverse succession (not via a loop).
+Когда вы вызываете итоговую составную функцию и предоставляете один или несколько аргументов, все уровни большой вложенной функции — от самого внутреннего вызова к внешнему — выполняются в обратной последовательности (не через цикл).
 
-The performance characteristics will potentially be different than in the previous `reduce(..)`-based implementation. Here, `reduce(..)` only runs once to produce a big composed function, and then this composed function call simply executes all its nested functions each call. In the former version, `reduce(..)` would be run for every call.
+Характеристики производительности здесь могут отличаться от предыдущей реализации на основе `reduce(..)`. В этом случае `reduce(..)` выполняется только один раз для создания большой составной функции, а затем при каждом вызове этой составной функции просто выполняются все её вложенные функции. В предыдущей версии `reduce(..)` запускался при каждом вызове.
 
-Your mileage may vary on which implementation is better, but keep in mind that this latter implementation isn't limited in argument count the way the former one is.
+Какая реализация лучше — зависит от ситуации. Но помните, что последняя реализация не ограничена количеством аргументов так, как первая.
 
-We could also define `compose(..)` using recursion. The recursive definition for `compose(fn1,fn2, .. fnN)` would look like:
+Также можно определить `compose(..)` с помощью рекурсии. Рекурсивное определение для `compose(fn1,fn2, .. fnN)` выглядело бы так:
 
 ```txt
 compose( compose(fn1,fn2, .. fnN-1), fnN );
 ```
 
-**Note:** We will cover recursion more fully in [Chapter 8](ch8.md), so if this approach seems confusing, don't worry for now. Or, go read that chapter then come back and re-read this note. :)
+**Примечание:** Рекурсию мы подробнее рассмотрим в [Главе 8](ch8.md), поэтому если этот подход кажется запутанным — не переживайте сейчас. Или прочитайте ту главу, затем вернитесь и перечитайте эту заметку. :)
 
-Here's how we implement `compose(..)` with recursion:
+Вот как реализовать `compose(..)` с рекурсией:
 
 ```js
 function compose(...fns) {
-    // pull off the last two arguments
+    // берём последние два аргумента
     var [ fn1, fn2, ...rest ] = fns.reverse();
 
     var composedFn = function composed(...args){
@@ -390,10 +390,10 @@ function compose(...fns) {
     return compose( ...rest.reverse(), composedFn );
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var compose =
     (...fns) => {
-        // pull off the last two arguments
+        // берём последние два аргумента
         var [ fn1, fn2, ...rest ] = fns.reverse();
 
         var composedFn =
@@ -406,19 +406,19 @@ var compose =
     };
 ```
 
-I think the benefit of a recursive implementation is mostly conceptual. I personally find it much easier to think about a repetitive action in recursive terms instead of in a loop where I have to track the running result, so I prefer the code to express it that way.
+Думаю, преимущество рекурсивной реализации — в основном концептуальное. Лично мне гораздо легче думать о повторяющемся действии в терминах рекурсии, а не в виде цикла, где нужно отслеживать промежуточный результат — поэтому я предпочитаю, чтобы код выражал это именно так.
 
-Others will find the recursive approach quite a bit more daunting to mentally juggle. I invite you to make your own evaluations.
+Другим людей рекурсивный подход покажется значительно более сложным для умственного восприятия. Приглашаю вас сделать собственные выводы.
 
-## Reordered Composition
+## Изменение Порядка Композиции
 
-We talked earlier about the right-to-left ordering of standard `compose(..)` implementations. The advantage is in listing the arguments (functions) in the same order they'd appear if doing the composition manually.
+Ранее мы говорили о порядке справа налево в стандартных реализациях `compose(..)`. Преимущество — в том, что аргументы (функции) перечисляются в том же порядке, в каком они появились бы при ручной записи композиции.
 
-The disadvantage is they're listed in the reverse order that they execute, which could be confusing. It was also more awkward to have to use `partialRight(compose, ..)` to pre-specify the *first* function(s) to execute in the composition.
+Недостаток в том, что они перечислены в обратном порядке их выполнения, что может сбивать с толку. Также было неудобно использовать `partialRight(compose, ..)`, чтобы предустановить *первую* функцию (или функции), выполняемую в композиции.
 
-The reverse ordering, composing from left-to-right, has a common name: `pipe(..)`. This name is said to come from Unix/Linux land, where multiple programs are strung together by "pipe"ing (`|` operator) the output of the first one in as the input of the second, and so on (i.e., `ls -la | grep "foo" | less`).
+Обратный порядок — компоновка слева направо — имеет распространённое название: `pipe(..)`. Говорят, это название пришло из мира Unix/Linux, где несколько программ соединяются в цепочку через оператор "пайп" (`|`): вывод первой программы подаётся на вход второй и так далее (например, `ls -la | grep "foo" | less`).
 
-`pipe(..)` is identical to `compose(..)` except it processes through the list of functions in left-to-right order:
+`pipe(..)` идентична `compose(..)`, за исключением того, что она обрабатывает список функций в порядке слева направо:
 
 ```js
 function pipe(...fns) {
@@ -426,8 +426,8 @@ function pipe(...fns) {
         var list = [...fns];
 
         while (list.length > 0) {
-            // take the first function from the list
-            // and execute it
+            // берём первую функцию из списка
+            // и выполняем её
             result = list.shift()( result );
         }
 
@@ -436,31 +436,31 @@ function pipe(...fns) {
 }
 ```
 
-In fact, we could just define `pipe(..)` as the arguments-reversal of `compose(..)`:
+На самом деле, мы можем просто определить `pipe(..)` как `compose(..)` с перевёрнутыми аргументами:
 
 ```js
 var pipe = reverseArgs( compose );
 ```
 
-That was easy!
+Вот и всё!
 
-Recall this example from general composition earlier:
+Вспомним пример из обобщённой композиции:
 
 ```js
 var biggerWords = compose( skipShortWords, unique, words );
 ```
 
-To express that with `pipe(..)`, we just reverse the order we list them in:
+Чтобы выразить это через `pipe(..)`, просто меняем порядок перечисления:
 
 ```js
 var biggerWords = pipe( words, unique, skipShortWords );
 ```
 
-The advantage of `pipe(..)` is that it lists the functions in order of execution, which can sometimes reduce reader confusion. It may be simpler to read the code: `pipe( words, unique, skipShortWords )`, and recognize that it's executing `words(..)` first, then `unique(..)`, and finally `skipShortWords(..)`.
+Преимущество `pipe(..)` в том, что она перечисляет функции в порядке выполнения, что иногда снижает путаницу при чтении. Код `pipe( words, unique, skipShortWords )` может быть проще читать: видно, что сначала выполняется `words(..)`, затем `unique(..)`, и наконец `skipShortWords(..)`.
 
-`pipe(..)` is also handy if you're in a situation where you want to partially apply the *first* function(s) that execute. Earlier we did that with right-partial application of `compose(..)`.
+`pipe(..)` также удобна, когда нужно частично применить *первую* функцию (или функции) в цепочке выполнения. Ранее мы делали это с помощью частичного применения справа для `compose(..)`.
 
-Compare:
+Сравним:
 
 ```js
 var filterWords = partialRight( compose, unique, words );
@@ -470,17 +470,17 @@ var filterWords = partialRight( compose, unique, words );
 var filterWords = partial( pipe, words, unique );
 ```
 
-As you may recall from our first implementation of [`partialRight(..)` in Chapter 3](ch3.md/#user-content-partialright), it uses `reverseArgs(..)` under the covers, just as our `pipe(..)` now does. So we get the same result either way.
+Как вы, вероятно, помните из первой реализации [`partialRight(..)` в Главе 3](ch3.md/#user-content-partialright), она использует `reverseArgs(..)` под капотом — так же, как теперь наш `pipe(..)`. Поэтому результат в обоих случаях одинаков.
 
-*In this specific case*, the slight performance advantage to using `pipe(..)` is, because we're not trying to preserve the right-to-left argument order of `compose(..)`, we don't need to reverse the argument order back, like we do inside `partialRight(..)`. So `partial(pipe, ..)` is a little more efficient here than `partialRight(compose, ..)`.
+*В этом конкретном случае* небольшое преимущество в производительности при использовании `pipe(..)` заключается в том, что, поскольку мы не пытаемся сохранить порядок аргументов справа налево как в `compose(..)`, нам не нужно снова переворачивать порядок аргументов, как это делается внутри `partialRight(..)`. Поэтому `partial(pipe, ..)` здесь чуть эффективнее, чем `partialRight(compose, ..)`.
 
-## Abstraction
+## Абстракция
 
-Abstraction plays heavily into our reasoning about composition, so let's examine it in more detail.
+Абстракция играет важную роль в нашем понимании композиции, поэтому рассмотрим её подробнее.
 
-Similar to how partial application and currying (see [Chapter 3](ch3.md/#some-now-some-later)) allow a progression from generalized to specialized functions, we can abstract by pulling out the generality between two or more tasks. The general part is defined once, so as to avoid repetition. To perform each task's specialization, the general part is parameterized.
+Подобно тому, как частичное применение и каррирование (см. [Главу 3](ch3.md/#some-now-some-later)) позволяют двигаться от обобщённых к специализированным функциям, мы можем абстрагировать, вынося общую часть двух и более задач. Общая часть определяется один раз, чтобы избежать повторения. Для выполнения специализации каждой задачи общая часть параметризируется.
 
-For example, consider this (obviously contrived) code:
+Например, рассмотрим этот (очевидно надуманный) код:
 
 ```js
 function saveComment(txt) {
@@ -496,9 +496,9 @@ function trackEvent(evt) {
 }
 ```
 
-Both of these utilities are storing a value in a data source. That's the generality. The specialty is that one of them sticks the value at the end of an array, while the other sets the value at a property name of an object.
+Обе утилиты сохраняют значение в источник данных. В этом их общность. Особенность — в том, что одна добавляет значение в конец массива, а другая устанавливает значение по имени свойства объекта.
 
-So let's abstract:
+Поэтому давайте абстрагируем:
 
 ```js
 function storeData(store,location,value) {
@@ -518,13 +518,13 @@ function trackEvent(evt) {
 }
 ```
 
-The general task of referencing a property on an object (or array, thanks to JS's convenient operator overloading of `[ ]`) and setting its value is abstracted into its own function `storeData(..)`. While this utility only has a single line of code right now, one could envision other general behavior that was common across both tasks, such as generating a unique numeric ID or storing a timestamp with the value.
+Общая задача обращения к свойству объекта (или массива — благодаря удобной перегрузке оператора `[ ]` в JS) и установки его значения абстрагирована в собственную функцию `storeData(..)`. Хотя сейчас в этой утилите всего одна строка кода, можно представить другое общее поведение, присущее обеим задачам — например, генерация уникального числового ID или сохранение временной метки вместе со значением.
 
-If we repeat the common general behavior in multiple places, we run the maintenance risk of changing some instances but forgetting to change others. There's a principle at play in this kind of abstraction, often referred to as "don't repeat yourself" (DRY).
+Если мы повторяем одно и то же общее поведение в нескольких местах, мы рискуем при обслуживании изменить одни экземпляры, но забыть другие. В такой абстракции задействован принцип, часто называемый DRY ("Don't Repeat Yourself" — "Не повторяйся").
 
-DRY strives to have only one definition in a program for any given task. An alternative aphorism to motivate DRY coding is that programmers are just generally lazy and don't want to do unnecessary work.
+DRY стремится к тому, чтобы в программе существовало только одно определение для каждой задачи. Альтернативная аксиома, мотивирующая DRY-подход — это то, что программисты в целом ленивы и не хотят делать лишнюю работу.
 
-Abstraction can be taken too far. Consider:
+Абстракцию можно зайти слишком далеко. Рассмотрим:
 
 ```js
 function conditionallyStoreData(store,location,value,checkFn) {
@@ -550,93 +550,93 @@ function trackEvent(evt) {
 }
 ```
 
-In an effort to be DRY and avoid repeating an `if` statement, we moved the conditional into the general abstraction. We also assumed that we *may* have checks for non-empty strings or non-`undefined` values elsewhere in the program in the future, so we might as well DRY those out, too!
+Стремясь следовать DRY и избежать повторения оператора `if`, мы перенесли условие в обобщённую абстракцию. Мы также предположили, что в будущем, возможно, понадобятся проверки непустых строк или не-`undefined` значений в других местах программы — поэтому вынесли и их тоже!
 
-This code *is* more DRY, but to an overkill extent. Programmers must be careful to apply the appropriate levels of abstraction to each part of their program, no more, no less.
+Этот код *более* DRY, но чрезмерно. Программистам следует тщательно применять уместные уровни абстракции к каждой части программы — ни больше, ни меньше.
 
-Regarding our greater discussion of function composition in this chapter, it might seem like its benefit is this kind of DRY abstraction. But let's not jump to that conclusion, because I think composition actually serves a more important purpose in our code.
+В контексте нашего обсуждения композиции функций в этой главе может показаться, что её преимущество именно в такой DRY-абстракции. Но давайте не будем спешить с этим выводом, потому что, думаю, композиция на самом деле служит более важной цели в коде.
 
-Moreover, **composition is helpful even if there's only one occurrence of something** (no repetition to DRY out).
+Кроме того, **композиция полезна, даже если что-то встречается только один раз** (никаких повторений для DRY).
 
-### Separation Enables Focus
+### Разделение Даёт Фокус
 
-Aside from generalization vs. specialization, I think there's another more useful definition for abstraction, as revealed by this quote:
+Помимо обобщения и специализации, я думаю, есть ещё одно более полезное определение абстракции — оно раскрывается в следующей цитате:
 
-> ... abstraction is a process by which the programmer associates a name with a potentially complicated program fragment, which can then be thought of in terms of its purpose of function, rather than in terms of how that function is achieved. By hiding irrelevant details, abstraction reduces conceptual complexity, making it possible for the programmer to focus on a manageable subset of the program text at any particular time.
+> ... абстракция — это процесс, посредством которого программист связывает имя с потенциально сложным фрагментом программы, о котором затем можно думать в терминах его цели или функции, а не в терминах того, как эта функция достигается. Скрывая нерелевантные детали, абстракция снижает концептуальную сложность, давая программисту возможность сосредоточиться на управляемом подмножестве текста программы в любой конкретный момент.
 >
-> Michael L. Scott, Programming Language Pragmatics<a href="#user-content-footnote-1"><sup>1</sup></a>
+> Майкл Л. Скотт, "Прагматика языков программирования"<a href="#user-content-footnote-1"><sup>1</sup></a>
 
-The point this quote makes is that abstraction -- generally, pulling out some piece of code into its own function -- serves the primary purpose of separating apart two pieces of functionality so that it's possible to focus on each piece independently of the other.
+Суть этой цитаты: абстракция — в общем смысле, вынесение фрагмента кода в отдельную функцию — служит основной цели разделения двух фрагментов функциональности, чтобы можно было сосредоточиться на каждом из них независимо от другого.
 
-Note that abstraction in this sense is not really intended to *hide* details, as if to treat things as black boxes we *never* examine.
+Заметьте, что абстракция в этом смысле на самом деле не предназначена *скрывать* детали, превращая их в чёрные ящики, которые мы *никогда* не изучаем.
 
-In this quote, "irrelevant", in terms of what is hidden, shouldn't be thought of as an absolute qualitative judgement, but rather relative to what you want to focus on at any given moment. In other words, when we separate X from Y, if I want to focus on X, Y is irrelevant at that moment. At another time, if I want to focus on Y, X is irrelevant at that moment.
+В этой цитате "нерелевантные" детали, в плане того, что скрыто, не стоит воспринимать как абсолютную качественную оценку — скорее как относительную в зависимости от того, на чём вы хотите сосредоточиться в данный момент. Другими словами, когда мы отделяем X от Y: если я хочу сосредоточиться на X, то Y в этот момент нерелевантен. В другой момент, если я хочу сосредоточиться на Y, то X нерелевантен.
 
-**We're not abstracting to hide details; we're separating details to improve focus.**
+**Мы абстрагируем не для того, чтобы скрывать детали; мы разделяем детали, чтобы улучшить фокус.**
 
-Recall that at the outset of this book I stated that FP's goal is to create code that is more readable and understandable. One effective way of doing that is untangling complected (read: tightly braided, as in strands of rope) code into separate, simpler (read: loosely bound) pieces of code. In that way, the reader isn't distracted by the details of one part while looking for the details of the other part.
+Вспомним, что в начале книги я говорил: цель ФП — создать код, который легче читать и понимать. Один эффективный способ сделать это — распутывать запутанный (читай: туго переплетённый, как верёвки) код, разделяя его на отдельные, более простые (читай: слабосвязанные) части. Таким образом, читатель не отвлекается на детали одной части, пока ищет детали другой.
 
-Our higher goal is not to implement something only once, as it is with the DRY mindset. As a matter of fact, sometimes we'll actually repeat ourselves in code.
+Наша главная цель — не реализовывать что-то только один раз, как это диктует DRY-мышление. На самом деле, иногда мы будем намеренно повторяться в коде.
 
-As we [asserted in Chapter 3](ch3.md/#why-currying-and-partial-application), the main goal with abstraction is to implement separate things, separately. We're trying to improve focus, because that improves readability.
+Как мы [утверждали в Главе 3](ch3.md/#why-currying-and-partial-application), главная цель абстракции — реализовывать отдельные вещи по отдельности. Мы стремимся улучшить фокус, потому что это улучшает читаемость.
 
-By separating two ideas, we insert a semantic boundary between them, which affords us the ability to focus on each side independent of the other. In many cases, that semantic boundary is something like the name of a function. The function's implementation is focused on *how* to compute something, and the call-site using that function by name is focused on *what* to do with its output. We abstract the *how* from the *what* so they are separate and separately reason'able.
+Разделяя две идеи, мы вставляем между ними семантическую границу, которая даёт нам возможность фокусироваться на каждой стороне независимо от другой. Во многих случаях эта семантическая граница — имя функции. Реализация функции сосредоточена на том, *как* что-то вычисляется, а место вызова, использующее эту функцию по имени, сосредоточено на том, *что* делать с её выводом. Мы абстрагируем *как* от *что*, чтобы их можно было рассматривать отдельно.
 
-Another way of describing this goal is with imperative vs. declarative programming style. Imperative code is primarily concerned with explicitly stating *how* to accomplish a task. Declarative code states *what* the outcome should be, and leaves the implementation to some other responsibility.
+Другой способ описать эту цель — через императивный и декларативный стили программирования. Императивный код в первую очередь озабочен явным указанием *как* выполнить задачу. Декларативный код говорит *что* должно быть результатом, оставляя реализацию другой ответственности.
 
-Declarative code abstracts the *what* from the *how*. Typically declarative coding is favored in readability over imperative, though no program (except of course machine code 1s and 0s) is ever entirely one or the other. The programmer must seek balance between them.
+Декларативный код абстрагирует *что* от *как*. Обычно декларативный стиль предпочтительнее по читаемости, чем императивный, хотя ни одна программа (за исключением, конечно, машинного кода из нулей и единиц) никогда не является полностью тем или другим. Программист должен искать баланс между ними.
 
-ES6 added many syntactic affordances that transform old imperative operations into newer declarative forms. Perhaps one of the clearest is destructuring. Destructuring is a pattern for assignment that describes how a compound value (object, array) is taken apart into its constituent values.
+ES6 добавил много синтаксических возможностей, которые превращают старые императивные операции в новые декларативные формы. Пожалуй, одной из самых ярких является деструктуризация. Деструктуризация — это паттерн присваивания, описывающий, как составное значение (объект, массив) разбирается на составляющие.
 
-Here's an example of array destructuring:
+Вот пример деструктуризации массива:
 
 ```js
 function getData() {
     return [1,2,3,4,5];
 }
 
-// imperative
+// императивно
 var tmp = getData();
 var a = tmp[0];
 var b = tmp[3];
 
-// declarative
+// декларативно
 var [ a ,,, b ] = getData();
 ```
 
-The *what* is assigning the first value of the array to `a` and the fourth value to `b`. The *how* is getting a reference to the array (`tmp`) and manually referencing indexes `0` and `3` in assignments to `a` and `b`, respectively.
+*Что* — это присвоение первого значения массива переменной `a` и четвёртого значения — `b`. *Как* — это получение ссылки на массив (`tmp`) и ручное обращение к индексам `0` и `3` в присваиваниях `a` и `b` соответственно.
 
-Does the array destructuring *hide* the assignment? Depends on your perspective. I'm asserting that it simply separates the *what* from the *how*. The JS engine still does the assignments, but it prevents you from having to be distracted by *how* it's done.
+Скрывает ли деструктуризация массива присваивание? Зависит от точки зрения. Я утверждаю, что она просто разделяет *что* от *как*. JS-движок по-прежнему выполняет присваивания, но это не отвлекает вас от того, *как* это делается.
 
-Instead, you read `[ a ,,, b ] = ..` and can see the assignment pattern merely telling you *what* will happen. Array destructuring is an example of declarative abstraction.
+Вместо этого вы читаете `[ a ,,, b ] = ..` и видите паттерн присваивания, говорящий лишь о том, *что* произойдёт. Деструктуризация массива — это пример декларативной абстракции.
 
-### Composition as Abstraction
+### Композиция как Абстракция
 
-What's all this have to do with function composition? Function composition is also declarative abstraction.
+Какое отношение всё это имеет к композиции функций? Композиция функций — тоже декларативная абстракция.
 
-Recall the `shorterWords(..)` example from earlier. Let's compare an imperative and declarative definition for it:
+Вспомним пример `shorterWords(..)` из ранее. Сравним императивное и декларативное определения:
 
 ```js
-// imperative
+// императивно
 function shorterWords(text) {
     return skipLongWords( unique( words( text ) ) );
 }
 
-// declarative
+// декларативно
 var shorterWords = compose( skipLongWords, unique, words );
 ```
 
-The declarative form focuses on the *what* -- these three functions pipe data from a string to a list of shorter words -- and leaves the *how* to the internals of `compose(..)`.
+Декларативная форма сосредоточена на *что* — три функции направляют данные из строки в список коротких слов — и оставляет *как* на усмотрение внутренностей `compose(..)`.
 
-In a bigger sense, the `shorterWords = compose(..)` line explains the *how* for defining a `shorterWords(..)` utility, leaving this declarative line somewhere else in the code to focus only on the *what*:
+В более широком смысле, строка `shorterWords = compose(..)` объясняет *как* определить утилиту `shorterWords(..)`, оставляя эту декларативную строку где-то ещё в коде — сосредоточенной только на *что*:
 
 ```js
 shorterWords( text );
 ```
 
-Composition abstracts getting a list of shorter words from the steps it takes to do that.
+Композиция абстрагирует получение списка коротких слов от шагов, необходимых для этого.
 
-By contrast, what if we hadn't used composition abstraction?
+А что если бы мы не использовали абстракцию через композицию?
 
 ```js
 var wordsFound = words( text );
@@ -644,24 +644,24 @@ var uniqueWordsFound = unique( wordsFound );
 skipLongWords( uniqueWordsFound );
 ```
 
-Or even:
+Или даже:
 
 ```js
 skipLongWords( unique( words( text ) ) );
 ```
 
-Either of these two versions demonstrates a more imperative style as opposed to the prior declarative style. The reader's focus in those two snippets is inextricably tied to the *how* and less on the *what*.
+Оба эти варианта демонстрируют более императивный стиль по сравнению с предыдущим декларативным. Фокус читателя в этих двух фрагментах неразрывно связан с *как* и меньше — с *что*.
 
-Function composition isn't just about saving code with DRY. Even if the usage of `shorterWords(..)` only occurs in one place -- so there's no repetition to avoid! -- separating the *how* from the *what* still improves our code.
+Композиция функций — это не только экономия кода за счёт DRY. Даже если `shorterWords(..)` используется только в одном месте — то есть нет повторений для устранения! — разделение *как* от *что* всё равно улучшает наш код.
 
-Composition is a powerful tool for abstraction that transforms imperative code into more readable declarative code.
+Композиция — мощный инструмент абстракции, превращающий императивный код в более читаемый декларативный.
 
-## Revisiting Points
+## Возвращение к Точкам
 
-Now that we've thoroughly covered composition (a trick that will be immensely helpful in many areas of FP), let's watch it in action by revisiting point-free style from [Chapter 3, "No Points"](ch3.md/#no-points) with a scenario that's a fair bit more complex to refactor:
+Теперь, когда мы основательно разобрали композицию (трюк, который окажется невероятно полезным во многих областях ФП), давайте понаблюдаем за ней в действии, вернувшись к бесточечному стилю из [Главы 3, "Без Точек"](ch3.md/#no-points) с более сложным сценарием для рефакторинга:
 
 ```js
-// given: ajax( url, data, cb )
+// дано: ajax( url, data, cb )
 
 var getPerson = partial( ajax, "http://some.api/person" );
 var getLastOrder = partial( ajax, "http://some.api/order", { id: -1 } );
@@ -673,9 +673,9 @@ getLastOrder( function orderFound(order){
 } );
 ```
 
-The "points" we'd like to remove are the `order` and `person` parameter references.
+"Точки", которые мы хотим убрать, — это ссылки на параметры `order` и `person`.
 
-Let's start by trying to get the `person` "point" out of the `personFound(..)` function. To do so, let's first define:
+Начнём с попытки убрать "точку" `person` из функции `personFound(..)`. Для этого сначала определим:
 
 ```js
 function extractName(person) {
@@ -683,22 +683,22 @@ function extractName(person) {
 }
 ```
 
-Consider that this operation could instead be expressed in generic terms: extracting any property by name off of any object. Let's call such a utility `prop(..)`:
+Заметьте, что эту операцию можно выразить в обобщённых терминах: извлечение любого свойства по имени из любого объекта. Назовём такую утилиту `prop(..)`:
 
 ```js
 function prop(name,obj) {
     return obj[name];
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var prop =
     (name,obj) =>
         obj[name];
 ```
 
-While we're dealing with object properties, let's also define the opposite utility: `setProp(..)` for setting a property value onto an object.
+Раз уж мы имеем дело со свойствами объектов, давайте также определим противоположную утилиту: `setProp(..)` для установки значения свойства объекта.
 
-However, we want to be careful not to just mutate an existing object but rather create a clone of the object to make the change to, and then return it. The reasons for such care will be discussed at length in [Chapter 5](ch5.md).
+Однако нам нужно быть осторожными — не мутировать существующий объект, а создать его клон, внести изменения в него и затем вернуть его. Причины такой осторожности будут подробно обсуждены в [Главе 5](ch5.md).
 
 <a name="setprop"></a>
 
@@ -710,15 +710,15 @@ function setProp(name,obj,val) {
 }
 ```
 
-Now, to define an `extractName(..)` that pulls a `"name"` property off an object, we'll partially apply `prop(..)`:
+Теперь, чтобы определить `extractName(..)`, которая извлекает свойство `"name"` из объекта, применим частичное применение к `prop(..)`:
 
 ```js
 var extractName = partial( prop, "name" );
 ```
 
-**Note:** Don't miss that `extractName(..)` here hasn't actually extracted anything yet. We partially applied `prop(..)` to make a function that's waiting to extract the `"name"` property from whatever object we pass into it. We could also have done it with `curry(prop)("name")`.
+**Примечание:** Не упустите, что `extractName(..)` здесь ещё ничего не извлекла. Мы частично применили `prop(..)`, чтобы создать функцию, ожидающую извлечения свойства `"name"` из любого объекта, который мы в неё передадим. Могли бы также использовать `curry(prop)("name")`.
 
-Next, let's narrow the focus on our example's nested lookup calls to this:
+Далее сузим фокус в примере с вложенными запросами до этого:
 
 ```js
 getLastOrder( function orderFound(order){
@@ -726,27 +726,27 @@ getLastOrder( function orderFound(order){
 } );
 ```
 
-How can we define `outputPersonName(..)`? To visualize what we need, think about the desired flow of data:
+Как определить `outputPersonName(..)`? Чтобы визуализировать, что нам нужно, подумаем о желаемом потоке данных:
 
 ```txt
 output <-- extractName <-- person
 ```
 
-`outputPersonName(..)` needs to be a function that takes an (object) value, passes it into `extractName(..)`, then passes that value to `output(..)`.
+`outputPersonName(..)` должна быть функцией, которая принимает (объектное) значение, передаёт его в `extractName(..)`, а затем передаёт это значение в `output(..)`.
 
-Hopefully you recognized that as a `compose(..)` operation. So we can define `outputPersonName(..)` as:
+Надеюсь, вы узнали это как операцию `compose(..)`. Поэтому определим `outputPersonName(..)` как:
 
 ```js
 var outputPersonName = compose( output, extractName );
 ```
 
-The `outputPersonName(..)` function we just created is the callback provided to `getPerson(..)`. So we can define a function called `processPerson(..)` that presets the callback argument, using `partialRight(..)`:
+Функция `outputPersonName(..)`, которую мы только что создали, — это колбэк, передаваемый в `getPerson(..)`. Поэтому мы можем определить функцию `processPerson(..)`, которая предустанавливает аргумент-колбэк с помощью `partialRight(..)`:
 
 ```js
 var processPerson = partialRight( getPerson, outputPersonName );
 ```
 
-Let's reconstruct the nested lookups example again with our new function:
+Снова соберём пример с вложенными запросами с нашей новой функцией:
 
 ```js
 getLastOrder( function orderFound(order){
@@ -754,49 +754,49 @@ getLastOrder( function orderFound(order){
 } );
 ```
 
-Phew, we're making good progress!
+Неплохо, прогресс очевиден!
 
-But we need to keep going and remove the `order` "point". The next step is to observe that `personId` can be extracted from an object (like `order`) via `prop(..)`, just like we did with `name` on the `person` object:
+Но нужно продолжить и убрать "точку" `order`. Следующий шаг — заметить, что `personId` можно извлечь из объекта (такого как `order`) через `prop(..)` — точно так же, как мы делали с `name` из объекта `person`:
 
 ```js
 var extractPersonId = partial( prop, "personId" );
 ```
 
-To construct the object (of the form `{ id: .. }`) that needs to be passed to `processPerson(..)`, let's make another utility for wrapping a value in an object at a specified property name, called `makeObjProp(..)`:
+Чтобы создать объект формата `{ id: .. }`, который нужно передать в `processPerson(..)`, создадим ещё одну утилиту для обёртки значения в объект по заданному имени свойства — назовём её `makeObjProp(..)`:
 
 ```js
 function makeObjProp(name,value) {
     return setProp( name, {}, value );
 }
 
-// or the ES6 => form
+// или в форме стрелочной функции ES6
 var makeObjProp =
     (name,value) =>
         setProp( name, {}, value );
 ```
 
-**Tip:** This utility is known as `objOf(..)` in the Ramda library.
+**Подсказка:** Эта утилита известна как `objOf(..)` в библиотеке Ramda.
 
-Just as we did with `prop(..)` to make `extractName(..)`, we'll partially apply `makeObjProp(..)` to build a function `personData(..)` that makes our data object:
+Как мы использовали `prop(..)` для создания `extractName(..)`, применим частичное применение к `makeObjProp(..)`, чтобы создать функцию `personData(..)`, формирующую наш объект данных:
 
 ```js
 var personData = partial( makeObjProp, "id" );
 ```
 
-To use `processPerson(..)` to perform the lookup of a person attached to an `order` value, the conceptual flow of data through operations we need is:
+Чтобы использовать `processPerson(..)` для поиска человека, связанного со значением `order`, концептуальный поток данных через операции выглядит так:
 
 ```txt
 processPerson <-- personData <-- extractPersonId <-- order
 ```
 
-So we'll just use `compose(..)` again to define a `lookupPerson(..)` utility:
+Поэтому снова используем `compose(..)` для определения утилиты `lookupPerson(..)`:
 
 ```js
 var lookupPerson =
     compose( processPerson, personData, extractPersonId );
 ```
 
-And... that's it! Putting the whole example back together without any "points":
+И... всё! Соберём весь пример обратно без единой "точки":
 
 ```js
 var getPerson = partial( ajax, "http://some.api/person" );
@@ -814,11 +814,11 @@ var lookupPerson =
 getLastOrder( lookupPerson );
 ```
 
-Wow. Point-free. And `compose(..)` turned out to be really helpful in two places!
+Вот это да. Бесточечно. И `compose(..)` оказалась по-настоящему полезной в двух местах!
 
-I think in this case, even though the steps to derive our final answer were a bit drawn out, the end result is much more readable code, because we've ended up explicitly calling out each step.
+Думаю, что в этом случае, даже несмотря на то, что шаги для получения финального ответа были достаточно развёрнутыми, итоговый результат — значительно более читаемый код, потому что мы в явном виде обозначили каждый шаг.
 
-And even if you didn't like seeing/naming all those intermediate steps, you can preserve point-free but wire the expressions together without individual variables:
+И даже если вам не нравится видеть/именовать все эти промежуточные шаги, можно сохранить бесточечность, но соединить выражения без отдельных переменных:
 
 ```js
 partial( ajax, "http://some.api/order", { id: -1 } )
@@ -834,20 +834,20 @@ partial( ajax, "http://some.api/order", { id: -1 } )
 );
 ```
 
-This snippet is less verbose for sure, but I think it's less readable than the previous snippet where each operation is its own variable. Either way, composition helped us with our point-free style.
+Этот фрагмент менее многословен, но, думаю, менее читаем, чем предыдущий, где каждая операция — в своей переменной. Так или иначе, композиция помогла нам с бесточечным стилем.
 
-## Summary
+## Резюме
 
-Function composition is a pattern for defining a function that routes the output of one function call into another function call, and its output to another, and so on.
+Композиция функций — это паттерн для определения функции, которая направляет вывод одного вызова функции как ввод другой функции, и её вывод — в следующую, и так далее.
 
-Because JS functions can only return single values, the pattern essentially dictates that all functions in the composition (except perhaps the first called) need to be unary, taking only a single input from the output of the previous function.
+Поскольку JS-функции могут возвращать только одно значение, паттерн фактически требует, чтобы все функции в композиции (за исключением, возможно, первой вызываемой) были унарными — принимали только один ввод из вывода предыдущей функции.
 
-Instead of listing out each step as a discrete call in our code, function composition using a utility like `compose(..)` or `pipe(..)` abstracts that implementation detail so the code is more readable, allowing us to focus on *what* the composition will be used to accomplish, not *how* it will be performed.
+Вместо того чтобы перечислять каждый шаг как отдельный вызов в коде, композиция функций с помощью утилиты вроде `compose(..)` или `pipe(..)` абстрагирует эту деталь реализации, делая код более читаемым — позволяя нам сосредоточиться на *что* будет использоваться композиция, а не на *как* она будет выполняться.
 
-Composition is declarative data flow, meaning our code describes the flow of data in an explicit, obvious, and readable way.
+Композиция — это декларативный поток данных, то есть наш код описывает поток данных явно, очевидно и читаемо.
 
-In many ways, composition is the most important foundational pattern, in large part because it's the only way to route data through our programs aside from using side effects; the next chapter explores why such should be avoided wherever possible.
+Во многих отношениях композиция является самым важным фундаментальным паттерном, во многом потому что это единственный способ направлять данные через программы, не прибегая к побочным эффектам; следующая глава объясняет, почему их следует избегать везде, где это возможно.
 
 ----
 
-<a name="footnote-1"><sup>1</sup></a>Scott, Michael L. “Chapter 3: Names, Scopes, and Bindings.” Programming Language Pragmatics, 4th ed., Morgan Kaufmann, 2015, pp. 115.
+<a name="footnote-1"><sup>1</sup></a>Scott, Michael L. "Chapter 3: Names, Scopes, and Bindings." Programming Language Pragmatics, 4th ed., Morgan Kaufmann, 2015, pp. 115.
