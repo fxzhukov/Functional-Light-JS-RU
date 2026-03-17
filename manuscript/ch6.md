@@ -1,24 +1,24 @@
 # Functional-Light JavaScript
-# Chapter 6: Value Immutability
+# Глава 6: Неизменяемость значений
 
-In [Chapter 5](ch5.md), we talked about the importance of reducing side causes/effects: the ways that your application's state can change unexpectedly and cause surprises (bugs). The fewer places we have with such landmines, the more confidence we have over our code, and the more readable it will be. Our topic for this chapter follows directly from that same effort.
+В [Главе 5](ch5.md) мы говорили о важности уменьшения скрытых причин/побочных эффектов: о способах, которыми состояние вашего приложения может неожиданно измениться и вызвать сюрпризы (баги). Чем меньше у нас таких мин-ловушек, тем больше уверенности в нашем коде и тем он будет читаемее. Тема этой главы напрямую вытекает из тех же усилий.
 
-If programming-style idempotence is about defining a value change operation so that it can only affect state once, we now turn our attention to the goal of reducing the number of change occurrences from one to zero.
+Если идемпотентность в программном смысле — это определение операции изменения значения таким образом, чтобы она могла влиять на состояние лишь один раз, то теперь мы обратим внимание на цель: сократить количество изменений с одного до нуля.
 
-Let's now explore value immutability, the notion that in our programs we use only values that cannot be changed.
+Давайте исследуем неизменяемость значений — концепцию, согласно которой в наших программах мы используем только значения, которые нельзя изменить.
 
-## Primitive Immutability
+## Неизменяемость примитивов
 
-Values of the primitive types (`number`, `string`, `boolean`, `null`, and `undefined`) are already immutable; there's nothing you can do to change them:
+Значения примитивных типов (`number`, `string`, `boolean`, `null` и `undefined`) уже являются неизменяемыми; с ними ничего нельзя сделать, чтобы изменить их:
 
 ```js
-// invalid, and also makes no sense
+// недопустимо и не имеет смысла
 2 = 2.5;
 ```
 
-However, JS does have a peculiar behavior which seems like it allows mutating such primitive type values: "boxing". When you access a property on certain primitive type values -- specifically `number`, `string`, and `boolean` -- under the covers JS automatically wraps (aka "boxes") the value in its object counterpart (`Number`, `String`, and `Boolean`, respectively).
+Однако в JS есть peculiar поведение, которое как будто позволяет мутировать значения примитивных типов: "упаковка" (boxing). Когда вы обращаетесь к свойству некоторых значений примитивного типа — конкретно `number`, `string` и `boolean` — под капотом JS автоматически оборачивает (то есть "упаковывает") значение в его объектный аналог (`Number`, `String` и `Boolean` соответственно).
 
-Consider:
+Рассмотрим:
 
 ```js
 var x = 2;
@@ -29,22 +29,22 @@ x;              // 2
 x.length;       // undefined
 ```
 
-Numbers do not normally have a `length` property available, so the `x.length = 4` setting is trying to add a new property, and it silently fails (or is ignored/discarded, depending on your point-of-view); `x` continues to hold the simple primitive `2` number.
+У чисел обычно нет доступного свойства `length`, поэтому инструкция `x.length = 4` пытается добавить новое свойство и молча завершается неудачей (или игнорируется/отбрасывается, в зависимости от точки зрения); `x` по-прежнему содержит простое примитивное число `2`.
 
-But the fact that JS allows the `x.length = 4` statement to run at all can seem troubling, if for no other reason than its potential confusion to readers. The good news is, if you use strict mode (`"use strict";`), such a statement will throw an error.
+Но тот факт, что JS вообще позволяет выполнить инструкцию `x.length = 4`, может показаться беспокоящим, хотя бы из-за потенциальной путаницы у читателей. Хорошая новость: если использовать строгий режим (`"use strict";`), такая инструкция вызовет ошибку.
 
-What if you try to mutate the explicitly boxed object representation of such a value?
+Что если попытаться мутировать явно упакованное объектное представление такого значения?
 
 ```js
 var x = new Number( 2 );
 
-// works fine
+// работает нормально
 x.length = 4;
 ```
 
-`x` in this snippet is holding a reference to an object, so custom properties can be added and changed without issue.
+`x` в этом фрагменте содержит ссылку на объект, поэтому пользовательские свойства можно добавлять и изменять без проблем.
 
-The immutability of simple primitives like `number`s probably seems fairly obvious. But what about `string` values? JS developers have a very common misconception that strings are like arrays and can thus be changed. JS syntax even hints at them being "array like" with the `[ ]` access operator. However, strings are also immutable:
+Неизменяемость простых примитивов вроде `number` кажется вполне очевидной. Но как насчёт значений `string`? У JS-разработчиков есть очень распространённое заблуждение, что строки похожи на массивы и их можно изменять. Синтаксис JS даже намекает на то, что они "похожи на массивы", с оператором доступа `[ ]`. Однако строки тоже неизменяемы:
 
 ```js
 var s = "hello";
@@ -57,30 +57,30 @@ s.length = 10;
 s;                  // "hello"
 ```
 
-Despite being able to access `s[1]` like it's an array, JS strings are not real arrays. Setting `s[1] = "E"` and `s.length = 10` both silently fail, just as `x.length = 4` did before. In strict mode, these assignments will fail, because both the `1` property and the `length` property are read-only on this primitive `string` value.
+Несмотря на возможность обращаться к `s[1]` как к элементу массива, строки JS — не настоящие массивы. Операции `s[1] = "E"` и `s.length = 10` обе молча завершаются неудачей, как и `x.length = 4` ранее. В строгом режиме эти присваивания завершатся ошибкой, поскольку и свойство `1`, и свойство `length` доступны только для чтения у примитивного значения `string`.
 
-Interestingly, even the boxed `String` object value will act (mostly) immutable as it will throw errors in strict mode if you change existing properties:
+Интересно, что даже упакованное объектное значение `String` будет вести себя (в основном) неизменяемо: в строгом режиме оно будет выбрасывать ошибки при изменении существующих свойств:
 
 ```js
 "use strict";
 
 var s = new String( "hello" );
 
-s[1] = "E";         // error
-s.length = 10;      // error
+s[1] = "E";         // ошибка
+s.length = 10;      // ошибка
 
 s[42] = "?";        // OK
 
 s;                  // "hello"
 ```
 
-## Value to Value
+## От значения к значению
 
-We'll unpack this idea more throughout the chapter, but just to start with a clear understanding in mind: value immutability does not mean we can't have values change over the course of our program. A program without changing state is not a very interesting one! It also doesn't mean that our variables can't hold different values. These are all common misconceptions about value immutability.
+Мы более подробно разберём эту идею на протяжении главы, но для начала сформируем чёткое понимание: неизменяемость значений не означает, что значения не могут меняться в ходе программы. Программа без изменений состояния не очень интересна! Это также не означает, что наши переменные не могут содержать разные значения. Всё это распространённые заблуждения о неизменяемости значений.
 
-Value immutability means that *when* we need to change the state in our program, we must create and track a new value rather than mutate an existing value.
+Неизменяемость значений означает, что *когда* нам нужно изменить состояние в нашей программе, мы должны создать и отслеживать новое значение, а не мутировать существующее.
 
-For example:
+Например:
 
 ```js
 function addValue(arr) {
@@ -91,17 +91,17 @@ function addValue(arr) {
 addValue( [1,2,3] );    // [1,2,3,4]
 ```
 
-Notice that we did not change the array that `arr` references, but rather created a new array (`newArr`) that contains the existing values plus the new `4` value.
+Обратите внимание, что мы не изменяли массив, на который ссылается `arr`, а создали новый массив (`newArr`), содержащий существующие значения плюс новое значение `4`.
 
-Analyze `addValue(..)` based on what we discussed in [Chapter 5](ch5.md) about side causes/effects. Is it pure? Does it have referential transparency? Given the same array, will it always produce the same output? Is it free of both side causes and side effects? **Yes.**
+Проанализируйте `addValue(..)` на основе того, что мы обсуждали в [Главе 5](ch5.md) о скрытых причинах/побочных эффектах. Является ли она чистой? Обладает ли ссылочной прозрачностью? При одинаковом массиве будет ли она всегда производить одинаковый вывод? Свободна ли от скрытых причин и побочных эффектов? **Да.**
 
-Imagine the `[1,2,3]` array represents a sequence of data from some previous operations and we stored in some variable. It is our current state. If we want to compute what the next state of our application is, we call `addValue(..)`. But we want that act of next-state computation to be direct and explicit. So the `addValue(..)` operation takes a direct input, returns a direct output, and avoids the side effect of mutating the original array that `arr` references.
+Представьте, что массив `[1,2,3]` представляет последовательность данных из некоторых предыдущих операций, и мы сохранили его в какой-то переменной. Это наше текущее состояние. Если мы хотим вычислить следующее состояние нашего приложения, мы вызываем `addValue(..)`. Но мы хотим, чтобы этот акт вычисления следующего состояния был прямым и явным. Поэтому операция `addValue(..)` принимает прямые входные данные, возвращает прямые выходные данные и избегает побочного эффекта мутации оригинального массива, на который ссылается `arr`.
 
-This means we can calculate the new state of `[1,2,3,4]` and be fully in control of that transition of states. No other part of our program can unexpectedly transition us to that state early, or to another state entirely, like `[1,2,3,5]`. By being disciplined about our values and treating them as immutable, we drastically reduce the surface area of surprise, making our programs easier to read, reason about, and ultimately trust.
+Это означает, что мы можем вычислить новое состояние `[1,2,3,4]` и полностью контролировать этот переход состояний. Никакая другая часть нашей программы не может неожиданно перевести нас в это состояние раньше срока или в совершенно другое состояние, например `[1,2,3,5]`. Будучи дисциплинированными в отношении наших значений и обращаясь с ними как с неизменяемыми, мы резко сокращаем область сюрпризов, делая наши программы более читаемыми, поддающимися анализу и в конечном счёте заслуживающими доверия.
 
-The array that `arr` references is actually mutable. We just chose not to mutate it, so we practiced the spirit of value immutability.
+Массив, на который ссылается `arr`, на самом деле изменяемый. Мы просто решили не мутировать его, практикуя тем самым дух неизменяемости значений.
 
-We can use the copy-instead-of-mutate strategy for objects, too. Consider:
+Стратегию "копировать вместо мутировать" мы можем применять и к объектам. Рассмотрим:
 
 ```js
 function updateLastLogin(user) {
@@ -117,15 +117,15 @@ var user = {
 user = updateLastLogin( user );
 ```
 
-### Non-Local
+### Нелокальные значения
 
-Non-primitive values are held by reference, and when passed as arguments, it's the reference that's copied, not the value itself.
+Непримитивные значения хранятся по ссылке, и при передаче в качестве аргументов копируется ссылка, а не само значение.
 
-If you have an object or array in one part of the program, and pass it to a function that resides in another part of the program, that function can now affect the value via this reference copy, mutating it in possibly unexpected ways.
+Если у вас есть объект или массив в одной части программы и вы передаёте его в функцию, находящуюся в другой части программы, эта функция теперь может воздействовать на значение через копию ссылки, мутируя его возможно неожиданными способами.
 
-In other words, if passed as arguments, non-primitive values become non-local. Potentially the entire program has to be considered to understand whether such a value will be changed or not.
+Иными словами, при передаче в качестве аргументов непримитивные значения становятся нелокальными. Потенциально придётся рассматривать всю программу целиком, чтобы понять, будет ли такое значение изменено или нет.
 
-Consider:
+Рассмотрим:
 
 ```js
 var arr = [1,2,3];
@@ -135,193 +135,193 @@ foo( arr );
 console.log( arr[0] );
 ```
 
-Ostensibly, you're expecting `arr[0]` to still be the value `1`. But is it? You don't know, because `foo(..)` *might* mutate the array using the reference copy you pass to it.
+Предположительно, вы ожидаете, что `arr[0]` по-прежнему будет равен `1`. Но так ли это? Вы не знаете, потому что `foo(..)` *может* мутировать массив, используя переданную ей копию ссылки.
 
-We already saw a trick in the previous chapter to avoid such a surprise:
+В предыдущей главе мы видели приём для предотвращения такого сюрприза:
 
 ```js
 var arr = [1,2,3];
 
-foo( [...arr] );         // ha! a copy!
+foo( [...arr] );         // хa! копия!
 
 console.log( arr[0] );      // 1
 ```
 
-In a little bit, we'll see another strategy for protecting ourselves from a value being mutated out from underneath us unexpectedly.
+Чуть позже мы увидим ещё одну стратегию для защиты от неожиданной мутации значения.
 
-## Reassignment
+## Переприсваивание
 
-How would you describe what a "constant" is? Think about that for a moment before you move on to the next paragraph.
+Как бы вы описали, что такое "константа"? Подумайте об этом минуту, прежде чем перейти к следующему абзацу.
 
 <p align="center">
     * * * *
 </p>
 
-Some of you may have conjured descriptions like, "a value that can't change", "a variable that can't be changed", or something similar. These are all approximately in the neighborhood, but not quite at the right house. The precise definition we should use for a constant is: a variable that cannot be reassigned.
+Некоторые из вас, возможно, придумали описания вроде "значение, которое не может измениться", "переменная, которую нельзя изменить", или что-то похожее. Всё это приблизительно в нужном направлении, но не совсем точно. Точное определение, которое нам следует использовать для константы: переменная, которую нельзя переприсвоить.
 
-This nitpicking is really important, because it clarifies that a constant actually has nothing to do with the value, except to say that whatever value a constant holds, that variable cannot be reassigned any other value. But it says nothing about the nature of the value itself.
+Это придирчивое уточнение действительно важно, поскольку оно прояснает, что константа вообще не связана со значением, кроме как в том смысле, что какое бы значение константа ни содержала, этой переменной нельзя присвоить другое значение. Но это ничего не говорит о природе самого значения.
 
-Consider:
+Рассмотрим:
 
 ```js
 var x = 2;
 ```
 
-Like we discussed earlier, the value `2` is an unchangeable (immutable) primitive. If I change that code to:
+Как мы обсуждали ранее, значение `2` — это неизменяемый (immutable) примитив. Если я изменю этот код на:
 
 ```js
 const x = 2;
 ```
 
-The presence of the `const` keyword, known familiarly as a "constant declaration", actually does nothing at all to change the nature of `2`; it's already unchangeable, and it always will be.
+Ключевое слово `const`, известное как "объявление константы", на самом деле никак не меняет природу `2`; оно уже неизменяемо и всегда будет таковым.
 
-It's true that this later line will fail with an error:
+Верно, что следующая строка завершится ошибкой:
 
 ```js
-// try to change `x`, fingers crossed!
-x = 3;      // Error!
+// пытаемся изменить `x`, держим кулаки!
+x = 3;      // Ошибка!
 ```
 
-But again, we're not changing anything about the value. We're attempting to reassign the variable `x`. The values involved are almost incidental.
+Но опять же, мы не изменяем ничего в значении. Мы пытаемся переприсвоить переменную `x`. Вовлечённые значения почти случайны.
 
-To prove that `const` has nothing to do with the nature of the value, consider:
+Чтобы доказать, что `const` не связан с природой значения, рассмотрим:
 
 ```js
 const x = [ 2 ];
 ```
 
-Is the array a constant? **No.** `x` is a constant because it cannot be reassigned. But this later line is totally OK:
+Является ли массив константой? **Нет.** `x` — константа, потому что её нельзя переприсвоить. Но следующая строка совершенно допустима:
 
 ```js
 x[0] = 3;
 ```
 
-Why? Because the array is still totally mutable, even though `x` is a constant.
+Почему? Потому что массив по-прежнему полностью изменяемый, даже несмотря на то что `x` — константа.
 
-The confusion around `const` and "constant" only dealing with assignments and not value semantics is a long and dirty story. It seems a high degree of developers in just about every language that has a `const` stumble over the same sorts of confusions. Java in fact deprecated `const` and introduced a new keyword `final` at least in part to separate itself from the confusion over "constant" semantics.
+Путаница вокруг `const` и "константы", касающейся только присваиваний, а не семантики значений, — давняя и запутанная история. Похоже, большинство разработчиков практически в каждом языке, где есть `const`, спотыкаются об одну и ту же путаницу. Java фактически объявил `const` устаревшим и ввёл новое ключевое слово `final` хотя бы отчасти для того, чтобы отделиться от путаницы вокруг семантики "константы".
 
-Setting aside the confusion detractions, what importance does `const` hold for the FPer, if not to have anything to do with creating an immutable value?
+Отбросив эту путаницу в сторону, какое значение имеет `const` для ФП-программиста, если он не имеет никакого отношения к созданию неизменяемого значения?
 
-### Intent
+### Намерение
 
-The use of `const` tells the reader of your code that *that* variable will not be reassigned. As a signal of intent, `const` is often highly lauded as a welcome addition to JavaScript and a universal improvement in code readability.
+Использование `const` сообщает читателю вашего кода, что *эта* переменная не будет переприсвоена. Как сигнал намерения, `const` часто расхваливают как желанное дополнение к JavaScript и универсальное улучшение читаемости кода.
 
-In my opinion, this is mostly hype; there's not much substance to these claims. I see only the mildest of faint benefit in signaling your intent in this way. And when you match that up against decades of precedent around confusion about it implying value immutability, I don't think `const` comes close to carrying its own weight.
+По моему мнению, это в основном шумиха; в этих утверждениях мало содержания. Я вижу лишь самую слабую, едва заметную пользу в том, чтобы таким образом сигнализировать о своём намерении. И когда вы сопоставляете это с десятилетиями прецедентов путаницы, когда `const` подразумевает неизменяемость значений, я не думаю, что `const` окупает своё место.
 
-To back up my assertion, let's consider scope. `const` creates a block scoped variable, meaning that variable only exists in that one localized block:
+В подтверждение моего утверждения рассмотрим область видимости. `const` создаёт переменную с блочной областью видимости, то есть переменная существует только в этом одном локальном блоке:
 
 ```js
-// lots of code
+// много кода
 
 {
     const x = 2;
 
-    // a few lines of code
+    // несколько строк кода
 }
 
-// lots of code
+// много кода
 ```
 
-Typically, blocks are considered best designed to be only a few lines long. If you have blocks of more than say 10 lines, most developers will advise you to refactor. So `const x = 2` only applies to those next nine lines of code at most.
+Как правило, блоки лучше всего проектировать длиной всего в несколько строк. Если у вас блоки длиннее, скажем, 10 строк, большинство разработчиков посоветуют вам выполнить рефакторинг. Поэтому `const x = 2` применяется как максимум к следующим девяти строкам кода.
 
-No other part of the program can ever affect the assignment of `x`. **Period.**
+Никакая другая часть программы никогда не сможет повлиять на присваивание `x`. **Точка.**
 
-My claim is that program has basically the same magnitude of readability as this one:
+Я утверждаю, что эта программа имеет примерно такой же уровень читаемости, как и эта:
 
 ```js
-// lots of code
+// много кода
 
 {
     let x = 2;
 
-    // a few lines of code
+    // несколько строк кода
 }
 
-// lots of code
+// много кода
 ```
 
-If you look at the next few lines of code after `let x = 2;`, you'll be able to easily tell that `x` is in fact *not* reassigned. That to me is a **much stronger signal** -- actually not reassigning it! -- than the use of some confusable `const` declaration to say "won't reassign it".
+Если вы посмотрите на несколько следующих строк после `let x = 2;`, вы легко сможете определить, что `x` на самом деле *не* переприсваивается. Для меня это **гораздо более сильный сигнал** — реальное отсутствие переприсваивания! — чем использование какого-то сбивающего с толку объявления `const` для обозначения "не буду переприсваивать".
 
-Moreover, let's consider what this code is likely to communicate to a reader at first glance:
+Более того, давайте подумаем, что этот код, скорее всего, будет передавать читателю с первого взгляда:
 
 ```js
 const magicNums = [1,2,3,4];
 ```
 
-Isn't it at least possible (probable?) that the reader of your code will assume (wrongly) that your intent is to never mutate the array? That seems like a reasonable inference to me. Imagine their confusion if later you do in fact allow the array value referenced by `magicNums` to be mutated. Might that surprise them?
+Разве не возможно (вероятно?), что читатель вашего кода ошибочно предположит, что ваше намерение — никогда не мутировать массив? Мне кажется, это разумный вывод. Представьте их замешательство, если вы на самом деле позволите мутировать значение массива, на которое ссылается `magicNums`. Это удивит их?
 
-Worse, what if you intentionally mutate `magicNums` in some way that turns out to not be obvious to the reader? Subsequently in the code, they see a usage of `magicNums` and assume (again, wrongly) that it's still `[1,2,3,4]` because they read your intent as, "not gonna change this".
+Хуже того, что если вы намеренно мутируете `magicNums` каким-то образом, который оказывается неочевидным для читателя? Впоследствии в коде они видят использование `magicNums` и предполагают (снова ошибочно), что это всё ещё `[1,2,3,4]`, потому что они прочитали ваше намерение как "не собираюсь это менять".
 
-I think you should use `var` or `let` for declaring variables to hold values that you intend to mutate. I think that actually is a **much clearer signal** of your intent than using `const`.
+Я думаю, что следует использовать `var` или `let` для объявления переменных для хранения значений, которые вы намерены мутировать. Это действительно **гораздо более чёткий сигнал** о вашем намерении, чем использование `const`.
 
-But the troubles with `const` don't stop there. Remember we asserted at the top of the chapter that to treat values as immutable means that when our state needs to change, we have to create a new value instead of mutating it? What are you going to do with that new array once you've created it? If you declared your reference to it using `const`, you can't reassign it.
+Но проблемы с `const` на этом не заканчиваются. Помните, в начале главы мы утверждали, что обращение со значениями как с неизменяемыми означает: когда состояние нашей программы нуждается в изменении, мы должны создать новое значение вместо того, чтобы мутировать существующее? Что вы будете делать с новым массивом после его создания? Если вы объявили ссылку на него с помощью `const`, вы не можете её переприсвоить.
 
 ```js
 const magicNums = [1,2,3,4];
 
-// later:
-magicNums = magicNums.concat( 42 );  // oops, can't reassign!
+// позже:
+magicNums = magicNums.concat( 42 );  // упс, переприсвоить нельзя!
 ```
 
-So... what next?
+Итак... что дальше?
 
-In this light, I see `const` as actually making our efforts to adhere to FP harder, not easier. My conclusion: `const` is not all that useful. It creates unnecessary confusion and restricts us in inconvenient ways. I only use `const` for simple constants like:
+С этой точки зрения я вижу, что `const` на самом деле усложняет наши усилия по соблюдению принципов ФП, а не упрощает. Мой вывод: `const` не особо полезен. Он создаёт ненужную путаницу и ограничивает нас неудобными способами. Я использую `const` только для простых констант, например:
 
 ```js
 const PI = 3.141592;
 ```
 
-The value `3.141592` is already immutable, and I'm clearly signaling, "this `PI` will always be used as stand-in placeholder for this literal value." To me, that's what `const` is good for. And to be frank, I don't use many of those kinds of declarations in my typical coding.
+Значение `3.141592` уже неизменяемо, и я чётко сигнализирую: "этот `PI` всегда будет использоваться как замена этого литерального значения." Именно для этого, на мой взгляд, полезен `const`. И, откровенно говоря, в своём обычном коде я редко использую подобные объявления.
 
-I've written and seen a lot of JavaScript, and I just think it's an imagined problem that very many of our bugs come from accidental reassignment.
+Я написал и читал много JavaScript, и мне кажется, что количество ошибок, возникающих из-за случайного переприсваивания, — воображаемая проблема.
 
-One of the reasons FPers so highly favor `const` and avoid reassignment is because of equational reasoning. Though this topic is more related to other languages than JS and goes beyond what we'll get into here, it is a valid point. However, I prefer the pragmatic view over the more academic one.
+Одна из причин, по которой ФП-программисты так высоко ценят `const` и избегают переприсваивания, связана с эквациональным рассуждением. Хотя эта тема больше относится к другим языкам, чем к JS, и выходит за рамки того, что мы здесь рассмотрим, это обоснованный аргумент. Однако я предпочитаю прагматичный взгляд более академическому.
 
-For example, I've found measured use of variable reassignment can be useful in simplifying the description of intermediate states of computation. When a value goes through multiple type coercions or other transformations, I don't generally want to come up with new variable names for each representation:
+Например, я обнаружил, что взвешенное использование переприсваивания переменных может быть полезно для упрощения описания промежуточных состояний вычислений. Когда значение проходит через несколько преобразований типов или других трансформаций, я, как правило, не хочу придумывать новые имена переменных для каждого представления:
 
 ```js
 var a = "420";
 
-// later
+// позже
 
 a = Number( a );
 
-// later
+// позже
 
 a = [ a ];
 ```
 
-If after changing from `"420"` to `420`, the original `"420"` value is no longer needed, then I think it's more readable to reassign `a` rather than come up with a new variable name like `aNum`.
+Если после преобразования из `"420"` в `420` исходное значение `"420"` больше не нужно, я думаю, что переприсваивание `a` читается лучше, чем придумывание нового имени переменной вроде `aNum`.
 
-The thing we really should worry more about is not whether our variables get reassigned, but **whether our values get mutated**. Why? Because values are portable; lexical assignments are not. You can pass an array to a function, and it can be changed without you realizing it. But a reassignment will never be unexpectedly caused by some other part of your program.
+О чём нам действительно стоит беспокоиться — это не о том, переприсваиваются ли наши переменные, а о том, **мутируются ли наши значения**. Почему? Потому что значения переносимы; лексические присваивания — нет. Вы можете передать массив в функцию, и он может быть изменён без вашего ведома. Но переприсваивание никогда не будет неожиданно вызвано другой частью вашей программы.
 
-### It's Freezing in Here
+### Здесь холодно как в морозильнике
 
-There's a cheap and simple way to turn a mutable object/array/function into an "immutable value" (of sorts):
+Есть дешёвый и простой способ превратить изменяемый объект/массив/функцию в "неизменяемое значение" (своего рода):
 
 ```js
 var x = Object.freeze( [2] );
 ```
 
-The `Object.freeze(..)` utility goes through all the properties/indices of an object/array and marks them as read-only, so they cannot be reassigned. It's sorta like declaring properties with a `const`, actually! `Object.freeze(..)` also marks the properties as non-reconfigurable, and it marks the object/array itself as non-extensible (no new properties can be added). In effect, it makes the top level of the object immutable.
+Утилита `Object.freeze(..)` проходит по всем свойствам/индексам объекта/массива и помечает их как доступные только для чтения, так что их нельзя переприсвоить. Это похоже на объявление свойств с помощью `const`! `Object.freeze(..)` также помечает свойства как нереконфигурируемые и помечает сам объект/массив как нерасширяемый (нельзя добавлять новые свойства). По существу, он делает верхний уровень объекта неизменяемым.
 
-Top level only, though. Be careful!
+Только верхний уровень. Будьте осторожны!
 
 ```js
 var x = Object.freeze( [ 2, 3, [4, 5] ] );
 
-// not allowed:
+// не разрешено:
 x[0] = 42;
 
-// oops, still allowed:
+// упс, всё ещё разрешено:
 x[2][0] = 42;
 ```
 
-`Object.freeze(..)` provides shallow, naive immutability. You'll have to walk the entire object/array structure manually and apply `Object.freeze(..)` to each sub-object/array if you want a deeply immutable value.
+`Object.freeze(..)` обеспечивает поверхностную, наивную неизменяемость. Вам придётся вручную пройти по всей структуре объекта/массива и применить `Object.freeze(..)` к каждому вложенному объекту/массиву, если вам нужно глубоко неизменяемое значение.
 
-But contrasted with `const` which can confuse you into thinking you're getting an immutable value when you aren't, `Object.freeze(..)` *actually* gives you an immutable value.
+Но в отличие от `const`, который может ввести вас в заблуждение, заставив думать, что вы получили неизменяемое значение, хотя это не так, `Object.freeze(..)` *действительно* даёт вам неизменяемое значение.
 
-Recall the protection example from earlier:
+Вспомним пример защиты из ранее:
 
 ```js
 var arr = Object.freeze( [1,2,3] );
@@ -331,33 +331,33 @@ foo( arr );
 console.log( arr[0] );          // 1
 ```
 
-Now `arr[0]` is quite reliably `1`.
+Теперь `arr[0]` вполне надёжно равен `1`.
 
-This is so important because it makes reasoning about our code much easier when we know we can trust that a value doesn't change when passed somewhere that we do not see or control.
+Это так важно, потому что делает рассуждение о нашем коде значительно проще, когда мы знаем, что можем доверять: значение не изменится при передаче куда-то, где мы не видим и не контролируем код.
 
-## Performance
+## Производительность
 
-Whenever we start creating new values (arrays, objects, etc.) instead of mutating existing ones, the obvious next question is: what does that mean for performance?
+Всякий раз, когда мы начинаем создавать новые значения (массивы, объекты и т.д.) вместо мутации существующих, следующий очевидный вопрос: что это означает для производительности?
 
-If we have to reallocate a new array each time we need to add to it, that's not only churning CPU time and consuming extra memory; the old values (if no longer referenced) are also being garbage collected. That's even more CPU burn.
+Если нам приходится каждый раз перераспределять новый массив при добавлении элемента, это не только расходует процессорное время и потребляет дополнительную память; старые значения (если на них больше нет ссылок) также подвергаются сборке мусора. Это дополнительная нагрузка на процессор.
 
-Is that an acceptable trade-off? It depends. No discussion or optimization of code performance should happen **without context.**
+Является ли это приемлемым компромиссом? Зависит от ситуации. **Никакое** обсуждение или оптимизация производительности кода не должны происходить **без контекста.**
 
-If you have a single state change that happens once (or even a couple of times) in the whole life of the program, throwing away an old array/object for a new one is almost certainly not a concern. The churn we're talking about will be so small -- probably mere microseconds at most -- as to have no practical effect on the performance of your application. Compared to the minutes or hours you will save not having to track down and fix a bug related to unexpected value mutation, there's not even a contest here.
+Если у вас есть одно изменение состояния, происходящее один раз (или даже пару раз) за всё время жизни программы, выбрасывание старого массива/объекта ради нового почти наверняка не является проблемой. Описываемые нами затраты будут настолько малы — вероятно, максимум несколько микросекунд — что не окажут практического влияния на производительность вашего приложения. По сравнению с минутами или часами, которые вы сэкономите, не разыскивая и не исправляя баг, связанный с неожиданной мутацией значения, это даже не конкуренция.
 
-Then again, if such an operation is going to occur frequently, or specifically happen in a *critical path* of your application, then performance -- consider both performance and memory! -- is a totally valid concern.
+С другой стороны, если такая операция будет происходить часто или конкретно находится на *критическом пути* вашего приложения, то производительность — принимайте во внимание и производительность, и память! — является совершенно обоснованной проблемой.
 
-Think about a specialized data structure that's like an array, but that you want to be able to make changes to and have each change behave implicitly as if the result was a new array. How could you accomplish this without actually creating a new array each time? Such a special array data structure could store the original value and then track each change made as a delta from the previous version.
+Представьте специализированную структуру данных, похожую на массив, но такую, в которой вы хотите иметь возможность вносить изменения, и каждое изменение неявно ведёт себя так, как будто результатом является новый массив. Как этого добиться, не создавая каждый раз новый массив? Такая специальная структура данных массива могла бы хранить исходное значение и затем отслеживать каждое изменение как дельту от предыдущей версии.
 
-Internally, it might be like a linked-list tree of object references where each node in the tree represents a mutation of the original value. Actually, this is conceptually similar to how **Git** version control works.
+Внутри это могло бы быть похоже на дерево со связанным списком ссылок на объекты, где каждый узел дерева представляет мутацию исходного значения. На самом деле это концептуально похоже на то, как работает система контроля версий **Git**.
 
 <p align="center">
     <img src="images/fig18.png" width="33%">
 </p>
 
-In this conceptual illustration, an original array `[3,6,1,0]` first has the mutation of value `4` assigned to position `0` (resulting in `[4,6,1,0]`), then `1` is assigned to position `3` (now `[4,6,1,1]`), finally `2` is assigned to position `4` (result: `[4,6,1,1,2]`). The key idea is that at each mutation, only the change from the previous version is recorded, not a duplication of the entire original data structure. This approach is much more efficient in both memory and CPU performance, in general.
+В этой концептуальной иллюстрации исходный массив `[3,6,1,0]` сначала получает мутацию: значение `4` присваивается позиции `0` (результат `[4,6,1,0]`), затем `1` присваивается позиции `3` (теперь `[4,6,1,1]`), наконец `2` присваивается позиции `4` (результат: `[4,6,1,1,2]`). Ключевая идея в том, что при каждой мутации записывается только изменение по сравнению с предыдущей версией, а не дублируется вся исходная структура данных. Этот подход в целом значительно эффективнее как по памяти, так и по производительности процессора.
 
-Imagine using this hypothetical specialized array data structure like this:
+Представьте использование этой гипотетической специализированной структуры данных массива следующим образом:
 
 ```js
 var state = specialArray( 4, 6, 1, 1 );
@@ -375,11 +375,11 @@ newState.get( 4 );                  // 2
 newState.slice( 2, 5 );             // [1,1,2]
 ```
 
-The `specialArray(..)` data structure would internally keep track of each mutation operation (like `set(..)`) as a *diff*, so it won't have to reallocate memory for the original values (`4`, `6`, `1`, and `1`) just to add the `2` value to the end of the list. But importantly, `state` and `newState` point at different versions (or views) of the array value, so **the value immutability semantic is preserved.**
+Структура данных `specialArray(..)` внутренне отслеживала бы каждую операцию мутации (например, `set(..)`) как *diff*, поэтому ей не нужно было бы перераспределять память для исходных значений (`4`, `6`, `1` и `1`) только чтобы добавить значение `2` в конец списка. Но важно то, что `state` и `newState` указывают на разные версии (или представления) значения массива, поэтому **семантика неизменяемости значения сохраняется.**
 
-Inventing your own performance-optimized data structures is an interesting challenge. But pragmatically, you should probably use a library that already does this well. One great option is [Immutable.js](http://facebook.github.io/immutable-js), which provides a variety of data structures, including `List` (like array) and `Map` (like object).
+Создание собственных структур данных с оптимизированной производительностью — интересная задача. Но прагматично вам, вероятно, стоит использовать библиотеку, которая уже делает это хорошо. Отличный вариант — [Immutable.js](http://facebook.github.io/immutable-js), которая предоставляет множество структур данных, включая `List` (как массив) и `Map` (как объект).
 
-Consider the previous `specialArray` example but using `Immutable.List`:
+Рассмотрим предыдущий пример с `specialArray`, но с использованием `Immutable.List`:
 
 ```js
 var state = Immutable.List.of( 4, 6, 1, 1 );
@@ -397,15 +397,15 @@ newState.get( 4 );                  // 2
 newState.toArray().slice( 2, 5 );   // [1,1,2]
 ```
 
-A powerful library like Immutable.js employs sophisticated performance optimizations. Handling all the details and corner-cases manually without such a library would be quite difficult.
+Мощная библиотека вроде Immutable.js использует сложные оптимизации производительности. Справляться со всеми деталями и крайними случаями вручную без подобной библиотеки было бы весьма сложно.
 
-When changes to a value are few or infrequent and performance is less of a concern, I'd recommend the lighter-weight solution, sticking with built-in `Object.freeze(..)` as discussed earlier.
+Когда изменения значения редки или нечасты и производительность менее важна, я рекомендовал бы более лёгкое решение: использовать встроенный `Object.freeze(..)`, как обсуждалось ранее.
 
-## Treatment
+## Обращение с ценностями
 
-What if we receive a value to our function and we're not sure if it's mutable or immutable? Is it ever OK to just go ahead and try to mutate it? **No.** As we asserted at the beginning of this chapter, we should treat all received values as immutable -- to avoid side effects and remain pure -- regardless of whether they are or not.
+Что если мы получаем значение в нашу функцию и не уверены, изменяемо оно или нет? Допустимо ли просто попробовать его мутировать? **Нет.** Как мы утверждали в начале этой главы, мы должны обращаться со всеми получаемыми значениями как с неизменяемыми — чтобы избежать побочных эффектов и оставаться чистыми — независимо от того, являются ли они таковыми или нет.
 
-Recall this example from earlier:
+Вспомним этот пример из ранее:
 
 ```js
 function updateLastLogin(user) {
@@ -415,7 +415,7 @@ function updateLastLogin(user) {
 }
 ```
 
-This implementation treats `user` as a value that should not be mutated; whether it *is* immutable or not is irrelevant to reading this part of the code. Contrast that with this implementation:
+Эта реализация относится к `user` как к значению, которое не следует мутировать; является ли оно *на самом деле* неизменяемым или нет — не важно для чтения этой части кода. Сравните это с данной реализацией:
 
 ```js
 function updateLastLogin(user) {
@@ -424,11 +424,11 @@ function updateLastLogin(user) {
 }
 ```
 
-That version is a lot easier to write, and even performs better. But not only does this approach make `updateLastLogin(..)` impure, it also mutates a value in a way that makes both the reading of this code, as well as the places it's used, more complicated.
+Эта версия значительно проще в написании и даже работает быстрее. Но этот подход не только делает `updateLastLogin(..)` нечистой, но и мутирует значение таким образом, что чтение как этого кода, так и мест его использования, становится более сложным.
 
-**We should treat `user` as immutable**, always, because at this point of reading the code we do not know where the value comes from, or what potential issues we may cause if we mutate it.
+**Мы должны обращаться с `user` как с неизменяемым** всегда, потому что на данном этапе чтения кода мы не знаем, откуда приходит это значение и какие потенциальные проблемы могут возникнуть при его мутировании.
 
-Nice examples of this approach can be seen in various built-in methods of the JS array, such as `concat(..)` and `slice(..)`:
+Хорошие примеры такого подхода можно увидеть в различных встроенных методах массива JS, например `concat(..)` и `slice(..)`:
 
 ```js
 var arr = [1,2,3,4,5];
@@ -444,25 +444,25 @@ arr2;                   // [1,2,3,4,5,6]
 arr3;                   // [2,3,4,5,6]
 ```
 
-Other array prototype methods that treat the value instance as immutable and return a new array instead of mutating: `map(..)` and `filter(..)`. The `reduce(..)`/`reduceRight(..)` utilities also avoid mutating the instance, though they don't by default return a new array.
+Другие методы прототипа массива, которые относятся к экземпляру значения как к неизменяемому и возвращают новый массив вместо мутации: `map(..)` и `filter(..)`. Утилиты `reduce(..)`/`reduceRight(..)` также избегают мутации экземпляра, хотя по умолчанию не возвращают новый массив.
 
-Unfortunately, for historical reasons, quite a few other array methods are impure mutators of their instance: `splice(..)`, `pop(..)`, `push(..)`, `shift(..)`, `unshift(..)`, `reverse(..)`, `sort(..)`, and `fill(..)`.
+К сожалению, по историческим причинам немало других методов массива являются нечистыми мутаторами своего экземпляра: `splice(..)`, `pop(..)`, `push(..)`, `shift(..)`, `unshift(..)`, `reverse(..)`, `sort(..)` и `fill(..)`.
 
-It should not be seen as *forbidden* to use these kinds of utilities, as some claim. For reasons such as performance optimization, sometimes you will want to use them. But you should never use such a method on an array value that is not already local to the function you're working in, to avoid creating a side effect on some other remote part of the code.
+Использование таких утилит не следует считать *запрещённым*, как некоторые утверждают. По таким причинам, как оптимизация производительности, иногда вы захотите их использовать. Но вы никогда не должны применять такой метод к значению массива, которое не является уже локальным для функции, в которой вы работаете, чтобы не создавать побочный эффект на какую-то другую удалённую часть кода.
 
 <a name="hiddenmutation"></a>
 
-Recall one of the implementations of [`compose(..)` from Chapter 4](ch4.md/#user-content-generalcompose):
+Вспомним одну из реализаций [`compose(..)` из Главы 4](ch4.md/#user-content-generalcompose):
 
 ```js
 function compose(...fns) {
     return function composed(result){
-        // copy the array of functions
+        // копируем массив функций
         var list = [...fns];
 
         while (list.length > 0) {
-            // take the last function off the end of the list
-            // and execute it
+            // берём последнюю функцию с конца списка
+            // и выполняем её
             result = list.pop()( result );
         }
 
@@ -471,16 +471,16 @@ function compose(...fns) {
 }
 ```
 
-The `...fns` gather parameter is making a new local array from the passed-in arguments, so it's not an array that we could create an outside side effect on. It would be reasonable then to assume that it's safe for us to mutate it locally. But the subtle gotcha here is that the inner `composed(..)` which closes over `fns` is not "local" in this sense.
+Параметр rest `...fns` создаёт новый локальный массив из переданных аргументов, поэтому это не массив, на котором мы могли бы создать внешний побочный эффект. Тогда разумно предположить, что нам безопасно мутировать его локально. Но тонкий подвох в том, что внутренняя функция `composed(..)`, замыкающая `fns`, в этом смысле не является "локальной".
 
-Consider this different version which doesn't make a copy:
+Рассмотрим другую версию, которая не делает копии:
 
 ```js
 function compose(...fns) {
     return function composed(result){
         while (fns.length > 0) {
-            // take the last function off the end of the list
-            // and execute it
+            // берём последнюю функцию с конца списка
+            // и выполняем её
             result = fns.pop()( result );
         }
 
@@ -492,19 +492,19 @@ var f = compose( x => x / 3, x => x + 1, x => x * 2 );
 
 f( 4 );     // 3
 
-f( 4 );     // 4 <-- uh oh!
+f( 4 );     // 4 <-- упс!
 ```
 
-The second usage of `f(..)` here wasn't correct, since we mutated that `fns` during the first call, which affected any subsequent uses. Depending on the circumstances, making a copy of an array like `list = [...fns]` may or may not be necessary. But I think it's safest to assume you need it -- even if only for readability sake! -- unless you can prove you don't, rather than the other way around.
+Второй вызов `f(..)` здесь был некорректным, поскольку мы мутировали `fns` во время первого вызова, что повлияло на все последующие использования. В зависимости от обстоятельств, создание копии массива вроде `list = [...fns]` может быть необходимым или нет. Но я думаю, что безопаснее всего предполагать, что она нужна — хотя бы ради читаемости! — если вы не можете доказать обратное, а не наоборот.
 
-Be disciplined and always treat *received values* as immutable, whether they are or not. That effort will improve the readability and trustability of your code.
+Будьте дисциплинированы и всегда обращайтесь с *получаемыми значениями* как с неизменяемыми, независимо от того, являются ли они таковыми. Это усилие улучшит читаемость и надёжность вашего кода.
 
-## Summary
+## Резюме
 
-Value immutability is not about unchanging values. It's about creating and tracking new values as the state of the program changes, rather than mutating existing values. This approach leads to more confidence in reading the code, because we limit the places where our state can change in ways we don't readily see or expect.
+Неизменяемость значений — это не о неизменных значениях. Это о создании и отслеживании новых значений по мере изменения состояния программы вместо мутации существующих. Такой подход ведёт к большей уверенности при чтении кода, поскольку мы ограничиваем места, где состояние может меняться способами, которые мы не сразу видим или ожидаем.
 
-`const` declarations (constants) are commonly mistaken for their ability to signal intent and enforce immutability. In reality, `const` has basically nothing to do with value immutability, and its usage will likely create more confusion than it solves. Instead, `Object.freeze(..)` provides a nice built-in way of setting shallow value immutability on an array or object. In many cases, this will be sufficient.
+Объявления `const` (константы) обычно ошибочно принимают за способность сигнализировать намерение и обеспечивать неизменяемость. В действительности `const` практически не имеет отношения к неизменяемости значений, и его использование, вероятно, создаст больше путаницы, чем решит проблем. Вместо этого `Object.freeze(..)` предоставляет удобный встроенный способ установить поверхностную неизменяемость значения для массива или объекта. Во многих случаях этого будет достаточно.
 
-For performance-sensitive parts of the program, or in cases where changes happen frequently, creating a new array or object (especially if it contains lots of data) is undesirable, for both processing and memory concerns. In these cases, using immutable data structures from a library like **Immutable.js** is probably the best idea.
+Для критически важных с точки зрения производительности частей программы или в случаях, когда изменения происходят часто, создание нового массива или объекта (особенно если он содержит много данных) нежелательно как по соображениям обработки, так и памяти. В этих случаях лучшей идеей, вероятно, будет использование неизменяемых структур данных из библиотеки вроде **Immutable.js**.
 
-The importance of value immutability on code readability is less in the inability to change a value, and more in the discipline to treat a value as immutable.
+Важность неизменяемости значений для читаемости кода заключается не столько в невозможности изменить значение, сколько в дисциплине обращения с ним как с неизменяемым.
