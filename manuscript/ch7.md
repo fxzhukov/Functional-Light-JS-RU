@@ -1,43 +1,42 @@
 # Functional-Light JavaScript
-# Chapter 7: Closure vs. Object
+# Глава 7: Замыкание vs. Объект
 
-A number of years ago, Anton van Straaten crafted what has become a rather famous and oft-cited [koan](https://www.merriam-webster.com/dictionary/koan) to illustrate and provoke an important tension between closure and objects:
+Несколько лет назад Антон ван Штраатен придумал то, что стало довольно известным и часто цитируемым [коаном](https://www.merriam-webster.com/dictionary/koan), иллюстрирующим и провоцирующим важное противоречие между замыканиями и объектами:
 
-> The venerable master Qc Na was walking with his student, Anton. Hoping to
-prompt the master into a discussion, Anton said "Master, I have heard that
-objects are a very good thing - is this true?" Qc Na looked pityingly at
-his student and replied, "Foolish pupil - objects are merely a poor man's
-closures."
+> Досточтимый мастер Кй Цу На гулял со своим учеником Антоном. Надеясь
+побудить мастера к разговору, Антон сказал: «Учитель, я слышал, что
+объекты — это очень хорошая вещь. Так ли это?» Кй Цу На с жалостью посмотрел на
+своего ученика и ответил: «Глупый ученик — объекты суть замыкания для бедных».
 >
-> Chastised, Anton took his leave from his master and returned to his cell,
-intent on studying closures. He carefully read the entire "Lambda: The
-Ultimate..." series of papers and its cousins, and implemented a small
-Scheme interpreter with a closure-based object system. He learned much, and
-looked forward to informing his master of his progress.
+> Пристыженный, Антон откланялся мастеру и вернулся в свою комнату,
+твёрдо намереваясь изучить замыкания. Он тщательно прочитал всю серию статей
+«Lambda: The Ultimate...» и смежные работы, и реализовал небольшой
+интерпретатор Scheme с объектной системой на основе замыканий. Он многому научился
+и с нетерпением ждал возможности рассказать мастеру о своём прогрессе.
 >
-> On his next walk with Qc Na, Anton attempted to impress his master by
-saying "Master, I have diligently studied the matter, and now understand
-that objects are truly a poor man's closures." Qc Na responded by hitting
-Anton with his stick, saying "When will you learn? Closures are a poor man's
-object." At that moment, Anton became enlightened.
+> На следующей прогулке с Кй Цу На Антон попытался произвести впечатление на мастера,
+сказав: «Учитель, я прилежно изучил этот вопрос и теперь понимаю,
+что объекты действительно суть замыкания для бедных». Кй Цу На в ответ ударил
+Антона своей палкой, сказав: «Когда же ты научишься? Замыкания — это объекты для бедных».
+В этот момент Антон обрёл просветление.
 >
 > -- Anton van Straaten 6/4/2003
 >
 > http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html
 
-The original posting, while brief, has more context to the origin and motivations, and I strongly suggest you read that post to properly set your mindset for approaching this chapter.
+Оригинальный пост, хоть и краткий, содержит больше контекста о происхождении и мотивах, и я настоятельно рекомендую прочитать его, чтобы должным образом подготовить свой ум к восприятию этой главы.
 
-Many people I've observed read this koan smirk at its clever wit but then move on without it changing much about their thinking. However, the purpose of a koan (from the Zen Buddhist perspective) is to prod the reader into wrestling with the contradictory truths therein. So, go back and read it again. Now read it again.
+Многие люди, которых я наблюдал, читают этот коан, усмехаются его остроумию, а затем идут дальше, не изменив особо своего мышления. Однако цель коана (с точки зрения дзен-буддизма) — подтолкнуть читателя к борьбе с содержащимися в нём противоречивыми истинами. Итак, вернитесь и прочитайте его ещё раз. Теперь ещё раз.
 
-Which is it? Is a closure a poor man's object, or is an object a poor man's closure? Or neither? Or both? Is merely the take-away that closures and objects are in some way equivalent?
+Так как же всё-таки? Замыкание — это объект для бедных, или объект — это замыкание для бедных? Или ни то ни другое? Или и то, и другое? Или единственный вывод здесь в том, что замыкания и объекты каким-то образом эквивалентны?
 
-And what does any of this have to do with functional programming? Pull up a chair and ponder for a while. This chapter will be an interesting detour, an excursion if you will.
+И какое вообще отношение всё это имеет к функциональному программированию? Присаживайтесь поудобнее и поразмышляйте. Эта глава будет интересным отступлением, своего рода экскурсом.
 
-## The Same Page
+## На одной волне
 
-First, let's make sure we're all on the same page when we refer to closures and objects. We're obviously in the context of how JavaScript deals with these two mechanisms, and specifically talking about simple function closure (see [Chapter 2, "Keeping Scope"](ch2.md/#keeping-scope)) and simple objects (collections of key-value pairs).
+Для начала убедимся, что мы понимаем одно и то же, говоря о замыканиях и объектах. Мы, очевидно, рассматриваем это в контексте того, как JavaScript работает с этими двумя механизмами, и конкретно говорим о простых функциональных замыканиях (см. [Глава 2, «Сохранение области видимости»](ch2.md/#keeping-scope)) и простых объектах (коллекциях пар ключ-значение).
 
-For the record, here's an illustration of a simple function closure:
+Для справки: вот иллюстрация простого функционального замыкания:
 
 ```js
 function outer() {
@@ -54,7 +53,7 @@ var three = outer();
 three();            // 3
 ```
 
-And an illustration of a simple object:
+И иллюстрация простого объекта:
 
 ```js
 var obj = {
@@ -69,24 +68,24 @@ function three(outer) {
 three( obj );       // 3
 ```
 
-Many people conjure lots of extra things when you mention "closure", such as the asynchronous callbacks or even the module pattern with encapsulation and information hiding. Similarly, "object" brings to mind classes, `this`, prototypes, and a whole slew of other utilities and patterns.
+Когда вы упоминаете «замыкание», многие представляют себе много дополнительных вещей: асинхронные колбэки или даже паттерн «модуль» с инкапсуляцией и сокрытием информации. Точно так же «объект» вызывает ассоциации с классами, `this`, прототипами и целым рядом других утилит и паттернов.
 
-As we go along, we'll carefully address the parts of this external context that matter, but for now, try to just stick to the simplest interpretations of "closure" and "object" as illustrated here; it'll make our exploration less confusing.
+По ходу изложения мы аккуратно затронем те части этого внешнего контекста, которые имеют значение, но пока попробуйте придерживаться самых простых интерпретаций «замыкания» и «объекта», как показано выше — это сделает наше исследование менее запутанным.
 
-## Look Alike
+## Похожи как близнецы
 
-It may not be obvious how closures and objects are related. So let's explore their similarities first.
+Связь между замыканиями и объектами может быть неочевидной. Поэтому давайте сначала изучим их сходства.
 
-To frame this discussion, let me just briefly assert two things:
+Чтобы задать рамку для этого обсуждения, позвольте мне сделать два утверждения:
 
-1. A programming language without closures can simulate them with objects instead.
-2. A programming language without objects can simulate them with closures instead.
+1. Язык программирования без замыканий может имитировать их с помощью объектов.
+2. Язык программирования без объектов может имитировать их с помощью замыканий.
 
-In other words, we can think of closures and objects as two different representations of a thing.
+Иными словами, мы можем рассматривать замыкания и объекты как два разных представления одной и той же сущности.
 
-### State
+### Состояние
 
-Consider this code from before:
+Рассмотрим этот код из предыдущего примера:
 
 ```js
 function outer() {
@@ -104,9 +103,9 @@ var obj = {
 };
 ```
 
-Both the scope closed over by `inner()` and the object `obj` contain two elements of state: `one` with value `1` and `two` with value `2`. Syntactically and mechanically, these representations of state are different. But conceptually, they're actually quite similar.
+И область видимости, захваченная `inner()`, и объект `obj` содержат два элемента состояния: `one` со значением `1` и `two` со значением `2`. Синтаксически и механически эти представления состояния различны. Но концептуально они весьма схожи.
 
-As a matter of fact, it's fairly straightforward to represent an object as a closure, or a closure as an object. Go ahead, try it yourself:
+Более того, достаточно просто представить объект как замыкание или замыкание как объект. Попробуйте сами:
 
 ```js
 var point = {
@@ -116,7 +115,7 @@ var point = {
 };
 ```
 
-Did you come up with something like?
+Вы придумали что-то вроде этого?
 
 ```js
 function outer() {
@@ -132,9 +131,9 @@ function outer() {
 var point = outer();
 ```
 
-**Note:** The `inner()` function creates and returns a new array (aka, an object!) each time it's called. That's because JS doesn't afford us any capability to `return` multiple values without encapsulating them in an object. That's not technically a violation of our object-as-closure task, because it's just an implementation detail of exposing/transporting values; the state tracking itself is still object-free. With ES6+ array destructuring, we can declaratively ignore this temporary intermediate array on the other side: `var [x,y,z] = point()`. From a developer ergonomics perspective, the values are stored individually and tracked via closure instead of objects.
+**Примечание:** Функция `inner()` создаёт и возвращает новый массив (он же объект!) при каждом вызове. Это потому, что JS не даёт нам возможности `return` нескольких значений без инкапсуляции их в объект. Технически это не является нарушением нашей задачи «объект как замыкание», потому что это всего лишь деталь реализации для передачи значений; само отслеживание состояния по-прежнему обходится без объектов. С деструктуризацией массивов из ES6+ мы можем декларативно проигнорировать этот временный промежуточный массив на другом конце: `var [x,y,z] = point()`. С точки зрения удобства разработчика значения хранятся по отдельности и отслеживаются через замыкание, а не объекты.
 
-What if we have nested objects?
+Что, если у нас есть вложенные объекты?
 
 ```js
 var person = {
@@ -147,7 +146,7 @@ var person = {
 };
 ```
 
-We could represent that same kind of state with nested closures:
+Мы можем представить то же самое состояние с помощью вложенных замыканий:
 
 ```js
 function outer() {
@@ -170,7 +169,7 @@ function outer() {
 var person = outer();
 ```
 
-Let's practice going the other direction, from closure to object:
+Теперь потренируемся в обратном направлении — от замыкания к объекту:
 
 ```js
 function point(x1,y1) {
@@ -187,7 +186,7 @@ var pointDistance = point( 1, 1 );
 pointDistance( 4, 5 );      // 5
 ```
 
-`distFromPoint(..)` is closed over `x1` and `y1`, but we could instead explicitly pass those values as an object:
+`distFromPoint(..)` замыкается на `x1` и `y1`, но вместо этого мы могли бы явно передать эти значения в виде объекта:
 
 ```js
 function pointDistance(point,x2,y2) {
@@ -205,13 +204,13 @@ pointDistance(
 // 5
 ```
 
-The `point` object state explicitly passed in replaces the closure that implicitly held that state.
+Состояние объекта `point`, передаваемое явно, заменяет замыкание, которое неявно хранило это состояние.
 
-### Behavior, Too!
+### И поведение тоже!
 
-It's not just that objects and closures represent ways to express collections of state, but also that they can include behavior via functions/methods. Bundling data with its behavior has a fancy name: encapsulation.
+Объекты и замыкания представляют не только способы выражения коллекций состояния, но и могут включать поведение через функции/методы. Объединение данных с их поведением имеет красивое название: инкапсуляция.
 
-Consider:
+Рассмотрим:
 
 ```js
 function person(name,age) {
@@ -228,9 +227,9 @@ var birthdayBoy = person( "Kyle", 36 );
 birthdayBoy();          // Happy 37th Birthday, Kyle!
 ```
 
-The inner function `happyBirthday()` has closure over `name` and `age` so that the functionality therein is kept with the state.
+Внутренняя функция `happyBirthday()` замыкается на `name` и `age`, благодаря чему функциональность остаётся связанной с состоянием.
 
-We can achieve that same capability with a `this` binding to an object:
+Того же результата можно добиться с помощью привязки `this` к объекту:
 
 ```js
 var birthdayBoy = {
@@ -248,11 +247,11 @@ birthdayBoy.happyBirthday();
 // Happy 37th Birthday, Kyle!
 ```
 
-We're still expressing the encapsulation of state data with the `happyBirthday()` function, but with an object instead of a closure. And we don't have to explicitly pass in an object to a function (as with earlier examples); JavaScript's `this` binding easily creates an implicit binding.
+Мы по-прежнему выражаем инкапсуляцию данных состояния с помощью функции `happyBirthday()`, но теперь через объект, а не замыкание. И нам не нужно явно передавать объект в функцию (как в предыдущих примерах): привязка `this` в JavaScript легко создаёт неявное связывание.
 
-Another way to analyze this relationship: a closure associates a single function with a set of state, whereas an object holding the same state can have any number of functions to operate on that state.
+Ещё один способ проанализировать эти отношения: замыкание связывает одну функцию с набором состояния, тогда как объект, хранящий то же состояние, может иметь любое количество функций для работы с этим состоянием.
 
-As a matter of fact, you could even expose multiple methods with a single closure as the interface. Consider a traditional object with two methods:
+Более того, с помощью единственного замыкания в качестве интерфейса можно даже открыть доступ к нескольким методам. Рассмотрим традиционный объект с двумя методами:
 
 ```js
 var person = {
@@ -270,7 +269,7 @@ person.first() + " " + person.last();
 // Kyle Simpson
 ```
 
-Just using closure without objects, we could represent this program as:
+Используя только замыкания без объектов, мы можем представить эту программу так:
 
 ```js
 function createPerson(firstName,lastName) {
@@ -304,13 +303,13 @@ person( "first" ) + " " + person( "last" );
 // Kyle Simpson
 ```
 
-While these programs look and feel a bit different ergonomically, they're actually just different implementation variations of the same program behavior.
+Хотя эти программы выглядят и ощущаются несколько по-разному с точки зрения эргономики, на самом деле это лишь разные варианты реализации одного и того же поведения программы.
 
-### (Im)mutability
+### (Не)изменяемость
 
-Many people will initially think that closures and objects behave differently with respect to mutability; closures protect from external mutation while objects do not. But, it turns out, both forms have identical mutation behavior.
+Многие поначалу думают, что замыкания и объекты ведут себя по-разному в отношении изменяемости: замыкания защищают от внешней мутации, а объекты — нет. Однако на самом деле обе формы имеют одинаковое поведение в отношении мутации.
 
-That's because what we care about, as discussed in [Chapter 6](ch6.md), is **value** mutability, and this is a characteristic of the value itself, regardless of where or how it's assigned:
+Это потому, что нас интересует, как обсуждалось в [Главе 6](ch6.md), **изменяемость значения**, а это характеристика самого значения, вне зависимости от того, где и как оно присвоено:
 
 ```js
 function outer() {
@@ -328,9 +327,9 @@ var xyPublic = {
 };
 ```
 
-The value stored in the `x` lexical variable inside `outer()` is immutable -- remember, primitives like `2` are by definition immutable. But the value referenced by `y`, an array, is definitely mutable. The exact same goes for the `x` and `y` properties on `xyPublic`.
+Значение, хранящееся в лексической переменной `x` внутри `outer()`, неизменяемо — помните, примитивы вроде `2` по определению неизменяемы. Но значение, на которое ссылается `y` (массив), определённо изменяемо. То же самое справедливо для свойств `x` и `y` объекта `xyPublic`.
 
-We can reinforce the point that objects and closures have no bearing on mutability by pointing out that `y` is itself an array, and thus we need to break this example down further:
+Мы можем подтвердить тезис о том, что объекты и замыкания не влияют на изменяемость, заметив, что `y` сам по себе является массивом, поэтому нам нужно разобрать этот пример глубже:
 
 ```js
 function outer() {
@@ -358,39 +357,39 @@ var xyPublic = {
 };
 ```
 
-If you think about it as "turtles (aka, objects) all the way down", at the lowest level, all state data is primitives, and all primitives are value-immutable.
+Если представить это как «черепах до самого дна» (то есть объекты внутри объектов), то на самом нижнем уровне все данные состояния являются примитивами, а все примитивы неизменяемы по значению.
 
-Whether you represent this state with nested objects, or with nested closures, the values being held are all immutable.
+Независимо от того, представляете ли вы это состояние через вложенные объекты или через вложенные замыкания, хранимые значения всегда неизменяемы.
 
-### Isomorphic
+### Изоморфизм
 
-The term "isomorphic" gets thrown around a lot in JavaScript these days, and it's usually used to refer to code that can be used/shared in both the server and the browser. I wrote a blog post a while back that calls bogus on that usage of this word "isomorphic", which actually has an explicit and important meaning that's being clouded.
+Термин «изоморфизм» в последнее время часто звучит в мире JavaScript, обычно применительно к коду, который может быть использован/разделён как на сервере, так и в браузере. Когда-то я написал пост в блоге, в котором указывал на некорректность такого употребления слова «изоморфизм», у которого есть вполне чёткое и важное значение, которое при этом размывается.
 
-Here's some selections from a part of that post:
+Вот несколько выдержек из того поста:
 
-> What does isomorphic mean? Well, we could talk about it in mathematical terms, or sociology, or biology. The general notion of isomorphism is that you have two things which are similar in structure but not the same.
+> Что означает «изоморфный»? Можно говорить об этом в математических терминах, социологии или биологии. Общее представление об изоморфизме таково: есть две вещи, схожие по структуре, но не идентичные.
 >
-> In all those usages, isomorphism is differentiated from equality in this way: two values are equal if they’re exactly identical in all ways, but they are isomorphic if they are represented differently but still have a 1-to-1, bi-directional mapping relationship.
+> Во всех этих употреблениях изоморфизм отличается от равенства следующим образом: два значения равны, если они абсолютно идентичны во всех отношениях, но они изоморфны, если представлены по-разному, однако имеют взаимно однозначное, двунаправленное отображение между собой.
 >
-> In other words, two things A and B would be isomorphic if you could map (convert) from A to B and then go back to A with the inverse mapping.
+> Иными словами, две вещи A и B были бы изоморфны, если бы вы могли отобразить (преобразовать) A в B, а затем вернуться к A с помощью обратного отображения.
 
-Recall in [Chapter 2, "Brief Math Review"](ch2.md/#brief-math-review), we discussed the mathematical definition of a function as being a mapping between inputs and outputs. We pointed out this is technically called a morphism. An isomorphism is a special case of bijective (aka, 2-way) morphism that requires not only that the mapping must be able to go in either direction, but also that the behavior is identical in either form.
+Вспомним [Главу 2, «Краткое введение в математику»](ch2.md/#brief-math-review), где мы обсуждали математическое определение функции как отображения между входными и выходными данными. Мы отметили, что технически это называется морфизмом. Изоморфизм — это частный случай биективного (то есть двустороннего) морфизма, который требует не только того, чтобы отображение работало в обоих направлениях, но и того, чтобы поведение было идентичным в обеих формах.
 
-But instead of thinking about numbers, let's relate isomorphism to code. Again quoting my blog post:
+Но вместо того чтобы думать о числах, давайте соотнесём изоморфизм с кодом. Снова цитирую из своего поста:
 
-> [W]hat would isomorphic JS be if there were such a thing? Well, it could be that you have one set of JS code that is converted to another set of JS code, and that (importantly) you could convert from the latter back to the former if you wanted.
+> [Ч]то было бы изоморфным JS, если бы таковой существовал? Ну, это могло бы означать, что у вас есть один набор кода на JS, который преобразуется в другой набор кода на JS, и что (что важно) вы могли бы при желании преобразовать последний обратно в первый.
 
-As we asserted earlier with our examples of closures-as-objects and objects-as-closures, these representative alternations go either way. In this respect, they are isomorphisms to each other.
+Как мы утверждали ранее на наших примерах замыканий-как-объектов и объектов-как-замыканий, эти представления взаимозаменяемы. В этом отношении они являются изоморфизмами по отношению друг к другу.
 
-Put simply, closures and objects are isomorphic representations of state (and its associated functionality).
+Говоря просто, замыкания и объекты — это изоморфные представления состояния (и связанной с ним функциональности).
 
-The next time you hear someone say "X is isomorphic to Y", what they mean is, "X and Y can be converted from either one to the other in either direction, and not lose information."
+В следующий раз, когда вы услышите «X изоморфно Y», это будет означать: «X и Y можно преобразовать из одного в другое в любом направлении без потери информации».
 
-### Under the Hood
+### Под капотом
 
-So, we can think of objects as an isomorphic representation of closures from the perspective of code we could write. But we can also observe that a closure system could actually be implemented -- and likely is -- with objects!
+Итак, мы можем рассматривать объекты как изоморфное представление замыканий с точки зрения написанного нами кода. Но мы также можем заметить, что сама система замыканий — вероятно — реализована с помощью объектов!
 
-Think about it this way: in the following code, how is JS keeping track of the `x` variable for `inner()` to keep referencing, well after `outer()` has already run?
+Подумайте об этом так: в следующем коде как JS отслеживает переменную `x`, к которой продолжает обращаться `inner()`, — уже после того, как `outer()` завершил выполнение?
 
 ```js
 function outer() {
@@ -402,7 +401,7 @@ function outer() {
 }
 ```
 
-We could imagine that the scope -- the set of all variables defined -- of `outer()` is implemented as an object with properties. So, conceptually, somewhere in memory, there's something like:
+Можно представить, что область видимости `outer()` — набор всех объявленных переменных — реализована как объект со свойствами. Концептуально где-то в памяти существует нечто вроде:
 
 ```js
 scopeOfOuter = {
@@ -410,46 +409,46 @@ scopeOfOuter = {
 };
 ```
 
-And then for the `inner()` function, when created, it gets an (empty) scope object called `scopeOfInner`, which is linked via its `[[Prototype]]` to the `scopeOfOuter` object, sorta like this:
+А для функции `inner()` при её создании генерируется (пустой) объект области видимости `scopeOfInner`, который через свой `[[Prototype]]` связан с объектом `scopeOfOuter`, примерно так:
 
 ```js
 scopeOfInner = {};
 Object.setPrototypeOf( scopeOfInner, scopeOfOuter );
 ```
 
-Then, inside `inner()`, when it makes reference to the lexical variable `x`, it's actually more like:
+Тогда внутри `inner()`, когда она обращается к лексической переменной `x`, это выглядит примерно так:
 
 ```js
 return scopeOfInner.x;
 ```
 
-`scopeOfInner` doesn't have an `x` property, but it's `[[Prototype]]`-linked to `scopeOfOuter`, which does have an `x` property. Accessing `scopeOfOuter.x` via prototype delegation results in the `1` value being returned.
+У `scopeOfInner` нет свойства `x`, но он связан через `[[Prototype]]` с `scopeOfOuter`, у которого это свойство есть. Обращение к `scopeOfOuter.x` через делегирование прототипа возвращает значение `1`.
 
-In this way, we can sorta see why the scope of `outer()` is preserved (via closure) even after it finishes: because the `scopeOfInner` object is linked to the `scopeOfOuter` object, thereby keeping that object and its properties alive and well.
+Таким образом, мы можем понять, почему область видимости `outer()` сохраняется (через замыкание) даже после её завершения: потому что объект `scopeOfInner` связан с объектом `scopeOfOuter`, тем самым удерживая этот объект и его свойства в памяти.
 
-Now, this is all conceptual. I'm not literally saying the JS engine uses objects and prototypes. But it's entirely plausible that it *could* work similarly.
+Всё это, конечно, концептуально. Я не утверждаю буквально, что движок JS использует объекты и прототипы именно так. Но вполне правдоподобно, что он *мог бы* работать похожим образом.
 
-Many languages do in fact implement closures via objects. And other languages implement objects in terms of closures. But we'll let the reader use their imagination on how that would work.
+Многие языки действительно реализуют замыкания через объекты. А другие реализуют объекты через замыкания. Но предоставим читателю пофантазировать на тему того, как это работает.
 
-## Two Roads Diverged in a Wood...
+## В лесу разошлись дороги...
 
-So closures and objects are equivalent, right? Not quite. I bet they're more similar than you thought before you started this chapter, but they still have important differences.
+Итак, замыкания и объекты эквивалентны, да? Не совсем. Держу пари, они более похожи, чем вы думали до начала этой главы, но у них всё же есть важные различия.
 
-These differences should not be viewed as weaknesses or arguments against usage; that's the wrong perspective. They should be viewed as features and advantages that make one or the other more suitable (and readable!) for a given task.
+Эти различия не следует воспринимать как недостатки или аргументы против использования того или иного; это неверная перспектива. Их следует рассматривать как особенности и преимущества, которые делают тот или иной вариант более подходящим (и читаемым!) для конкретной задачи.
 
-### Structural Mutability
+### Структурная изменяемость
 
-Conceptually, the structure of a closure is not mutable.
+Концептуально структура замыкания неизменяема.
 
-In other words, you can never add to or remove state from a closure. Closure is a characteristic of where variables are declared (fixed at author/compile time), and is not sensitive to any runtime conditions -- assuming you use strict mode and/or avoid using cheats like `eval(..)`, of course!
+Иными словами, вы никогда не можете добавить или удалить состояние из замыкания. Замыкание — это характеристика того, где объявляются переменные (фиксируется на этапе написания/компиляции кода), и не зависит ни от каких условий времени выполнения — при условии, конечно, что вы используете строгий режим и/или избегаете таких уловок, как `eval(..)`.
 
-**Note:** The JS engine could technically cull a closure to weed out any variables in its scope that are no longer going to be used, but this is an advanced optimization that's transparent to the developer. Whether the engine actually does these kinds of optimizations, I think it's safest for the developer to assume that closure is per-scope rather than per-variable. If you don't want it to stay around, don't close over it!
+**Примечание:** Движок JS технически мог бы «подрезать» замыкание, удалив переменные из его области видимости, которые больше не будут использоваться, но это продвинутая оптимизация, прозрачная для разработчика. Я думаю, что разработчику безопаснее всего считать, что замыкание охватывает всю область видимости, а не отдельные переменные. Если вы не хотите, чтобы что-то оставалось в памяти — не замыкайтесь на этом!
 
-However, objects by default are quite mutable. You can freely add or remove (`delete`) properties/indices from an object, as long as that object hasn't been frozen (`Object.freeze(..)`).
+Объекты же по умолчанию весьма изменяемы. Вы можете свободно добавлять или удалять (`delete`) свойства/индексы объекта, если только он не был заморожен (`Object.freeze(..)`).
 
-It may be an advantage of the code to be able to track more (or less!) state depending on the runtime conditions in the program.
+Способность отслеживать больше (или меньше!) состояния в зависимости от условий времени выполнения программы может быть преимуществом.
 
-For example, let's imagine tracking the keypress events in a game. Almost certainly, you'll think about using an array to do this:
+Например, представьте, что вы отслеживаете события нажатия клавиш в игре. Скорее всего, вы сразу подумаете об использовании массива:
 
 ```js
 function trackEvent(evt,keypresses = []) {
@@ -461,11 +460,11 @@ var keypresses = trackEvent( newEvent1 );
 keypresses = trackEvent( newEvent2, keypresses );
 ```
 
-**Note:** Did you spot why I didn't `push(..)` directly to `keypresses`? Because in FP, we typically want to treat arrays as immutable data structures that can be re-created and added to, but not directly changed. We trade out the evil of side-effects for an explicit reassignment (more on that later).
+**Примечание:** Заметили, почему я не использовал `push(..)` напрямую в `keypresses`? В ФП мы обычно хотим обращаться с массивами как с неизменяемыми структурами данных, которые можно пересоздавать и дополнять, но не изменять напрямую. Мы меняем зло побочных эффектов на явное переприсваивание (подробнее об этом позже).
 
-Though we're not changing the structure of the array, we could if we wanted to. More on this in a moment.
+Хотя мы не меняем структуру массива, мы могли бы это сделать. Подробнее об этом чуть позже.
 
-But an array is not the only way to track this growing "list" of `evt` objects. We could use closure:
+Но массив — не единственный способ отслеживать растущий «список» объектов `evt`. Можно воспользоваться замыканием:
 
 ```js
 function trackEvent(evt,keypresses = () => []) {
@@ -479,21 +478,21 @@ var keypresses = trackEvent( newEvent1 );
 keypresses = trackEvent( newEvent2, keypresses );
 ```
 
-Do you spot what's happening here?
+Видите, что здесь происходит?
 
-Each time we add a new event to the "list", we create a new closure wrapped around the existing `keypresses()` function (closure), which captures the current `evt`. When we call the `keypresses()` function, it will successively call all the nested functions, building up an intermediate array of all the individually closed-over `evt` objects. Again, closure is the mechanism that's tracking all the state; the array you see is only an implementation detail of needing a way to return multiple values from a function.
+Каждый раз, когда мы добавляем новое событие в «список», мы создаём новое замыкание, обёрнутое вокруг существующей функции `keypresses()` (замыкания), которая захватывает текущий `evt`. Когда мы вызываем функцию `keypresses()`, она последовательно вызывает все вложенные функции, формируя промежуточный массив из всех по отдельности захваченных объектов `evt`. Замыкание — это механизм, который отслеживает всё состояние; видимый вами массив — лишь деталь реализации, необходимая для возврата нескольких значений из функции.
 
-So which one is better suited for our task? No surprise here, the array approach is probably a lot more appropriate. The structural immutability of a closure means our only option is to wrap more closure around it. Objects are by default extensible, so we can just grow the array as needed.
+Так какой из подходов лучше подходит для нашей задачи? Не удивительно, что подход с массивом, вероятно, гораздо уместнее. Структурная неизменяемость замыкания означает, что наш единственный вариант — оборачивать его в новые замыкания. Объекты же по умолчанию расширяемы, поэтому мы можем просто наращивать массив по мере необходимости.
 
-By the way, even though I'm presenting this structural (im)mutability as a clear difference between closure and object, the way we're using the object as an immutable value is actually more similar than not.
+Кстати, хотя я представляю структурную (не)изменяемость как явное различие между замыканием и объектом, то, как мы используем объект в качестве неизменяемого значения, на самом деле больше похоже на замыкание, чем отличается от него.
 
-Creating a new array for each addition to the array is treating the array as structurally immutable, which is conceptually symmetrical to closure being structurally immutable by its very design.
+Создание нового массива при каждом добавлении элемента — это трактовка массива как структурно неизменяемого, что концептуально симметрично структурной неизменяемости замыкания по его природе.
 
-### Privacy
+### Приватность
 
-Probably one of the first differences you think of when analyzing closure vs. object is that closure offers "privacy" of state through nested lexical scoping, whereas objects expose everything as public properties. Such privacy has a fancy name: information hiding.
+Пожалуй, первое различие, которое приходит на ум при сравнении замыкания и объекта, — это то, что замыкание обеспечивает «приватность» состояния через вложенную лексическую область видимости, тогда как объекты открывают всё как публичные свойства. Такая приватность имеет красивое название: сокрытие информации.
 
-Consider lexical closure hiding:
+Рассмотрим лексическое сокрытие через замыкание:
 
 ```js
 function outer() {
@@ -509,7 +508,7 @@ var xHidden = outer();
 xHidden();          // 1
 ```
 
-Now the same state in public:
+Теперь то же состояние в открытом виде:
 
 ```js
 var xPublic = {
@@ -519,30 +518,30 @@ var xPublic = {
 xPublic.x;          // 1
 ```
 
-There are some obvious differences around general software engineering principles -- consider abstraction, the module pattern with public and private APIs, etc. -- but let's try to constrain our discussion to the perspective of FP; this is, after all, a book about functional programming!
+Существуют очевидные различия с точки зрения общих принципов программной инженерии — рассмотрим абстракцию, паттерн «модуль» с публичным и приватным API и т.д. — но давайте постараемся ограничить наше обсуждение перспективой ФП; это всё-таки книга о функциональном программировании!
 
-#### Visibility
+#### Видимость
 
-It may seem that the ability to hide information is a desired characteristic of state tracking, but I believe the FPer might argue the opposite.
+Может показаться, что возможность скрывать информацию — желательная характеристика отслеживания состояния, однако я полагаю, что сторонник ФП мог бы возразить.
 
-One of the advantages of managing state as public properties on an object is that it's easier to enumerate (and iterate!) all the data in your state. Imagine you wanted to process each keypress event (from the earlier example) to save it to a database, using a utility like:
+Одно из преимуществ управления состоянием как публичными свойствами объекта — то, что проще перечислить (и перебрать!) все данные состояния. Представьте, что вы хотите обработать каждое событие нажатия клавиши (из предыдущего примера), чтобы сохранить его в базе данных с помощью такой утилиты:
 
 ```js
 function recordKeypress(keypressEvt) {
-    // database utility
+    // утилита для работы с БД
     DB.store( "keypress-events", keypressEvt );
 }
 ```
 
-If you already have an array -- just an object with public numerically named properties -- this is very straightforward using a built-in JS array utility `forEach(..)`:
+Если у вас уже есть массив — просто объект с публичными числовыми свойствами — это очень просто делается с помощью встроенной утилиты `forEach(..)`:
 
 ```js
 keypresses.forEach( recordKeypress );
 ```
 
-But if the list of keypresses is hidden inside closure, you'll have to expose a utility on the public API of the closure with privileged access to the hidden data.
+Но если список нажатий клавиш скрыт внутри замыкания, придётся открыть утилиту в публичном API замыкания с привилегированным доступом к скрытым данным.
 
-For example, we can give our closure-`keypresses` example its own `forEach`, like built-in arrays have:
+Например, можно добавить нашему замыканию-`keypresses` собственный метод `forEach`, как у встроенных массивов:
 
 ```js
 function trackEvent(
@@ -570,41 +569,41 @@ keypresses.list();      // [ evt, evt, .. ]
 keypresses.forEach( recordKeypress );
 ```
 
-The visibility of an object's state data makes using it more straightforward, whereas closure obscures the state making us work harder to process it.
+Видимость данных состояния объекта упрощает работу с ним, тогда как замыкание скрывает состояние, вынуждая нас прилагать больше усилий для его обработки.
 
-#### Change Control
+#### Контроль изменений
 
-If the lexical variable `x` is hidden inside a closure, the only code that has the freedom to reassign it is also inside that closure; it's impossible to modify `x` from the outside.
+Если лексическая переменная `x` скрыта внутри замыкания, единственный код, имеющий право её переприсвоить, также находится внутри этого замыкания; изменить `x` снаружи невозможно.
 
-As we saw in [Chapter 6](ch6.md), that fact alone improves the readability of code by reducing the surface area that the reader must consider to predict the behavior of any given variable.
+Как мы видели в [Главе 6](ch6.md), этот факт сам по себе повышает читаемость кода, сокращая поверхность, которую читатель должен принимать во внимание для предсказания поведения любой данной переменной.
 
-The local proximity of lexical reassignment is a big reason why I don't find `const` as a feature that helpful. Scopes (and thus closures) should in general be pretty small, and that means there will only be a few lines of code that can affect reassignment. In `outer()` above, we can quickly inspect to see that no line of code reassigns `x`, so for all intents and purposes it's acting as a constant.
+Локальная близость лексического переприсваивания — главная причина, по которой я не нахожу `const` особо полезным инструментом. Области видимости (и, следовательно, замыкания) в целом должны быть достаточно небольшими, а значит, переприсваивание может произойти лишь на нескольких строках кода. В `outer()` из примера выше мы можем быстро убедиться, что ни одна строка не переприсваивает `x`, поэтому для всех практических целей она ведёт себя как константа.
 
-This kind of guarantee is a powerful contributor to our confidence in the purity of a function, for example.
+Такой вид гарантий существенно способствует нашей уверенности в чистоте функции, например.
 
-On the other hand, `xPublic.x` is a public property, and any part of the program that gets a reference to `xPublic` has the ability, by default, to reassign `xPublic.x` to some other value. That's a lot more lines of code to consider!
+С другой стороны, `xPublic.x` — это публичное свойство, и любая часть программы, получившая ссылку на `xPublic`, по умолчанию имеет возможность переприсвоить `xPublic.x` другому значению. Это значит, что нужно учитывать гораздо больше строк кода!
 
-That's why in [Chapter 6, we looked at `Object.freeze(..)`](ch6.md/#its-freezing-in-here) as a quick-n-dirty means of making all of an object's properties read-only (`writable: false`), so that they can't be reassigned unpredictably.
+Вот почему в [Главе 6 мы рассматривали `Object.freeze(..)`](ch6.md/#its-freezing-in-here) как быстрый и несложный способ сделать все свойства объекта доступными только для чтения (`writable: false`), чтобы их нельзя было непредсказуемо переприсвоить.
 
-Unfortunately, `Object.freeze(..)` is both all-or-nothing and irreversible.
+К сожалению, `Object.freeze(..)` работает по принципу «всё или ничего» и является необратимым.
 
-With closure, you have some code with the privilege to change, and the rest of the program is restricted. When you freeze an object, no part of the code will be able to reassign. Moreover, once an object is frozen, it can't be thawed out, so the properties will remain read-only for the duration of the program.
+С замыканием у вас есть код, имеющий привилегию на изменение, а остальная часть программы ограничена. Когда вы замораживаете объект, ни одна часть кода не сможет выполнить переприсваивание. Более того, однажды замороженный объект нельзя разморозить, поэтому его свойства останутся доступными только для чтения на всё время работы программы.
 
-In places where I want to allow reassignment but restrict its surface area, closures are a more convenient and flexible form than objects. In places where I want no reassignment, a frozen object is a lot more convenient than repeating `const` declarations all over my function.
+В случаях, когда я хочу разрешить переприсваивание, но ограничить его область, замыкания являются более удобной и гибкой формой, чем объекты. В случаях, когда переприсваивание не нужно вовсе, замороженный объект куда удобнее, чем повсеместное повторение объявлений `const`.
 
-Many FPers take a hard-line stance on reassignment: it shouldn't be used. They will tend to use `const` to make all closure variables read-only, and they'll use `Object.freeze(..)` or full immutable data structures to prevent property reassignment. Moreover, they'll try to reduce the amount of explicitly declared/tracked variables and properties wherever possible, preferring value transfer -- function chains, `return` value passed as argument, etc. -- instead of intermediate value storage.
+Многие сторонники ФП занимают жёсткую позицию в отношении переприсваивания: его не должно быть. Они склонны использовать `const` для всех переменных замыкания, чтобы сделать их доступными только для чтения, и применяют `Object.freeze(..)` или полноценные неизменяемые структуры данных для предотвращения переприсваивания свойств. Кроме того, они стараются по возможности сократить количество явно объявленных/отслеживаемых переменных и свойств, предпочитая передачу значений — цепочки функций, передача возвращаемого значения в качестве аргумента и т.д. — промежуточному хранению значений.
 
-This book is about "Functional-Light" programming in JavaScript, and this is one of those cases where I diverge from the core FP crowd.
+Эта книга о «Functional-Light»-программировании на JavaScript, и это один из тех случаев, когда я расхожусь с ортодоксальным ФП-сообществом.
 
-I think variable reassignment can be quite useful, and when used appropriately, quite readable in its explicitness. It's certainly been my experience that debugging is a lot easier when you can insert a `debugger` or breakpoint, or track a watch expression.
+Я думаю, что переприсваивание переменных может быть весьма полезным, и при правильном использовании вполне читаемым в своей явности. По крайней мере, мой опыт говорит, что отладка значительно облегчается, когда можно вставить `debugger` или точку останова, либо отслеживать выражение в watch-листе.
 
-### Cloning State
+### Клонирование состояния
 
-As we learned in [Chapter 6](ch6.md), one of the best ways we prevent side effects from eroding the predictability of our code is to make sure we treat all state values as immutable, regardless of whether they are actually immutable (frozen) or not.
+Как мы узнали из [Главы 6](ch6.md), один из лучших способов не дать побочным эффектам подорвать предсказуемость кода — убедиться, что мы обращаемся со всеми значениями состояния как с неизменяемыми, независимо от того, являются ли они таковыми фактически (заморожены) или нет.
 
-If you're not using a purpose-built library to provide sophisticated immutable data structures, the simplest approach will suffice: duplicate your objects/arrays each time before making a change.
+Если вы не используете специализированную библиотеку для работы с продвинутыми неизменяемыми структурами данных, вполне подойдёт самый простой подход: дублируйте объекты/массивы перед каждым изменением.
 
-Arrays are easy to clone shallowly -- just use `...` array spread:
+Массивы легко клонировать поверхностно — достаточно использовать spread-оператор `...`:
 
 ```js
 var a = [ 1, 2, 3 ];
@@ -616,7 +615,7 @@ a;          // [1,2,3]
 b;          // [1,2,3,4]
 ```
 
-Objects can be shallow-cloned relatively easily too:
+Объекты тоже можно довольно легко клонировать поверхностно:
 
 ```js
 var o = {
@@ -624,32 +623,32 @@ var o = {
     y: 2
 };
 
-// in ES2018+, using object spread:
+// в ES2018+, используя spread для объектов:
 var p = { ...o };
 p.y = 3;
 
-// in ES6/ES2015+:
+// в ES6/ES2015+:
 var p = Object.assign( {}, o );
 p.y = 3;
 ```
 
-If the values in an object/array are themselves non-primitives (objects/arrays), to get deep cloning you'll have to walk each layer manually to clone each nested object. Otherwise, you'll have copies of shared references to those sub-objects, and that's likely to create havoc in your program logic.
+Если значения внутри объекта/массива сами являются не-примитивами (объектами/массивами), для глубокого клонирования придётся вручную обходить каждый уровень и клонировать каждый вложенный объект. Иначе у вас окажутся копии разделяемых ссылок на эти дочерние объекты, что, скорее всего, создаст хаос в логике программы.
 
-Did you notice that this cloning is possible only because all these state values are visible and can thus be easily copied? What about a set of state wrapped up in a closure; how would you clone that state?
+Заметили, что такое клонирование возможно лишь потому, что все эти значения состояния видны и, следовательно, могут быть легко скопированы? А что насчёт набора состояния, обёрнутого в замыкание — как бы вы клонировали это состояние?
 
-That's much more tedious. Essentially, you'd have to do something similar to our custom `forEach` API method earlier: provide a function inside each layer of the closure with the privilege to extract/copy the hidden values, creating new equivalent closures along the way.
+Это значительно сложнее. По сути, пришлось бы сделать нечто похожее на наш пользовательский метод `forEach` из API выше: предоставить функцию внутри каждого слоя замыкания с привилегией извлечь/скопировать скрытые значения, создавая по ходу новые эквивалентные замыкания.
 
-Even though that's theoretically possible -- another exercise for the reader! -- it's far less practical to implement than you're likely to justify for any real program.
+Хотя теоретически это возможно — ещё одно упражнение для читателя! — на практике реализовать это куда сложнее, чем можно оправдать для реальной программы.
 
-Objects have a clear advantage when it comes to representing state that we need to be able to clone.
+Объекты имеют явное преимущество, когда речь идёт о представлении состояния, которое нам нужно клонировать.
 
-### Performance
+### Производительность
 
-One reason objects may be favored over closures, from an implementation perspective, is that in JavaScript objects are often lighter-weight in terms of memory and even computation.
+Одна из причин, по которой объекты могут быть предпочтительнее замыканий с точки зрения реализации, — то, что в JavaScript объекты зачастую легче по памяти и вычислительным затратам.
 
-But be careful with that as a general assertion: there are plenty of things you can do with objects that will erase any performance gains you may get from ignoring closure and moving to object-based state tracking.
+Но будьте осторожны, принимая это за общее утверждение: есть множество вещей, которые вы можете делать с объектами и которые сведут на нет любой прирост производительности от отказа от замыканий в пользу отслеживания состояния через объекты.
 
-Let's consider a scenario with both implementations. First, the closure-style implementation:
+Рассмотрим сценарий с обеими реализациями. Сначала — реализация через замыкание:
 
 ```js
 function StudentRecord(name,major,gpa) {
@@ -660,15 +659,15 @@ function StudentRecord(name,major,gpa) {
 
 var student = StudentRecord( "Kyle Simpson", "CS", 4 );
 
-// later
+// позже
 
 student();
 // Kyle Simpson, Major: CS, GPA: 4.0
 ```
 
-The inner function `printStudent()` closes over three variables: `name`, `major`, and `gpa`. It maintains this state wherever we transfer a reference to that function -- we call it `student()` in this example.
+Внутренняя функция `printStudent()` замыкается на трёх переменных: `name`, `major` и `gpa`. Она сохраняет это состояние везде, куда мы передаём ссылку на эту функцию — в нашем примере мы вызываем её как `student()`.
 
-Now for the object (and `this`) approach:
+Теперь подход через объект (и `this`):
 
 ```js
 function StudentRecord(){
@@ -682,21 +681,21 @@ var student = StudentRecord.bind( {
     gpa: 4
 } );
 
-// later
+// позже
 
 student();
 // Kyle Simpson, Major: CS, GPA: 4.0
 ```
 
-The `student()` function -- technically referred to as a "bound function" -- has a hard-bound `this` reference to the object literal we passed in, such that any later call to `student()` will use that object for its `this`, and thus be able to access its encapsulated state.
+Функция `student()` — технически называемая «привязанной функцией» (bound function) — имеет жёсткую привязку `this` к объектному литералу, переданному нами, так что любой последующий вызов `student()` будет использовать этот объект в качестве `this` и, таким образом, получать доступ к инкапсулированному состоянию.
 
-Both implementations have the same outcome: a function with preserved state. But what about the performance; what differences will there be?
+Обе реализации дают одинаковый результат: функцию с сохранённым состоянием. Но что насчёт производительности; в чём будут различия?
 
-**Note:** Accurately and actionably judging performance of a snippet of JS code is a very dodgy affair. We won't get into all the details here, but I urge you to read *You Don't Know JS: Async & Performance*, specifically Chapter 6, "Benchmarking & Tuning", for more details.
+**Примечание:** Точная и практически применимая оценка производительности фрагмента кода JS — очень непростое дело. Мы не будем вдаваться во все детали здесь, но я настоятельно рекомендую прочитать *You Don't Know JS: Async & Performance*, особенно главу 6, «Benchmarking & Tuning», для получения подробной информации.
 
-If you were writing a library that created a pairing of state with its function -- either the call to `StudentRecord(..)` in the first snippet or the call to `StudentRecord.bind(..)` in the second snippet -- you're likely to care most about how those two perform. Inspecting the code, we can see that the former has to create a new function expression each time. The second one uses `bind(..)`, which is not as obvious in its implications.
+Если вы пишете библиотеку, создающую пару «состояние + функция» — будь то вызов `StudentRecord(..)` в первом фрагменте или вызов `StudentRecord.bind(..)` во втором — вас, скорее всего, больше всего интересует производительность именно этих вызовов. Анализируя код, мы видим, что первый вариант создаёт новое функциональное выражение при каждом вызове. Второй использует `bind(..)`, последствия которого менее очевидны.
 
-One way to think about what `bind(..)` does under the covers is that it creates a closure over a function, like this:
+Один из способов представить, что делает `bind(..)` под капотом, — это создание замыкания над функцией, примерно так:
 
 ```js
 function bind(orinFn,thisObj) {
@@ -708,32 +707,32 @@ function bind(orinFn,thisObj) {
 var student = bind( StudentRecord, { name: "Kyle.." } );
 ```
 
-In this way, it looks like both implementations of our scenario create a closure, so the performance is likely to be about the same.
+В таком свете кажется, что обе реализации создают замыкание, и производительность должна быть примерно одинаковой.
 
-However, the built-in `bind(..)` utility doesn't really have to create a closure to accomplish the task. It simply creates a function and manually sets its internal `this` to the specified object. That's potentially a more efficient operation than if we did the closure ourselves.
+Однако встроенная утилита `bind(..)` на самом деле не обязана создавать замыкание для выполнения этой задачи. Она просто создаёт функцию и вручную устанавливает её внутренний `this` на указанный объект. Это потенциально более эффективная операция, чем если бы мы создавали замыкание самостоятельно.
 
-The kind of performance savings we're talking about here is miniscule on an individual operation. But if your library's critical path is doing this hundreds or thousands of times or more, that savings can add up quickly. Many libraries -- Bluebird being one such example -- have ended up optimizing by removing closures and going with objects, in exactly this means.
+О каком выигрыше в производительности здесь идёт речь? Для отдельной операции — мизерном. Но если критический путь вашей библиотеки выполняет это сотни или тысячи раз (или более), экономия может накапливаться быстро. Многие библиотеки — Bluebird, например — в итоге прибегали к оптимизации путём отказа от замыканий в пользу объектов именно по этой причине.
 
-Outside of the library use-case, the pairing of the state with its function usually only happens relatively few times in the critical path of an application. By contrast, typically the usage of the function+state -- calling `student()` in either snippet -- is more common.
+За пределами сценария «библиотека», связывание состояния с функцией обычно происходит относительно редко на критическом пути приложения. Напротив, использование связки «функция + состояние» — вызов `student()` в любом из фрагментов — как правило, более распространено.
 
-If that's the case for some given situation in your code, you should probably care more about the performance of the latter versus the former.
+Если это так для какой-то конкретной ситуации в вашем коде, то стоит больше думать о производительности второго случая, а не первого.
 
-Bound functions have historically had pretty lousy performance in general, but have recently been much more highly optimized by JS engines. If you benchmarked these variations a couple of years ago, it's entirely possible you'd get different results repeating the same test with the latest engines.
+Привязанные функции исторически показывали довольно низкую производительность в целом, но в последнее время они были значительно оптимизированы движками JS. Если вы проводили бенчмарки для этих вариантов пару лет назад, вполне возможно, что сегодня с новейшими движками вы получили бы другие результаты.
 
-A bound function is now likely to perform at least as good if not better as the equivalent closed-over function. So that's another tick in favor of objects over closures.
+Привязанная функция сейчас, скорее всего, работает не хуже, а то и лучше эквивалентной функции с замыканием. Это ещё один плюс в пользу объектов перед замыканиями.
 
-I just want to reiterate: these performance observations are not absolutes, and the determination of what's best for a given scenario is very complex. Do not just casually apply what you've heard from others or even what you've seen on some other earlier project. Carefully examine whether objects or closures are appropriately efficient for the task.
+Хочу ещё раз подчеркнуть: эти наблюдения о производительности не являются абсолютными, а определение того, что лучше в конкретном сценарии, — очень сложная задача. Не применяйте бездумно то, что вы слышали от других или видели в каком-то другом проекте. Тщательно проверяйте, являются ли объекты или замыкания достаточно эффективными для вашей задачи.
 
-## Summary
+## Резюме
 
-The truth of this chapter cannot be written out. One must read this chapter to find its truth.
+Истину этой главы невозможно изложить в тексте. Её нужно обнаружить, прочитав главу.
 
 ----
 
-Coining some Zen wisdom here was my attempt at being clever. But you deserve a proper summary of this chapter's message.
+Попытка сыграть на дзен-мудрости здесь была моей попыткой проявить остроумие. Но вы заслуживаете нормального резюме послания этой главы.
 
-Objects and closures are isomorphic to each other, which means that they can be used somewhat interchangeably to represent state and behavior in your program.
+Объекты и замыкания изоморфны по отношению друг к другу, то есть их можно в определённой степени использовать взаимозаменяемо для представления состояния и поведения в программе.
 
-Representation as a closure has certain benefits, like granular change control and automatic privacy. Representation as an object has other benefits, like easier cloning of state.
+Представление через замыкание имеет определённые преимущества, например тонкий контроль над изменениями и автоматическую приватность. Представление через объект имеет другие преимущества, например более лёгкое клонирование состояния.
 
-The critically thinking FPer should be able to conceive any segment of state and behavior in the program with either representation, and pick the representation that's most appropriate for the task at hand.
+Критически мыслящий программист в стиле ФП должен уметь представить любой фрагмент состояния и поведения в программе через любое из этих представлений и выбирать то, которое наиболее подходит для конкретной задачи.
