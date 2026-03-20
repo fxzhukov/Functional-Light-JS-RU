@@ -1,72 +1,72 @@
 # Functional-Light JavaScript
-# Chapter 9: List Operations
+# Глава 9: Операции со списками
 
-> *If you can do something awesome, keep doing it repeatedly.*
+> *Если ты умеешь делать что-то классное — делай это снова и снова.*
 
-We've already seen several brief references earlier in the text to some utilities that we now want to take a very close look at, namely `map(..)`, `filter(..)`, and `reduce(..)`. In JavaScript, these utilities are typically used as methods on the array (aka, "list") prototype, so we would naturally refer to them as array or list operations.
+Мы уже несколько раз вскользь упоминали некоторые утилиты, которые теперь хотим рассмотреть подробно: `map(..)`, `filter(..)` и `reduce(..)`. В JavaScript эти утилиты обычно используются как методы прототипа массива (он же «список»), поэтому мы естественным образом называем их операциями над массивами или списками.
 
-Before we talk about the specific array methods, we want to examine conceptually what these operations are used for. It's equally important in this chapter that you understand *why* list operations are important as it is to understand *how* list operations work. Make sure you approach this chapter with that detail in mind.
+Прежде чем говорить о конкретных методах массива, давайте концептуально разберём, для чего эти операции вообще нужны. В этой главе одинаково важно понять *почему* операции со списками важны, и *как* они работают. Держите это в уме на протяжении всей главы.
 
-The vast majority of common illustrations of these operations, both outside of this book and here in this chapter, depict trivial tasks performed on lists of values (like doubling each number in an array); it's a cheap and easy way to get the point across.
+Подавляющее большинство распространённых иллюстраций этих операций — как за пределами этой книги, так и в ней — изображают тривиальные задачи, выполняемые на списках значений (например, удваивание каждого числа в массиве): это дешёвый и простой способ донести мысль.
 
-But don't just gloss over these simple examples and miss the deeper point. Some of the most important FP value in understanding list operations comes from being able to model a sequence of tasks -- a series of statements that wouldn't otherwise *look* like a list -- as a list operation instead of performing them individually.
+Но не скользите поверх этих простых примеров, упуская более глубокую суть. Некоторые из важнейших ФП-преимуществ понимания операций со списками заключаются в умении моделировать последовательность задач — серию операторов, которые иначе *не выглядят* как список — как операцию со списком, вместо того чтобы выполнять их по отдельности.
 
-This isn't just a trick to write more terse code. What we're after is to move from imperative to declarative style, to make the code patterns more readily recognizable and thus more readable.
+Это не просто трюк для написания более лаконичного кода. Мы стремимся перейти от императивного к декларативному стилю, чтобы паттерны кода были легче узнаваемы и, следовательно, более читаемы.
 
-But there's something **even more important to grasp**. With imperative code, each intermediate result in a set of calculations is stored in variable(s) through assignment. The more of these imperative patterns your code relies on, the harder it is to verify that there aren't mistakes -- in the logic, accidental mutation of values, or hidden side causes/effects lurking.
+Но есть кое-что **ещё более важное для понимания**. В императивном коде каждый промежуточный результат набора вычислений хранится в переменных через присваивание. Чем больше таких императивных паттернов в коде, тем сложнее убедиться в отсутствии ошибок — в логике, случайных мутаций значений или скрытых побочных причин/эффектов.
 
-By chaining and/or composing list operations together, the intermediate results are tracked implicitly and largely protected from these hazards.
+Связывая и/или компонуя операции со списками, промежуточные результаты отслеживаются неявно и в значительной мере защищены от этих рисков.
 
-**Note:** More than previous chapters, to keep the many following code snippets as brief as possible, we'll rely heavily on the ES6 `=>` form. However, my [advice on `=>` from Chapter 2](ch2.md/#functions-without-function) still applies for general coding.
+**Примечание:** Больше, чем в предыдущих главах, для краткости многих последующих примеров кода мы будем активно использовать форму `=>` из ES6. Тем не менее мои [советы по `=>` из Главы 2](ch2.md/#functions-without-function) по-прежнему применимы в общем программировании.
 
-## Non-FP List Processing
+## Обработка списков не в стиле ФП
 
-As a quick preamble to our discussion in this chapter, I want to call out a few operations which may seem related to JavaScript arrays and FP list operations, but which aren't. These operations will not be covered here, because they are not consistent with general FP best practices:
+В качестве краткого предисловия к нашему обсуждению в этой главе хочу выделить несколько операций, которые могут казаться связанными с массивами JavaScript и ФП-операциями над списками, но таковыми не являются. Эти операции здесь не рассматриваются, поскольку не согласуются с общими лучшими практиками ФП:
 
 * `forEach(..)`
 * `some(..)`
 * `every(..)`
 
-`forEach(..)` is an iteration helper, but it's designed for each function call to operate with side effects; you can probably guess why that's not an endorsed FP list operation for our discussion!
+`forEach(..)` — вспомогательный инструмент для итерации, но он спроектирован для того, чтобы каждый вызов функции производил побочные эффекты; думаю, вы уже понимаете, почему это не одобряемая ФП-операция над списками!
 
-`some(..)` and `every(..)` do encourage the use of pure functions (specifically, predicate functions like `filter(..)` expects), but they inevitably reduce a list to a `true`/`false` result, essentially like a search or matching. These two utilities don't really fit the mold of how we want to model our code with FP, so we're going to skip covering them here.
+`some(..)` и `every(..)` поощряют использование чистых функций (конкретно, предикатных функций, как ожидает `filter(..)`), но они неизбежно сводят список к результату `true`/`false`, по сути работая как поиск или сопоставление. Эти две утилиты не вписываются в модель, по которой мы хотим строить наш ФП-код, поэтому мы здесь их не рассматриваем.
 
 ## Map
 
-We'll start our exploration of FP list operations with one of the most basic and fundamental: `map(..)`.
+Начнём изучение ФП-операций над списками с одной из самых базовых и фундаментальных: `map(..)`.
 
-A mapping is a transformation from one value to another value. For example, if you start with the number `2` and you multiply it by `3`, you have mapped it to `6`. It's important to note that we're not talking about mapping transformation as implying *in-place* mutation or reassignment; instead, we're looking at how mapping transformation projects a new value from one location to the other.
+Отображение (mapping) — это преобразование одного значения в другое. Например, если у вас есть число `2` и вы умножаете его на `3`, вы отобразили его в `6`. Важно подчеркнуть, что речь не идёт об изменении *на месте* или переприсваивании; мы говорим о том, как преобразующее отображение проецирует новое значение из одного места в другое.
 
-In other words:
+Иными словами:
 
 ```js
 var x = 2, y;
 
-// transformation / projection
+// трансформация / проекция
 y = x * 3;
 
-// mutation / reassignment
+// мутация / переприсваивание
 x = x * 3;
 ```
 
-If we define a function for this multiplying by `3`, that function acts as a mapping (transformer) function:
+Если мы определим функцию умножения на `3`, эта функция будет выступать в роли функции отображения (трансформера):
 
 ```js
 var multipleBy3 = v => v * 3;
 
 var x = 2, y;
 
-// transformation / projection
+// трансформация / проекция
 y = multiplyBy3( x );
 ```
 
-We can naturally extend mapping from a single value transformation to a collection of values. `map(..)` is an operation that transforms all the values of a list as it projects them to a new list:
+Мы можем естественным образом расширить отображение от преобразования единственного значения до коллекции значений. `map(..)` — это операция, которая преобразует все значения списка, проецируя их в новый список:
 
 <p align="center">
     <img src="images/fig9.png" width="50%">
 </p>
 
-To implement `map(..)`:
+Реализация `map(..)`:
 
 ```js
 function map(mapperFn,arr) {
@@ -82,22 +82,22 @@ function map(mapperFn,arr) {
 }
 ```
 
-**Note:** The parameter order `mapperFn, arr` may feel backwards at first, but this convention is much more common in FP libraries because it makes these utilities easier to compose (with currying).
+**Примечание:** Порядок параметров `mapperFn, arr` поначалу может казаться обратным, но такое соглашение значительно более распространено в ФП-библиотеках, поскольку делает эти утилиты проще в компоновке (с каррированием).
 
-The `mapperFn(..)` is naturally passed the list item to map/transform, but also an `idx` and `arr`. We're doing that to keep consistency with the built-in array `map(..)`. These extra pieces of information can be very useful in some cases.
+`mapperFn(..)` естественным образом получает элемент списка для отображения/преобразования, а также `idx` и `arr`. Это делается для согласованности со встроенным `map(..)` массивов. Эти дополнительные данные могут быть весьма полезны в некоторых случаях.
 
-But in other cases, you may want to use a `mapperFn(..)` that only the list item should be passed to, because the extra arguments might change its behavior. In [Chapter 3, "All For One"](ch3.md/#all-for-one), we introduced `unary(..)`, which limits a function to only accept a single argument (no matter how many are passed).
+Но в других случаях вы можете захотеть использовать `mapperFn(..)`, которой должен передаваться только элемент списка, поскольку дополнительные аргументы могут изменить её поведение. В [Главе 3, «Всё ради одного»](ch3.md/#all-for-one) мы познакомились с `unary(..)`, которая ограничивает функцию приёмом только одного аргумента (независимо от того, сколько их передаётся).
 
-Recall [the example from Chapter 3](ch3.md/#user-content-mapunary) about limiting `parseInt(..)` to a single argument to be used safely as a `mapperFn(..)`, which we can also utilize with the standalone `map(..)`:
+Вспомните [пример из Главы 3](ch3.md/#user-content-mapunary) об ограничении `parseInt(..)` единственным аргументом для безопасного использования в качестве `mapperFn(..)`, что можно применять и со стандалон-`map(..)`:
 
 ```js
 map( ["1","2","3"], unary( parseInt ) );
 // [1,2,3]
 ```
 
-**Note:** The JavaScript array prototype operations (`map(..)`, `filter(..)`, and `reduce(..)`) all accept an optional last argument to use for `this` binding of the function. As we discussed in [Chapter 2, "What's This?"](ch2.md/#whats-this), `this`-based coding should generally be avoided wherever possible in terms of being consistent with the best practices of FP. As such, our example implementations in this chapter do not support such a `this`-binding feature.
+**Примечание:** Операции на прототипе массива JavaScript (`map(..)`, `filter(..)` и `reduce(..)`) все принимают необязательный последний аргумент для привязки `this` у функции. Как мы обсуждали в [Главе 2, «Что такое this?»](ch2.md/#whats-this), программирования на основе `this` следует по возможности избегать в соответствии с лучшими практиками ФП. Поэтому наши примерные реализации в этой главе не поддерживают привязку `this`.
 
-Beyond the obvious numeric or string operations you could perform against a list of those respective value types, here are some other examples of mapping operations. We can use `map(..)` to transform a list of functions into a list of their return values:
+Помимо очевидных числовых или строковых операций, которые можно выполнять над списком соответствующих значений, вот ещё несколько примеров операций отображения. Мы можем использовать `map(..)` для преобразования списка функций в список их возвращаемых значений:
 
 ```js
 var one = () => 1;
@@ -108,7 +108,7 @@ var three = () => 3;
 // [1,2,3]
 ```
 
-Or we can first transform a list of functions by composing each of them with another function, and then execute them:
+Или сначала преобразовать список функций, компонуя каждую из них с другой функцией, а затем выполнить их:
 
 ```js
 var increment = v => ++v;
@@ -123,17 +123,17 @@ var double = v => v * 2;
 // [7,5,36]
 ```
 
-Something interesting to observe about `map(..)`: we typically would assume that the list is processed left-to-right, but there's nothing about the concept of `map(..)` that really requires that. Each transformation is supposed to be independent of every other transformation.
+Интересное наблюдение о `map(..)`: обычно мы предполагаем, что список обрабатывается слева направо, но в концепции `map(..)` на самом деле нет ничего, что это требует. Каждое преобразование предполагается независимым от каждого другого.
 
-Mapping in a general sense could even been parallelized in an environment that supports that, which for a large list could drastically improve performance. We don't see JavaScript actually doing that because there's nothing that requires you to pass a pure function as `mapperFn(..)`, even though you **really ought to**. If you were to pass an impure function and JS were to run different calls in different orders, it would quickly cause havoc.
+Отображение в общем смысле может даже быть распараллелено в среде, поддерживающей это, что для большого списка может радикально улучшить производительность. Мы не видим, как JavaScript реально делает это, потому что ничто не обязывает вас передавать чистую функцию в качестве `mapperFn(..)`, хотя вы **очень даже должны**. Если бы вы передали нечистую функцию и JS выполнял бы разные вызовы в разном порядке, это быстро привело бы к хаосу.
 
-Even though theoretically, individual mapping operations are independent, JS has to assume that they're not. That's a bummer.
+Хотя теоретически отдельные операции отображения независимы, JS вынужден предполагать, что это не так. Увы.
 
-### Sync vs. Async
+### Синхронно vs. Асинхронно
 
-The list operations we're discussing in this chapter all operate synchronously on a list of values that are all already present; `map(..)` as conceived here is an eager operation. But another way of thinking about the mapper function is as an event handler which is invoked for each new value encountered in the list.
+Все операции со списками, которые мы обсуждаем в этой главе, работают синхронно над списком значений, которые уже все присутствуют; `map(..)` в данном контексте — жадная операция. Но другой способ думать о функции-маппере — как об обработчике событий, вызываемом для каждого нового значения, встречаемого в списке.
 
-Imagine something fictional like this:
+Представьте что-то вымышленное вроде:
 
 ```js
 var newArr = arr.map();
@@ -141,50 +141,50 @@ var newArr = arr.map();
 arr.addEventListener( "value", multiplyBy3 );
 ```
 
-Now, any time a value is added to `arr`, the `multiplyBy3(..)` event handler -- mapper function -- is called with the value, and its transformation is added to `newArr`.
+Теперь, каждый раз, когда значение добавляется в `arr`, вызывается обработчик события — функция-маппер `multiplyBy3(..)`, и её преобразование добавляется в `newArr`.
 
-What we're hinting at is that arrays, and the array operations we perform on them, are the eager synchronous versions, whereas these same operations can also be modeled on a "lazy list" (aka, stream) that receives its values over time. We'll dive into this topic in [Chapter 10](ch10.md).
+На что мы намекаем: массивы и выполняемые над ними операции — это жадные синхронные версии, тогда как те же операции можно моделировать на «ленивом списке» (aka, потоке), который получает значения со временем. Мы углубимся в эту тему в [Главе 10](ch10.md).
 
-### Mapping vs. Eaching
+### Map vs. Each
 
-Some advocate using `map(..)` as a general form of `forEach(..)`-iteration, where essentially the value received is passed through untouched, but then some side effect can be performed:
+Некоторые выступают за использование `map(..)` как обобщённой формы итерации `forEach(..)`, где получаемое значение передаётся нетронутым, но при этом производится некий побочный эффект:
 
 ```js
 [1,2,3,4,5]
 .map( function mapperFn(v){
-    console.log( v );           // side effect!
+    console.log( v );           // побочный эффект!
     return v;
 } )
 ..
 ```
 
-The reason this technique can seem useful is that the `map(..)` returns the array so you can keep chaining more operations after it; the return value of `forEach(..)` is `undefined`. However, I think you should avoid using `map(..)` in this way, because it's a net confusion to use a core FP operation in a decidedly un-FP way.
+Эта техника может показаться полезной, поскольку `map(..)` возвращает массив, что позволяет продолжать цепочку операций; тогда как возвращаемое значение `forEach(..)` — `undefined`. Однако я считаю, что следует избегать использования `map(..)` таким образом, поскольку использование ключевой ФП-операции сугубо не-ФП-способом создаёт лишнюю путаницу.
 
-You've heard the old adage about using the right tool for the right job, right? Hammer for a nail, screwdriver for a screw... This is slightly different: it's use the right tool *in the right way*.
+Вы слышали поговорку «используйте нужный инструмент для нужной работы»? Молоток для гвоздя, отвёртка для шурупа... Здесь немного иначе: используйте нужный инструмент *нужным образом*.
 
-A hammer is meant to be held in your hand; if you instead hold it in your mouth and try to hammer the nail, you're not gonna be very effective. `map(..)` is intended to map values, not create side effects.
+Молоток предназначен для держания в руке; если вместо этого держать его во рту и пытаться забить гвоздь, эффективность будет нулевой. `map(..)` предназначен для отображения значений, а не для создания побочных эффектов.
 
-### A Word: Functors
+### Одно слово: функторы
 
-We've mostly tried to stay away from invented terminology in FP as much as possible in this book. We have used official terms at times, but mostly when we can derive some sense of meaning from them in regular everyday conversation.
+В этой книге мы по большей части старались избегать придуманной терминологии из ФП. Мы использовали официальные термины временами, но в основном когда из них можно извлечь смысл в обычном, повседневном разговоре.
 
-I'm going to very briefly break that pattern and use a word that might be a little intimidating: functor. The reason I want to talk about functors here is because we now already understand what they do, and because that term is used heavily throughout the rest of FP literature; indeed, functors are foundational ideas in FP that come straight from the mathematical principles (category theory). You being at least familiar with and not scared by this term will be beneficial.
+Я сейчас кратко нарушу этот принцип и воспользуюсь словом, которое может немного пугать: **функтор**. Причина, по которой я хочу поговорить о функторах здесь, — в том, что мы уже понимаем, что они делают, и этот термин широко используется в остальной ФП-литературе; действительно, функторы — это основополагающие идеи в ФП, напрямую взятые из математических принципов (теории категорий). То, что вы хотя бы знакомы с этим термином и не боитесь его, будет полезным.
 
-A functor is a value that has a utility for using an operator function on that value, which preserves composition.
+**Функтор** — это значение, у которого есть утилита для применения операторной функции к этому значению, сохраняющая композицию.
 
-If the value in question is compound, meaning it's comprised of individual values -- as is the case with arrays, for example! -- a functor uses the operator function on each individual value. Moreover, the functor utility creates a new compound value holding the results of all the individual operator function calls.
+Если рассматриваемое значение является составным — то есть состоит из отдельных значений, как, например, массивы! — функтор применяет операторную функцию к каждому отдельному значению. Кроме того, утилита функтора создаёт новое составное значение, содержащее результаты всех отдельных вызовов операторной функции.
 
-This is all a fancy way of describing what we just looked at with `map(..)`. The `map(..)` function takes its associated value (an array) and a mapping function (the operator function), and executes the mapping function for each individual value in the array. Finally, it returns a new array with all the newly mapped values in it.
+Это лишь замысловатый способ описать то, что мы только что рассмотрели с `map(..)`. Функция `map(..)` берёт связанное с ней значение (массив) и функцию отображения (операторную функцию) и выполняет функцию отображения для каждого отдельного значения в массиве. Наконец, она возвращает новый массив со всеми только что отображёнными значениями.
 
-Another example: a string functor would be a string plus a utility that executes some operator function across all the characters in the string, returning a new string with the processed letters. Consider this highly contrived example:
+Ещё один пример: строковый функтор — это строка плюс утилита, выполняющая некую операторную функцию для всех символов строки и возвращающая новую строку с обработанными буквами. Рассмотрим этот надуманный пример:
 
 ```js
 function uppercaseLetter(c) {
     var code = c.charCodeAt( 0 );
 
-    // lowercase letter?
+    // строчная буква?
     if (code >= 97 && code <= 122) {
-        // uppercase it!
+        // делаем заглавной!
         code = code - 32;
     }
 
@@ -199,41 +199,41 @@ stringMap( uppercaseLetter, "Hello World!" );
 // HELLO WORLD!
 ```
 
-`stringMap(..)` allows a string to be a functor. You can define a mapping function for any data structure; as long as the utility follows these rules, the data structure is a functor.
+`stringMap(..)` позволяет строке быть функтором. Вы можете определить функцию отображения для любой структуры данных; если только утилита следует этим правилам, структура данных является функтором.
 
 ## Filter
 
-Imagine I bring an empty basket with me to the grocery store to visit the fruit section; there's a big display of fruit (apples, oranges, and bananas). I'm really hungry so I want to get as much fruit as they have available, but I really only prefer the round fruits (apples and oranges). So I sift through each fruit one by one, and I walk away with a basket full of just the apples and oranges.
+Представьте, что я прихожу с пустой корзиной в продуктовый магазин в отдел фруктов; там большой стенд с фруктами (яблоки, апельсины и бананы). Я очень голоден и хочу взять как можно больше фруктов, но предпочитаю круглые (яблоки и апельсины). Я перебираю каждый фрукт по одному и ухожу с корзиной, полной только яблок и апельсинов.
 
-Let's say we call this process *filtering*. Would you more naturally describe my shopping as starting with an empty basket and **filtering in** (selecting, including) only the apples and oranges, or starting with the full display of fruits and **filtering out** (skipping, excluding) the bananas as my basket is filled with fruit?
+Допустим, мы называем этот процесс *фильтрацией*. Как вы бы естественнее всего описали мои покупки: начиная с пустой корзины и **фильтруя внутрь** (отбирая, включая) только яблоки и апельсины — или начиная с полного стенда фруктов и **фильтруя наружу** (пропуская, исключая) бананы по мере наполнения корзины?
 
-If you cook spaghetti in a pot of water, and then pour it into a strainer (aka filter) over the sink, are you filtering in the spaghetti or filtering out the water? If you put coffee grounds into a filter and make a cup of coffee, did you filter in the coffee into your cup, or filter out the coffee grounds?
+Когда вы варите спагетти в кастрюле с водой и затем выливаете в дуршлаг над раковиной, вы фильтруете спагетти внутрь или воду наружу? Когда вы кладёте кофейный порошок в фильтр и варите кофе, вы фильтруете кофе в чашку или фильтруете кофейную гущу?
 
-Does your view of filtering depend on whether the stuff you want is "kept" in the filter or passes through the filter?
+Зависит ли ваше восприятие фильтрации от того, остаётся ли то, что вам нужно, «в фильтре» или проходит через него?
 
-What about on airline/hotel websites, when you specify options to "filter your results"? Are you filtering in the results that match your criteria, or are you filtering out everything that doesn't match? Think carefully: this example might have a different semantic than the previous ones.
+А как насчёт сайтов авиакомпаний/отелей, где вы указываете параметры «фильтрации результатов»? Вы фильтруете внутрь результаты, соответствующие вашим критериям, или фильтруете наружу всё, что не соответствует? Подумайте внимательно: этот пример может иметь иную семантику, чем предыдущие.
 
-### Filtering Confusion
+### Путаница с фильтрацией
 
-Depending on your perspective, filtering is either exclusionary or inclusionary. This conceptual conflation is unfortunate.
+В зависимости от перспективы фильтрация является либо исключающей, либо включающей. Такое концептуальное смешение неудачно.
 
-I think the most common interpretation of filtering -- outside of programming, anyway -- is that you filter out unwanted stuff. Unfortunately, in programming, we have essentially flipped this semantic to be more like filtering in wanted stuff.
+Думаю, наиболее распространённая интерпретация фильтрации — вне программирования — состоит в том, что вы фильтруете наружу нежелательное. К сожалению, в программировании мы фактически перевернули эту семантику: теперь речь идёт скорее о фильтрации внутрь желаемого.
 
-The `filter(..)` list operation takes a function to decide if each value in the original array should be in the new array or not. This function needs to return `true` if a value should make it, and `false` if it should be skipped. A function that returns `true`/`false` for this kind of decision making goes by the special name: predicate function.
+Операция `filter(..)` над списком принимает функцию, решающую, должно ли каждое значение из исходного массива присутствовать в новом массиве. Эта функция должна возвращать `true`, если значение нужно сохранить, и `false`, если его нужно пропустить. Функция, возвращающая `true`/`false` для такого рода решений, называется особым именем: **предикатная функция**.
 
-If you think of `true` as indicating a positive signal, the definition of `filter(..)` is that you are saying "keep" (to filter in) a value rather than saying "discard" (to filter out) a value.
+Если думать о `true` как о положительном сигнале, определение `filter(..)` таково: вы говорите «оставить» (фильтровать внутрь) значение, а не «отбросить» (фильтровать наружу).
 
-To use `filter(..)` as an exclusionary action, you have to twist your brain to think of positively signaling an exclusion by returning `false`, and passively letting a value pass through by returning `true`.
+Чтобы использовать `filter(..)` как исключающее действие, нужно вывернуть мозг и думать о положительном сигнале исключения через возврат `false`, и пассивно позволять значению пройти через возврат `true`.
 
-The reason this semantic mismatch matters is because of how you will likely name the function used as `predicateFn(..)`, and what that means for the readability of code. We'll come back to this point shortly.
+Причина, по которой это семантическое несоответствие имеет значение, — в том, как вы, вероятно, будете называть функцию, используемую как `predicateFn(..)`, и что это означает для читаемости кода. Вернёмся к этому чуть позже.
 
-Here's how to visualize a `filter(..)` operation across a list of values:
+Вот как визуализировать операцию `filter(..)` над списком значений:
 
 <p align="center">
     <img src="images/fig10.png" width="50%">
 </p>
 
-To implement `filter(..)`:
+Реализация `filter(..)`:
 
 ```js
 function filter(predicateFn,arr) {
@@ -249,23 +249,23 @@ function filter(predicateFn,arr) {
 }
 ```
 
-Notice that just like `mapperFn(..)` before, `predicateFn(..)` is passed not only the value but also the `idx` and `arr`. Use `unary(..)` to limit its arguments as necessary.
+Обратите внимание, что, как и `mapperFn(..)` ранее, `predicateFn(..)` получает не только значение, но и `idx`, и `arr`. При необходимости используйте `unary(..)` для ограничения аргументов.
 
-Just as with `map(..)`, `filter(..)` is provided as a built-in utility on JS arrays.
+Как и `map(..)`, `filter(..)` предоставляется как встроенная утилита в массивах JS.
 
-Let's consider a predicate function like this:
+Рассмотрим предикатную функцию вроде этой:
 
 ```js
 var whatToCallIt = v => v % 2 == 1;
 ```
 
-This function uses `v % 2 == 1` to return `true` or `false`. The effect here is that an odd number will return `true`, and an even number will return `false`. So, what should we call this function? A natural name might be:
+Эта функция использует `v % 2 == 1` для возврата `true` или `false`. Эффект здесь таков: нечётное число вернёт `true`, а чётное — `false`. Так как же её назвать? Естественным именем могло бы быть:
 
 ```js
 var isOdd = v => v % 2 == 1;
 ```
 
-Consider how you might use `isOdd(..)` with a simple value check somewhere in your code:
+Подумайте, как вы могли бы использовать `isOdd(..)` для простой проверки значения где-то в коде:
 
 ```js
 var midIdx;
@@ -278,18 +278,18 @@ else {
 }
 ```
 
-Makes sense, right? But, let's consider using it with the built-in array `filter(..)` to filter a list of values:
+Логично, правда? Но давайте рассмотрим её использование со встроенным `filter(..)` массива для фильтрации списка значений:
 
 ```js
 [1,2,3,4,5].filter( isOdd );
 // [1,3,5]
 ```
 
-If you described the `[1,3,5]` result, would you say, "I filtered out the even numbers", or would you say "I filtered in the odd numbers"? I think the former is a more natural way of describing it. But the code reads the opposite. The code reads, almost literally, that we "filtered (in) each number that is odd".
+Как бы вы описали результат `[1,3,5]`: «я отфильтровал наружу чётные числа» или «я отфильтровал внутрь нечётные»? Думаю, первое звучит более естественно. Но код читается иначе. Код читается почти буквально: мы «фильтруем (внутрь) каждое число, которое является нечётным».
 
-I personally find this semantic confusing. There's no question there's plenty of precedent for experienced developers. But if you just start with a fresh slate, this expression of the logic seems kinda like not speaking without a double negative -- aka, speaking with a double negative.
+Лично я нахожу эту семантику запутанной. Без сомнения, у опытных разработчиков накоплен обширный прецедент. Но если подойти к этому с чистого листа, такое выражение логики напоминает речь с двойным отрицанием — то есть без двойного отрицания.
 
-We could make this easier by renaming `isOdd(..)` to `isEven(..)`:
+Мы могли бы упростить это, переименовав `isOdd(..)` в `isEven(..)`:
 
 ```js
 var isEven = v => v % 2 == 1;
@@ -298,15 +298,15 @@ var isEven = v => v % 2 == 1;
 // [1,3,5]
 ```
 
-Yay! But that function makes no sense with its name, in that it returns `false` when it's even:
+Ура! Но эта функция не имеет смысла со своим именем, поскольку возвращает `false`, когда число чётное:
 
 ```js
 isEven( 2 );        // false
 ```
 
-Yuck.
+Кошмар.
 
-Recall that in [Chapter 3, "No Points"](ch3.md/#no-points), we defined a `not(..)` operator that negates a predicate function. Consider:
+Вспомните, что в [Главе 3, «Без точек»](ch3.md/#no-points) мы определили оператор `not(..)`, который инвертирует предикатную функцию. Рассмотрим:
 
 ```js
 var isEven = not( isOdd );
@@ -314,18 +314,18 @@ var isEven = not( isOdd );
 isEven( 2 );        // true
 ```
 
-But we can't use *this* `isEven(..)` with `filter(..)` the way it's currently defined, because our logic will be reversed; we'll end up with evens, not odds. We'd need to do:
+Но *эту* `isEven(..)` нельзя использовать с `filter(..)` в её нынешнем виде, поскольку логика будет обратной; мы получим чётные, а не нечётные. Нам пришлось бы делать:
 
 ```js
 [1,2,3,4,5].filter( not( isEven ) );
 // [1,3,5]
 ```
 
-That defeats the whole purpose, though, so let's not do that. We're just going in circles.
+Но это сводит на нет весь смысл, так что не будем этого делать. Мы просто ходим по кругу.
 
-### Filtering-Out & Filtering-In
+### Фильтрация наружу и внутрь
 
-To clear up all this confusion, let's define a `filterOut(..)` that actually **filters out** values by internally negating the predicate check. While we're at it, we'll alias `filterIn(..)` to the existing `filter(..)`:
+Чтобы разобраться со всей этой путаницей, давайте определим `filterOut(..)`, который действительно **фильтрует наружу** значения путём внутреннего инвертирования проверки предиката. Заодно создадим псевдоним `filterIn(..)` для существующего `filter(..)`:
 
 ```js
 var filterIn = filter;
@@ -335,7 +335,7 @@ function filterOut(predicateFn,arr) {
 }
 ```
 
-Now we can use whichever filtering makes most sense at any point in our code:
+Теперь мы можем использовать ту фильтрацию, которая наиболее осмысленна в любом месте кода:
 
 ```js
 isOdd( 3 );                             // true
@@ -345,46 +345,46 @@ filterIn( isOdd, [1,2,3,4,5] );         // [1,3,5]
 filterOut( isEven, [1,2,3,4,5] );       // [1,3,5]
 ```
 
-I think using `filterIn(..)` and `filterOut(..)` (known as `reject(..)` in Ramda) will make your code a lot more readable than just using `filter(..)` and leaving the semantics conflated and confusing for the reader.
+Думаю, использование `filterIn(..)` и `filterOut(..)` (известных как `reject(..)` в Ramda) сделает ваш код значительно более читаемым, чем просто `filter(..)`, оставляющий смешанную и запутанную для читателя семантику.
 
 ## Reduce
 
-While `map(..)` and `filter(..)` produce new lists, typically this third operator (`reduce(..)`) combines (aka "reduces") the values of a list down to a single finite (non-list) value, like a number or string. However, later in this chapter, we'll look at how you can push `reduce(..)` to use it in more advanced ways. `reduce(..)` is one of the most important FP tools; it's like a Swiss Army all-in-one knife with all its usefulness.
+Пока `map(..)` и `filter(..)` создают новые списки, эта третья операция (`reduce(..)`) обычно объединяет (иначе говоря, «сворачивает») значения списка в единое конечное значение (не список) — например, число или строку. Однако позже в этой главе мы рассмотрим, как использовать `reduce(..)` более продвинутыми способами. `reduce(..)` — один из важнейших инструментов ФП; это как швейцарский армейский нож со всей его универсальностью.
 
-A combination/reduction is abstractly defined as taking two values and making them into one value. Some FP contexts refer to this as "folding", as if you're folding two values together into one value. That's a helpful visualization, I think.
+Объединение/свёртка абстрактно определяется как взятие двух значений и превращение их в одно. Некоторые ФП-контексты называют это «складыванием» (folding), как будто вы складываете два значения в одно. Думаю, это полезная визуализация.
 
-Just like with mapping and filtering, the manner of the combination is entirely up to you, and generally dependent on the types of values in the list. For example, numbers will typically be combined through arithmetic, strings through concatenation, and functions through composition.
+Как и в случае с отображением и фильтрацией, способ объединения полностью на ваше усмотрение и обычно зависит от типов значений в списке. Например, числа обычно объединяются арифметически, строки — конкатенацией, функции — через композицию.
 
-Sometimes a reduction will specify an `initialValue` and start its work by combining it with the first value in the list, cascading down through each of the rest of the values in the list. That looks like this:
+Иногда свёртка задаёт `initialValue` и начинает работу с его объединения с первым значением в списке, каскадируя по каждому из оставшихся значений. Это выглядит так:
 
 <p align="center">
     <img src="images/fig11.png" width="50%">
 </p>
 
-Alternatively, you can omit the `initialValue` in which case the first value of the list will act in place of the `initialValue` and the combining will start with the second value in the list, like this:
+Альтернативно, вы можете опустить `initialValue`, в этом случае первое значение списка будет действовать вместо `initialValue`, а объединение начнётся со второго значения списка:
 
 <p align="center">
     <img src="images/fig12.png" width="50%">
 </p>
 
-**Warning:** In JavaScript, if there's not at least one value in the reduction (either in the array or specified as `initialValue`), an error is thrown. Be careful not to omit the `initialValue` if the list for the reduction could possibly be empty under any circumstance.
+**Предупреждение:** В JavaScript, если в свёртке нет хотя бы одного значения (ни в массиве, ни в качестве `initialValue`), будет выброшена ошибка. Будьте осторожны и не опускайте `initialValue`, если список для свёртки может оказаться пустым при каких-либо обстоятельствах.
 
-The function you pass to `reduce(..)` to perform the reduction is typically called a reducer. A reducer has a different signature from the mapper and predicate functions we looked at earlier. Reducers primarily receive the current reduction result as well as the next value to reduce it with. The current result at each step of the reduction is often referred to as the accumulator.
+Функция, передаваемая в `reduce(..)` для выполнения свёртки, обычно называется **редьюсером** (reducer). Редьюсер имеет иную сигнатуру, чем функции-маппер и предикат, рассмотренные ранее. Редьюсеры главным образом получают текущий результат свёртки, а также следующее значение для сворачивания. Текущий результат на каждом шаге свёртки часто называют **аккумулятором**.
 
-For example, consider the steps involved in multiply-reducing the numbers `5`, `10`, and `15`, with an `initialValue` of `3`:
+Например, рассмотрим шаги при умножающей свёртке чисел `5`, `10` и `15` с `initialValue` равным `3`:
 
 1. `3` * `5` = `15`
 2. `15` * `10` = `150`
 3. `150` * `15` = `2250`
 
-Expressed in JavaScript using the built-in `reduce(..)` method on arrays:
+Выраженная на JavaScript с использованием встроенного метода `reduce(..)` массивов:
 
 ```js
 [5,10,15].reduce( (product,v) => product * v, 3 );
 // 2250
 ```
 
-But a standalone implementation of `reduce(..)` might look like this:
+Стандалон-реализация `reduce(..)` могла бы выглядеть так:
 
 ```js
 function reduce(reducerFn,initialValue,arr) {
@@ -410,9 +410,9 @@ function reduce(reducerFn,initialValue,arr) {
 }
 ```
 
-Just as with `map(..)` and `filter(..)`, the reducer function is also passed the lesser-common `idx` and `arr` arguments in case that's useful to the reduction. I would say I don't typically use these, but I guess it's nice to have them available.
+Как и у `map(..)` и `filter(..)`, функции-редьюсеру также передаются менее распространённые аргументы `idx` и `arr` на случай, если они могут пригодиться. Я бы сказал, что обычно я их не использую, но приятно, что они есть.
 
-Recall in [Chapter 4, we discussed the `compose(..)` utility](ch4.md/#user-content-composereduce) and showed an implementation with `reduce(..)`:
+Вспомните из [Главы 4, где мы рассматривали утилиту `compose(..)`](ch4.md/#user-content-composereduce) и показывали её реализацию через `reduce(..)`:
 
 ```js
 function compose(...fns) {
@@ -424,7 +424,7 @@ function compose(...fns) {
 }
 ```
 
-To illustrate `reduce(..)`-based composition differently, consider a reducer that will compose functions left-to-right (like `pipe(..)` does), to use in an array chain:
+Чтобы проиллюстрировать иначе основанную на `reduce(..)` композицию, рассмотрим редьюсер, который компонует функции слева направо (как это делает `pipe(..)`), для использования в цепочке массива:
 
 ```js
 var pipeReducer = (composedFn,fn) => pipe( composedFn, fn );
@@ -438,9 +438,9 @@ fn( 9 );            // 11016  (9 * 3 * 17 * 6 * 4)
 fn( 10 );           // 12240  (10 * 3 * 17 * 6 * 4)
 ```
 
-`pipeReducer(..)` is unfortunately not point-free (see [Chapter 3, "No Points"](ch3.md/#no-points)), but we can't just pass `pipe(..)` as the reducer itself, because it's variadic; the extra arguments (`idx` and `arr`) that `reduce(..)` passes to its reducer function would be problematic.
+`pipeReducer(..)` к сожалению не без точечный (см. [Главу 3, «Без точек»](ch3.md/#no-points)), но мы не можем просто передать `pipe(..)` в качестве редьюсера, поскольку он вариадический; дополнительные аргументы (`idx` и `arr`), которые `reduce(..)` передаёт своему редьюсеру, создали бы проблемы.
 
-Earlier we talked about using `unary(..)` to limit a `mapperFn(..)` or `predicateFn(..)` to just a single argument. It might be handy to have a `binary(..)` that does something similar but limits to two arguments, for a `reducerFn(..)` function:
+Ранее мы говорили об использовании `unary(..)` для ограничения `mapperFn(..)` или `predicateFn(..)` одним аргументом. Удобно было бы иметь `binary(..)`, делающую нечто похожее, но ограничивающую двумя аргументами функцию-редьюсер:
 
 ```js
 var binary =
@@ -449,7 +449,7 @@ var binary =
             fn( arg1, arg2 );
 ```
 
-Using `binary(..)`, our previous example is a little cleaner:
+Используя `binary(..)`, наш предыдущий пример становится немного чище:
 
 ```js
 var pipeReducer = binary( pipe );
@@ -463,7 +463,7 @@ fn( 9 );            // 11016  (9 * 3 * 17 * 6 * 4)
 fn( 10 );           // 12240  (10 * 3 * 17 * 6 * 4)
 ```
 
-Unlike `map(..)` and `filter(..)` whose order of passing through the array wouldn't actually matter, `reduce(..)` definitely uses left-to-right processing. If you want to reduce right-to-left, JavaScript provides a `reduceRight(..)`, with all other behaviors the same as `reduce(..)`:
+В отличие от `map(..)` и `filter(..)`, где порядок прохода по массиву на самом деле не важен, `reduce(..)` определённо использует обработку слева направо. Если вы хотите свёртку справа налево, JavaScript предоставляет `reduceRight(..)` со всем тем же поведением, что и `reduce(..)`:
 
 ```js
 var hyphenate = (str,char) => `${str}-${char}`;
@@ -477,7 +477,7 @@ var hyphenate = (str,char) => `${str}-${char}`;
 
 <a name="composereduceright"></a>
 
-Where `reduce(..)` works left-to-right and thus acts naturally like `pipe(..)` in composing functions, `reduceRight(..)`'s right-to-left ordering is natural for performing a `compose(..)`-like operation. So, let's revisit [`compose(..)` from Chapter 4](ch4.md/#user-content-composereduce), but implement it using `reduceRight(..)`:
+Там где `reduce(..)` работает слева направо и таким образом естественно работает как `pipe(..)` при компоновке функций, упорядочивание `reduceRight(..)` справа налево естественно для выполнения операции, подобной `compose(..)`. Итак, давайте пересмотрим [`compose(..)` из Главы 4](ch4.md/#user-content-composereduce), но реализуем его через `reduceRight(..)`:
 
 ```js
 function compose(...fns) {
@@ -489,11 +489,11 @@ function compose(...fns) {
 }
 ```
 
-Now, we don't need to do `[...fns].reverse()`; we just reduce from the other direction!
+Теперь нам не нужен `[...fns].reverse()` — мы просто сворачиваем с другого конца!
 
-### Map as Reduce
+### Map как Reduce
 
-The `map(..)` operation is iterative in its nature, so it can also be represented as a reduction (`reduce(..)`). The trick is to realize that the `initialValue` of `reduce(..)` can be itself an (empty) array, in which case the result of a reduction can be another list!
+Операция `map(..)` по своей природе итеративна, поэтому её тоже можно представить как свёртку (`reduce(..)`). Хитрость в том, чтобы понять: `initialValue` у `reduce(..)` сам может быть (пустым) массивом, и тогда результатом свёртки может стать другой список!
 
 ```js
 var double = v => v * 2;
@@ -512,13 +512,13 @@ var double = v => v * 2;
 
 <a name="reducecheating"></a>
 
-**Note:** We're cheating with this reducer: using a side effect by allowing `list.push(..)` to mutate the list that was passed in. In general, that's not a good idea, obviously, but since we know the `[]` list is being created and passed in, it's less dangerous. You could be more formal -- yet less performant! -- by creating a new list with the val `concat(..)`d onto the end. We'll come back to [this cheat in Appendix A](apA.md/#user-content-cheating).
+**Примечание:** Мы жульничаем с этим редьюсером: используем побочный эффект, позволяя `list.push(..)` мутировать переданный список. В целом это плохая идея, но поскольку мы знаем, что список `[]` создаётся и передаётся нами, это менее опасно. Можно быть более формальным — хотя и менее производительным! — создавая новый список с `concat(..)`-нутым значением в конец. Мы вернёмся к [этому жульничеству в Приложении A](apA.md/#user-content-cheating).
 
-Implementing `map(..)` with `reduce(..)` is not on its surface an obvious step or even an improvement. However, this ability will be a crucial recognition for more advanced techniques like those we'll cover in [Appendix A](apA.md).
+Реализация `map(..)` через `reduce(..)` не является очевидным шагом или даже улучшением на поверхности. Однако эта способность станет ключевым осознанием для более продвинутых техник, подобных тем, что мы рассмотрим в [Приложении A](apA.md).
 
-### Filter as Reduce
+### Filter как Reduce
 
-Just as `map(..)` can be done with `reduce(..)`, so can `filter(..)`:
+Как и `map(..)` можно сделать через `reduce(..)`, так же можно сделать и `filter(..)`:
 
 ```js
 var isOdd = v => v % 2 == 1;
@@ -535,15 +535,15 @@ var isOdd = v => v % 2 == 1;
 // [1,3,5]
 ```
 
-**Note:** More impure reducer cheating here. Instead of `list.push(..)`, we could have done `list.concat(..)` and returned the new list. We'll come back to this [cheat in Appendix A](apA.md/#user-content-cheating).
+**Примечание:** Снова нечистое жульничество с редьюсером. Вместо `list.push(..)` мы могли бы использовать `list.concat(..)` и возвращать новый список. Мы вернёмся к этому [жульничеству в Приложении A](apA.md/#user-content-cheating).
 
-## Advanced List Operations
+## Продвинутые операции со списками
 
-Now that we feel somewhat comfortable with the foundational list operations `map(..)`, `filter(..)`, and `reduce(..)`, let's look at a few more-sophisticated operations you may find useful in various situations. These are generally utilities you'll find in various FP libraries.
+Теперь, почувствовав некоторую уверенность в базовых операциях `map(..)`, `filter(..)` и `reduce(..)`, давайте рассмотрим несколько более сложных операций, которые могут оказаться полезными в различных ситуациях. Как правило, это утилиты, встречающиеся в различных ФП-библиотеках.
 
 ### Unique
 
-Filtering a list to include only unique values, based on `indexOf(..)` searching (which uses `===` strict equality comparison):
+Фильтрация списка для включения только уникальных значений, основанная на поиске через `indexOf(..)` (который использует строгое сравнение `===`):
 
 ```js
 var unique =
@@ -554,9 +554,9 @@ var unique =
         );
 ```
 
-This technique works by observing that we should only include the first occurrence of an item from `arr` into the new list; when running left-to-right, this will only be true if its `idx` position is the same as the `indexOf(..)` found position.
+Эта техника работает на наблюдении о том, что в новый список следует включать только первое вхождение элемента из `arr`; при обходе слева направо это будет верно, только если позиция `idx` совпадает с найденной позицией `indexOf(..)`.
 
-Another way to implement `unique(..)` is to run through `arr` and include an item into a new (initially empty) list if that item cannot already be found in the new list. For that processing, we use `reduce(..)`:
+Другой способ реализовать `unique(..)` — перебирать `arr` и включать элемент в новый (изначально пустой) список, если этот элемент там ещё не встречается. Для этого используем `reduce(..)`:
 
 ```js
 var unique =
@@ -568,9 +568,9 @@ var unique =
         , [] );
 ```
 
-**Note:** There are many other ways to implement this algorithm using more imperative approaches like loops, and many of them are likely "more efficient" performance-wise. However, the advantage of either of these presented approaches is that they use existing built-in list operations, which makes them easier to chain/compose alongside other list operations. We'll talk more about those concerns later in this chapter.
+**Примечание:** Существует много других способов реализовать этот алгоритм с использованием более императивных подходов, например циклов, и многие из них, вероятно, «более эффективны» с точки зрения производительности. Однако преимущество обоих представленных подходов заключается в использовании существующих встроенных операций со списками, что делает их проще для цепочки/компоновки с другими операциями. Подробнее об этих соображениях — ниже в главе.
 
-`unique(..)` nicely produces a new list with no duplicates:
+`unique(..)` аккуратно создаёт новый список без дубликатов:
 
 ```js
 unique( [1,4,7,1,3,1,7,9,2,6,4,0,5,3] );
@@ -579,19 +579,19 @@ unique( [1,4,7,1,3,1,7,9,2,6,4,0,5,3] );
 
 ### Flatten
 
-From time to time, you may have (or produce through some other operations) an array that's not just a flat list of values -- for instance, it might include nested arrays, as shown here:
+Временами у вас может быть (или появляться в результате других операций) массив, который не является просто плоским списком значений — например, он может включать вложенные массивы:
 
 ```js
 [ [1, 2, 3], 4, 5, [6, [7, 8]] ]
 ```
 
-What if you'd like to transform it as follows?
+Что если вы хотите преобразовать его следующим образом?
 
 ```js
 [ 1, 2, 3, 4, 5, 6, 7, 8 ]
 ```
 
-The operation we're looking for is typically called `flatten(..)`, and it could be implemented like this using our Swiss Army knife `reduce(..)`:
+Операция, которую мы ищем, обычно называется `flatten(..)`, и её можно реализовать с помощью нашего швейцарского армейского ножа `reduce(..)`:
 
 ```js
 var flatten =
@@ -602,16 +602,16 @@ var flatten =
         , [] );
 ```
 
-**Note:** This implementation choice relies on recursion as we saw in [Chapter 8](ch8.md).
+**Примечание:** Этот выбор реализации опирается на рекурсию, как мы видели в [Главе 8](ch8.md).
 
-To use `flatten(..)` with an array of arrays (of any nested depth):
+Чтобы использовать `flatten(..)` с массивом массивов (любой глубины вложенности):
 
 ```js
 flatten( [[0,1],2,3,[4,[5,6,7],[8,[9,[10,[11,12],13]]]]] );
 // [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
 ```
 
-You might like to limit the recursive flattening to a certain depth. We can handle this by adding an optional `depth` limit argument to the implementation:
+Возможно, вы захотите ограничить рекурсивное выравнивание определённой глубиной. Мы можем обработать это, добавив необязательный аргумент `depth` в реализацию:
 
 ```js
 var flatten =
@@ -629,7 +629,7 @@ var flatten =
         , [] );
 ```
 
-Illustrating the results with different flattening depths:
+Иллюстрация результатов при разных глубинах выравнивания:
 
 ```js
 flatten( [[0,1],2,3,[4,[5,6,7],[8,[9,[10,[11,12],13]]]]], 0 );
@@ -651,9 +651,9 @@ flatten( [[0,1],2,3,[4,[5,6,7],[8,[9,[10,[11,12],13]]]]], 5 );
 // [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
 ```
 
-#### Mapping, Then Flattening
+#### Отображение, затем выравнивание
 
-One of the most common usages of `flatten(..)` behavior is when you've mapped a list of elements where each transformed value from the original list is now itself a list of values. For example:
+Одним из наиболее распространённых применений поведения `flatten(..)` является случай, когда вы отображаете список элементов и каждое преобразованное значение из исходного списка само является списком значений. Например:
 
 ```js
 var firstNames = [
@@ -668,7 +668,7 @@ firstNames
 //   ["Frederick","Fred","Freddy"] ]
 ```
 
-The return value is an array of arrays, which might be more awkward to work with. If we want a single dimension list with all the names, we can then `flatten(..)` that result:
+Возвращаемое значение — массив массивов, что может быть несколько неудобно в работе. Если нам нужен одномерный список со всеми именами, мы можем затем применить `flatten(..)` к этому результату:
 
 ```js
 flatten(
@@ -679,9 +679,9 @@ flatten(
 //  "Frederick","Fred","Freddy"]
 ```
 
-Besides being slightly more verbose, the disadvantage of doing the `map(..)` and `flatten(..)` as separate steps is primarily around performance; this approach processes the list twice, and creates an intermediate list that's then thrown away.
+Помимо некоторой многословности, недостаток выполнения `map(..)` и `flatten(..)` как отдельных шагов — прежде всего производительность: такой подход обрабатывает список дважды и создаёт промежуточный список, который затем выбрасывается.
 
-FP libraries typically define a `flatMap(..)` (often also called `chain(..)`) that does the mapping-then-flattening combined. For consistency and ease of composition (via currying), the `flatMap(..)` (aka `chain(..)`) utility typically matches the `mapperFn, arr` parameter order that we saw earlier with the standalone `map(..)`, `filter(..)`, and `reduce(..)` utilities:
+В ФП-библиотеках обычно определяют `flatMap(..)` (часто также называемый `chain(..)`), который выполняет отображение с последующим выравниванием в одном шаге. Для согласованности и простоты компоновки (через каррирование) утилита `flatMap(..)` (aka `chain(..)`) обычно соответствует порядку параметров `mapperFn, arr`, который мы видели ранее у стандалон-утилит `map(..)`, `filter(..)` и `reduce(..)`:
 
 ```js
 flatMap( entry => [ entry.name, ...entry.variations ], firstNames );
@@ -689,7 +689,7 @@ flatMap( entry => [ entry.name, ...entry.variations ], firstNames );
 //  "Frederick","Fred","Freddy"]
 ```
 
-The naive implementation of `flatMap(..)` with both steps done separately:
+Наивная реализация `flatMap(..)` с обоими шагами по отдельности:
 
 <a name="flatmap"></a>
 
@@ -699,35 +699,36 @@ var flatMap =
         flatten( arr.map( mapperFn ), 1 );
 ```
 
-**Note:** We use `1` for the flattening-depth because the typical definition of `flatMap(..)` is that the flattening is shallow on just the first level.
+**Примечание:** Мы используем `1` для глубины выравнивания, поскольку типичное определение `flatMap(..)` предполагает поверхностное выравнивание только на первом уровне.
 
-Since this approach still processes the list twice resulting in worse performance, we can combine the operations manually, using `reduce(..)`:
+Поскольку этот подход всё ещё обрабатывает список дважды, что ухудшает производительность, мы можем объединить операции вручную через `reduce(..)`:
 
 ```js
 var flatMap =
     (mapperFn,arr) =>
         arr.reduce(
             (list,v) =>
-                // note: concat(..) used here since it automatically
-                // flattens an array into the concatenation
+                // примечание: здесь используется concat(..),
+                // поскольку он автоматически выравнивает
+                // массив при конкатенации
                 list.concat( mapperFn( v ) )
         , [] );
 ```
 
-While there's some convenience and performance gained with a `flatMap(..)` utility, there may very well be times when you need other operations like `filter(..)`ing mixed in. If that's the case, doing the `map(..)` and `flatten(..)` separately might still be more appropriate.
+Хотя `flatMap(..)` даёт определённое удобство и прирост производительности, вполне могут быть случаи, когда нужно вмешать другие операции, например `filter(..)`. В этом случае раздельное выполнение `map(..)` и `flatten(..)` может всё же быть более уместным.
 
 ### Zip
 
-So far, the list operations we've examined have operated on a single list. But some cases will need to process multiple lists. One well-known operation alternates selection of values from each of two input lists into sub-lists, called `zip(..)`:
+До сих пор рассматриваемые операции со списками работали с единственным списком. Но в некоторых случаях нужно обрабатывать несколько списков. Одна хорошо известная операция поочерёдно берёт значения из каждого из двух входных списков в подсписки — она называется `zip(..)`:
 
 ```js
 zip( [1,3,5,7,9], [2,4,6,8,10] );
 // [ [1,2], [3,4], [5,6], [7,8], [9,10] ]
 ```
 
-Values `1` and `2` were selected into the sub-list `[1,2]`, then `3` and `4` into `[3,4]`, and so on. The definition of `zip(..)` requires a value from each of the two lists. If the two lists are of different lengths, the selection of values will continue until the shorter list has been exhausted, with the extra values in the other list ignored.
+Значения `1` и `2` попали в подсписок `[1,2]`, затем `3` и `4` — в `[3,4]`, и так далее. Определение `zip(..)` требует по одному значению из каждого из двух списков. Если два списка имеют разную длину, выборка значений продолжится до исчерпания более короткого списка, а оставшиеся значения в другом будут проигнорированы.
 
-An implementation of `zip(..)`:
+Реализация `zip(..)`:
 
 ```js
 function zip(arr1,arr2) {
@@ -743,20 +744,20 @@ function zip(arr1,arr2) {
 }
 ```
 
-The `[...arr1]` and `[...arr2]` copies ensure `zip(..)` is pure by not causing side effects on the received array references.
+Копии `[...arr1]` и `[...arr2]` гарантируют чистоту `zip(..)`, не вызывая побочных эффектов для полученных ссылок на массивы.
 
-**Note:** There are some decidedly un-FP things going on in this implementation. There's an imperative `while`-loop and mutations of lists with both `shift()` and `push(..)`. Earlier in the book, I asserted that it's reasonable for pure functions to use impure behavior inside them (usually for performance), as long as the effects are fully self-contained. This implementation is safely pure.
+**Примечание:** В этой реализации есть некоторые откровенно не-ФП-моменты: императивный цикл `while` и мутации списков как через `shift()`, так и через `push(..)`. Ранее в книге я утверждал, что чистые функции вполне могут использовать нечистое поведение внутри себя (обычно ради производительности), если только эффекты полностью самодостаточны. Эта реализация безопасно чиста.
 
 ### Merge
 
-Merging two lists by interleaving values from each source looks like this:
+Слияние двух списков путём чередования значений из каждого источника выглядит так:
 
 ```js
 mergeLists( [1,3,5,7,9], [2,4,6,8,10] );
 // [1,2,3,4,5,6,7,8,9,10]
 ```
 
-It may not be obvious, but this result seems similar to what we get if we compose `flatten(..)` and `zip(..)`:
+Может быть не очевидно, но этот результат похож на то, что мы получаем при компоновке `flatten(..)` и `zip(..)`:
 
 ```js
 zip( [1,3,5,7,9], [2,4,6,8,10] );
@@ -765,14 +766,14 @@ zip( [1,3,5,7,9], [2,4,6,8,10] );
 flatten( [ [1,2], [3,4], [5,6], [7,8], [9,10] ] );
 // [1,2,3,4,5,6,7,8,9,10]
 
-// composed:
+// скомпонованно:
 flatten( zip( [1,3,5,7,9], [2,4,6,8,10] ) );
 // [1,2,3,4,5,6,7,8,9,10]
 ```
 
-However, recall that `zip(..)` only selects values until the shorter of two lists is exhausted, ignoring the leftover values; merging two lists would most naturally retain those extra values. Also, `flatten(..)` works recursively on nested lists, but you might expect list-merging to only work shallowly, keeping nested lists.
+Однако вспомните, что `zip(..)` берёт значения только до исчерпания более короткого из двух списков, игнорируя оставшиеся; при слиянии двух списков было бы естественнее сохранить эти дополнительные значения. Кроме того, `flatten(..)` работает рекурсивно на вложенных списках, тогда как слияние, вероятно, должно работать только поверхностно, оставляя вложенные списки нетронутыми.
 
-So, let's define a `mergeLists(..)` that works more like we'd expect:
+Поэтому определим `mergeLists(..)`, работающий так, как мы ожидаем:
 
 ```js
 function mergeLists(arr1,arr2) {
@@ -793,18 +794,18 @@ function mergeLists(arr1,arr2) {
 }
 ```
 
-**Note:** Various FP libraries don't define a `mergeLists(..)` but instead define a `merge(..)` that merges properties of two objects; the results of such a `merge(..)` will differ from our `mergeLists(..)`.
+**Примечание:** Различные ФП-библиотеки не определяют `mergeLists(..)`, а вместо этого определяют `merge(..)`, который объединяет свойства двух объектов; результаты такого `merge(..)` будут отличаться от нашего `mergeLists(..)`.
 
-Alternatively, here are a couple of options to implement the list merging as a reducer:
+Альтернативно, вот пара вариантов реализации слияния списков через редьюсер:
 
 ```js
-// via @rwaldron
+// через @rwaldron
 var mergeReducer =
     (merged,v,idx) =>
         (merged.splice( idx * 2, 0, v ), merged);
 
 
-// via @WebReflection
+// через @WebReflection
 var mergeReducer =
     (merged,v,idx) =>
         merged
@@ -812,7 +813,7 @@ var mergeReducer =
             .concat( v, merged.slice( idx * 2 ) );
 ```
 
-And using a `mergeReducer(..)`:
+И использование `mergeReducer(..)`:
 
 ```js
 [1,3,5,7,9]
@@ -820,13 +821,13 @@ And using a `mergeReducer(..)`:
 // [1,2,3,4,5,6,7,8,9,10]
 ```
 
-**Tip:** We'll use the `mergeReducer(..)` trick later in the chapter.
+**Подсказка:** Мы воспользуемся трюком с `mergeReducer(..)` позже в главе.
 
-## Method vs. Standalone
+## Метод vs. стандалон
 
-A common source of frustration for FPers in JavaScript is unifying their strategy for working with utilities when some of them are provided as standalone functions (think about the various FP utilities we've derived in previous chapters) and others are methods of the array prototype (like the ones we've seen in this chapter).
+Распространённый источник разочарования у ФП-разработчиков в JavaScript — необходимость объединять стратегию работы с утилитами, когда одни предоставляются как стандалон-функции (вспомните различные ФП-утилиты, выведенные в предыдущих главах), а другие — как методы прототипа массива (как те, что мы видели в этой главе).
 
-The pain of this problem becomes more evident when you consider combining multiple operations:
+Боль от этой проблемы становится более очевидной при совмещении нескольких операций:
 
 ```js
 [1,2,3,4,5]
@@ -846,26 +847,26 @@ reduce(
 );                                  // 18
 ```
 
-Both API styles accomplish the same task, but they have very different ergonomics. Many FPers will prefer the latter to the former, but the former is unquestionably more common in JavaScript. One thing specifically that's disliked about the latter is the nesting of the calls. The preference for the method chain style -- typically called a fluent API style, as in jQuery and other tools -- is that it's compact/concise and it reads in declarative top-down order.
+Оба API-стиля решают одну задачу, но имеют очень разную эргономику. Многие ФП-разработчики предпочтут второй первому, хотя первый определённо более распространён в JavaScript. Конкретно, что не нравится во втором — это вложенность вызовов. Предпочтение к стилю цепочки методов — обычно называемому fluent API, как в jQuery и других инструментах — объясняется его компактностью и декларативным порядком чтения сверху вниз.
 
-The visual order for that manual composition of the standalone style is neither strictly left-to-right (top-to-bottom) nor right-to-left (bottom-to-top); it's inner-to-outer, which harms the readability.
+Визуальный порядок в такой ручной композиции через стандалон-стиль не является ни строго слева направо (сверху вниз), ни справа налево (снизу вверх): он идёт изнутри наружу, что вредит читаемости.
 
-Automatic composition normalizes the reading order as right-to-left (bottom-to-top) for both styles. So, to explore the implications of the style differences, let's examine composition specifically; it seems like it should be straightforward, but it's a little awkward in both cases.
+Автоматическая композиция нормализует порядок чтения справа налево (снизу вверх) для обоих стилей. Итак, чтобы изучить последствия различий в стиле, рассмотрим именно композицию; кажется, это должно быть просто, но на деле это немного неудобно в обоих случаях.
 
-### Composing Method Chains
+### Компоновка цепочек методов
 
-The array methods receive the implicit `this` argument, so despite their appearance, they can't be treated as unary; that makes composition more awkward. To cope, we'll first need a `this`-aware version of `partial(..)`:
+Методы массива получают неявный аргумент `this`, поэтому, несмотря на внешний вид, они не могут рассматриваться как унарные; это делает компоновку более неудобной. Чтобы справиться с этим, нам сначала понадобится `this`-осведомлённая версия `partial(..)`:
 
 ```js
 var partialThis =
     (fn,...presetArgs) =>
-        // intentionally `function` to allow `this`-binding
+        // намеренно `function` для поддержки привязки `this`
         function partiallyApplied(...laterArgs){
             return fn.apply( this, [...presetArgs, ...laterArgs] );
         };
 ```
 
-We'll also need a version of `compose(..)` that calls each of the partially applied methods in the context of the chain -- the input value it's being "passed" (via implicit `this`) from the previous step:
+Нам также понадобится версия `compose(..)`, которая вызывает каждый из частично применённых методов в контексте цепочки — входного значения, «передаваемого» (через неявный `this`) из предыдущего шага:
 
 ```js
 var composeChainedMethods =
@@ -878,7 +879,7 @@ var composeChainedMethods =
             );
 ```
 
-And using these two `this`-aware utilities together:
+И использование этих двух `this`-осведомлённых утилит вместе:
 
 ```js
 composeChainedMethods(
@@ -889,11 +890,11 @@ composeChainedMethods(
 ( [1,2,3,4,5] );                    // 18
 ```
 
-**Note:** The three `Array.prototype.XXX`-style references are grabbing references to the built-in `Array.prototype.*` methods so that we can reuse them with our own arrays.
+**Примечание:** Три ссылки вида `Array.prototype.XXX` берут ссылки на встроенные методы `Array.prototype.*`, чтобы мы могли повторно использовать их с нашими собственными массивами.
 
-### Composing Standalone Utilities
+### Компоновка стандалон-утилит
 
-Standalone `compose(..)`-style composition of these utilities doesn't need all the `this` contortions, which is its most favorable argument. For example, we could define standalones as:
+Компоновка в стиле стандалон `compose(..)` для этих утилит не требует всех этих ухищрений с `this`, что является её главным преимуществом. Например, мы могли бы определить стандалон-утилиты так:
 
 ```js
 var filter = (arr,predicateFn) => arr.filter( predicateFn );
@@ -904,7 +905,7 @@ var reduce = (arr,reducerFn,initialValue) =>
     arr.reduce( reducerFn, initialValue );
 ```
 
-But this particular standalone approach, with the `arr` as the first parameter, suffers from its own awkwardness; the cascading array context is the first argument rather than the last, so we have to use right-partial application to compose them:
+Но этот конкретный стандалон-подход, где `arr` — первый параметр, страдает от собственной неудобности; каскадный контекст массива — первый аргумент, а не последний, поэтому нам приходится использовать правостороннее частичное применение для их компоновки:
 
 ```js
 compose(
@@ -915,7 +916,7 @@ compose(
 ( [1,2,3,4,5] );                    // 18
 ```
 
-That's why FP libraries typically define `filter(..)`, `map(..)`, and `reduce(..)` to instead receive the array last, not first. They also typically automatically curry the utilities:
+Именно поэтому ФП-библиотеки обычно определяют `filter(..)`, `map(..)` и `reduce(..)` с массивом в качестве последнего, а не первого аргумента. Также они, как правило, автоматически каррируют утилиты:
 
 ```js
 var filter = curry(
@@ -934,7 +935,7 @@ var reduce = curry(
 );
 ```
 
-Working with the utilities defined in this way, the composition flow is a bit nicer:
+При работе с утилитами, определёнными таким образом, компоновка выглядит немного приятнее:
 
 ```js
 compose(
@@ -945,11 +946,11 @@ compose(
 ( [1,2,3,4,5] );                    // 18
 ```
 
-The cleanliness of this approach is in part why FPers prefer the standalone utility style instead of instance methods. But your mileage may vary.
+Чистота этого подхода отчасти объясняет, почему ФП-разработчики предпочитают стиль стандалон-утилит методам экземпляров. Но это дело вкуса.
 
-### Adapting Methods to Standalones
+### Адаптация методов к стандалонам
 
-In the previous definition of `filter(..)`/`map(..)`/`reduce(..)`, you might have spotted the common pattern across all three: they all dispatch to the corresponding native array method. So, can we generate these standalone adaptations with a utility? Yes! Let's make a utility called `unboundMethod(..)` to do just that:
+В предыдущем определении `filter(..)`/`map(..)`/`reduce(..)` вы могли заметить общий паттерн во всех трёх: они все делегируют к соответствующему нативному методу массива. Так можем ли мы генерировать такие стандалон-адаптации с помощью утилиты? Да! Давайте создадим утилиту `unboundMethod(..)`:
 
 ```js
 var unboundMethod =
@@ -963,7 +964,7 @@ var unboundMethod =
         );
 ```
 
-And to use this utility:
+И использование этой утилиты:
 
 ```js
 var filter = unboundMethod( "filter", 2 );
@@ -978,44 +979,46 @@ compose(
 ( [1,2,3,4,5] );                    // 18
 ```
 
-**Note:** `unboundMethod(..)` is called `invoker(..)` in Ramda.
+**Примечание:** `unboundMethod(..)` называется `invoker(..)` в Ramda.
 
-### Adapting Standalones to Methods
+### Адаптация стандалонов к методам
 
-If you prefer to work with only array methods (fluent chain style), you have two choices. You can:
+Если вы предпочитаете работать только с методами массивов (стиль fluent-цепочки), у вас два варианта. Вы можете:
 
-1. Extend the built-in `Array.prototype` with additional methods.
-2. Adapt a standalone utility to work as a reducer function and pass it to the `reduce(..)` instance method.
+1. Расширить встроенный `Array.prototype` дополнительными методами.
+2. Адаптировать стандалон-утилиту для работы в качестве функции-редьюсера и передать её в метод экземпляра `reduce(..)`.
 
-**Don't do (1).** It's never a good idea to extend built-in natives like `Array.prototype` -- unless you define a subclass of `Array`, but that's beyond our discussion scope here. In an effort to discourage bad practices, we won't go any further into this approach.
+**Не делайте (1).** Расширять встроенные объекты вроде `Array.prototype` — никогда не хорошая идея, если только вы не определяете подкласс `Array`, но это выходит за рамки нашего обсуждения. Во избежание поощрения плохих практик мы не будем дальше рассматривать этот подход.
 
-Let's **focus on (2)** instead. To illustrate this point, we'll convert the recursive `flatten(..)` standalone utility from earlier:
+Сосредоточимся на **(2)**. Для иллюстрации этого момента преобразуем рекурсивную стандалон-утилиту `flatten(..)` из предыдущего раздела:
 
 ```js
 var flatten =
     arr =>
         arr.reduce(
             (list,v) =>
-                // note: concat(..) used here since it automatically
-                // flattens an array into the concatenation
+                // примечание: здесь используется concat(..),
+                // поскольку он автоматически выравнивает
+                // массив при конкатенации
                 list.concat( Array.isArray( v ) ? flatten( v ) : v )
         , [] );
 ```
 
-Let's pull out the inner `reducer(..)` function as the standalone utility (and adapt it to work without the outer `flatten(..)`):
+Давайте вынесем внутреннюю функцию `reducer(..)` как стандалон-утилиту (и адаптируем её для работы без внешнего `flatten(..)`):
 
 ```js
-// intentionally a function to allow recursion by name
+// намеренно функция для поддержки рекурсии по имени
 function flattenReducer(list,v) {
-    // note: concat(..) used here since it automatically
-    // flattens an array into the concatenation
+    // примечание: здесь используется concat(..),
+    // поскольку он автоматически выравнивает
+    // массив при конкатенации
     return list.concat(
         Array.isArray( v ) ? v.reduce( flattenReducer, [] ) : v
     );
 }
 ```
 
-Now, we can use this utility in an array method chain via `reduce(..)`:
+Теперь мы можем использовать эту утилиту в цепочке методов массива через `reduce(..)`:
 
 ```js
 [ [1, 2, 3], 4, 5, [6, [7, 8]] ]
@@ -1023,11 +1026,11 @@ Now, we can use this utility in an array method chain via `reduce(..)`:
 // ..
 ```
 
-## Looking for Lists
+## В поисках списков
 
-So far, most of the examples have been rather trivial, based on simple lists of numbers or strings. Let's now talk about where list operations can start to shine: modeling an imperative series of statements declaratively.
+До сих пор большинство примеров были довольно тривиальными, основанными на простых списках чисел или строк. Давайте теперь поговорим о том, где операции со списками могут по-настоящему засиять: моделирование императивной серии операторов в декларативном виде.
 
-Consider this base example:
+Рассмотрим этот базовый пример:
 
 ```js
 var getSessionId = partial( prop, "sessId" );
@@ -1043,9 +1046,9 @@ if (userId != null) orders = lookupOrders( userId );
 if (orders != null) processOrders( orders );
 ```
 
-First, let's observe that the five variable declarations and the running series of `if` conditionals guarding the function calls are effectively one big composition of these six calls `getCurrentSession()`, `getSessionId(..)`, `lookupUser(..)`, `getUserId(..)`, `lookupOrders(..)`, and `processOrders(..)`. Ideally, we'd like to get rid of all these variable declarations and imperative conditionals.
+Во-первых, заметим, что пять объявлений переменных и серия условных `if`, охраняющих вызовы функций, фактически представляют собой одну большую композицию этих шести вызовов: `getCurrentSession()`, `getSessionId(..)`, `lookupUser(..)`, `getUserId(..)`, `lookupOrders(..)` и `processOrders(..)`. В идеале хотелось бы избавиться от всех этих объявлений переменных и императивных условных.
 
-Unfortunately, the `compose(..)`/`pipe(..)` utilities we explored in [Chapter 4](ch4.md) don't by themselves offer a convenient way to express the `!= null` conditionals in the composition. Let's define a utility to help:
+К сожалению, утилиты `compose(..)`/`pipe(..)` из [Главы 4](ch4.md) сами по себе не предоставляют удобного способа выразить условные `!= null` в составе композиции. Давайте определим утилиту-помощника:
 
 ```js
 var guard =
@@ -1054,14 +1057,14 @@ var guard =
             arg != null ? fn( arg ) : arg;
 ```
 
-This `guard(..)` utility lets us map the five conditional-guarded functions:
+Эта утилита `guard(..)` позволяет нам отобразить пять условно-охраняемых функций:
 
 ```js
 [ getSessionId, lookupUser, getUserId, lookupOrders, processOrders ]
 .map( guard )
 ```
 
-The result of this mapping is an array of functions that are ready to compose (actually, pipe, in this listed order). We could spread this array to `pipe(..)`, but because we're already doing list operations, let's do it with a `reduce(..)`, using the session value from `getCurrentSession()` as the initial value:
+Результат этого отображения — массив функций, готовых к компоновке (фактически, к pipe в таком порядке перечисления). Мы могли бы spread-нуть этот массив в `pipe(..)`, но поскольку мы уже работаем с операциями над списком, давайте сделаем это через `reduce(..)`, используя значение сессии из `getCurrentSession()` в качестве начального значения:
 
 ```js
 .reduce(
@@ -1070,15 +1073,15 @@ The result of this mapping is an array of functions that are ready to compose (a
 )
 ```
 
-Next, let's observe that `getSessionId(..)` and `getUserId(..)` can be expressed as a mapping from the respective values `"sessId"` and `"uId"`:
+Далее заметим, что `getSessionId(..)` и `getUserId(..)` можно выразить как отображение из соответствующих значений `"sessId"` и `"uId"`:
 
 ```js
 [ "sessId", "uId" ].map( propName => partial( prop, propName ) )
 ```
 
-But to use these, we'll need to interleave them with the other three functions (`lookupUser(..)`, `lookupOrders(..)`, and `processOrders(..)`) to get the array of five functions to guard/compose as discussed before.
+Но чтобы использовать их, нам нужно перемежать их с тремя другими функциями (`lookupUser(..)`, `lookupOrders(..)` и `processOrders(..)`) для получения массива из пяти функций, которые нужно охранять/компоновать, как обсуждалось выше.
 
-To do the interleaving, we can model this as list merging. Recall `mergeReducer(..)` from earlier in the chapter:
+Для перемежения мы можем смоделировать это как слияние списков. Вспомните `mergeReducer(..)` из предыдущего раздела:
 
 ```js
 var mergeReducer =
@@ -1086,19 +1089,19 @@ var mergeReducer =
         (merged.splice( idx * 2, 0, v ), merged);
 ```
 
-We can use `reduce(..)` (our Swiss Army knife, remember!?) to "insert" `lookupUser(..)` in the array between the generated functions `getSessionId(..)` and `getUserId(..)`, by merging two lists:
+Мы можем использовать `reduce(..)` (наш швейцарский армейский нож!) чтобы «вставить» `lookupUser(..)` в массив между сгенерированными функциями `getSessionId(..)` и `getUserId(..)`, объединив два списка:
 
 ```js
 .reduce( mergeReducer, [ lookupUser ] )
 ```
 
-Then we'll concatenate `lookupOrders(..)` and `processOrders(..)` onto the end of the running functions array:
+Затем конкатенируем `lookupOrders(..)` и `processOrders(..)` в конец текущего массива функций:
 
 ```js
 .concat( lookupOrders, processOrders )
 ```
 
-To review, the generated list of five functions is expressed as:
+Для обзора, генерируемый список из пяти функций выражается как:
 
 ```js
 [ "sessId", "uId" ].map( propName => partial( prop, propName ) )
@@ -1106,7 +1109,7 @@ To review, the generated list of five functions is expressed as:
 .concat( lookupOrders, processOrders )
 ```
 
-Finally, to put it all together, take this list of functions and tack on the guarding and composition from earlier:
+Наконец, собирая всё вместе, берём этот список функций и добавляем охрану и компоновку из предыдущего:
 
 ```js
 [ "sessId", "uId" ].map( propName => partial( prop, propName ) )
@@ -1119,17 +1122,17 @@ Finally, to put it all together, take this list of functions and tack on the gua
 );
 ```
 
-Gone are all the imperative variable declarations and conditionals, and in their place we have clean and declarative list operations chained together.
+Все императивные объявления переменных и условные операторы исчезли, а вместо них — чистые и декларативные операции со списками, выстроенные в цепочку.
 
-I know this version is likely harder for most readers to understand right now than the original. Don't worry, that's natural. The original imperative form is one you're probably much more familiar with.
+Я знаю, что эта версия, вероятно, труднее для понимания большинства читателей прямо сейчас, чем оригинал. Не волнуйтесь — это нормально. Исходная императивная форма — та, с которой вы, вероятно, значительно более знакомы.
 
-Part of your evolution to become a functional programmer is to develop a recognition of FP patterns such as list operations, and that takes lots of exposure and practice. Over time, these will jump out of the code more readily as your sense of code readability shifts to declarative style.
+Часть вашей эволюции в качестве функционального программиста — развитие распознавания ФП-паттернов, таких как операции со списками, а это требует большого количества воздействий и практики. Со временем они будут выскакивать из кода всё более отчётливо, по мере того как ваше чувство читаемости кода смещается к декларативному стилю.
 
-Before we move on from this topic, let's take a reality check: the example here is heavily contrived. Not all code segments will be straightforwardly modeled as list operations. The pragmatic take-away is to develop the instinct to look for these opportunities, but not get too hung up on code acrobatics; some improvement is better than none. Always step back and ask if you're **improving or harming** code readability.
+Прежде чем перейти от этой темы, давайте посмотрим на вещи трезво: этот пример сильно надуман. Не все сегменты кода будут легко моделироваться как операции со списками. Практический вывод — развивать инстинкт поиска таких возможностей, но не зацикливаться на кодовых акробатических трюках; некоторое улучшение лучше, чем ничего. Всегда делайте шаг назад и спрашивайте себя: **улучшает** это читаемость кода **или ухудшает**?
 
-## Fusion
+## Слияние (Fusion)
 
-As FP list operations permeate the way you think about code, you'll very likely start recognizing chains of combined behavior, like:
+По мере того как операции над списками в ФП проникают в ваш способ думать о коде, вы, скорее всего, начнёте замечать цепочки объединённого поведения, например:
 
 ```js
 ..
@@ -1138,7 +1141,7 @@ As FP list operations permeate the way you think about code, you'll very likely 
 .reduce(..);
 ```
 
-And more often than not, you're also probably going to end up with chains with multiple adjacent instances of each operation, like:
+И чаще всего вы, вероятно, получите цепочки с несколькими смежными экземплярами каждой операции, например:
 
 ```js
 someList
@@ -1150,9 +1153,9 @@ someList
 .reduce(..);
 ```
 
-The good news is the chain-style is declarative and it's easy to read the specific steps that will happen, in order. The downside is that each of these operations loops over the entire list, meaning performance can suffer unnecessarily, especially if the list is longer.
+Хорошая новость в том, что цепочечный стиль является декларативным и легко прочитать конкретные шаги, которые будут выполняться, по порядку. Минус в том, что каждая из этих операций перебирает весь список, что означает излишнее снижение производительности, особенно если список длиннее.
 
-With the alternative standalone style, you might see code like this:
+В альтернативном стандалон-стиле вы могли бы встретить код вроде:
 
 ```js
 map(
@@ -1164,11 +1167,11 @@ map(
 );
 ```
 
-With this style, the operations are listed from bottom-to-top, and we still loop over the list three times.
+В этом стиле операции перечислены снизу вверх, и мы всё ещё трижды перебираем список.
 
-Fusion deals with combining adjacent operators to reduce the number of times the list is iterated over. We'll focus here on collapsing adjacent `map(..)`s as it's the most straightforward to explain.
+Слияние (Fusion) занимается объединением соседних операторов для уменьшения количества итераций по списку. Сосредоточимся здесь на сворачивании соседних `map(..)`-ов, поскольку это наиболее просто для объяснения.
 
-Imagine this scenario:
+Представьте такой сценарий:
 
 ```js
 var removeInvalidChars = str => str.replace( /[^\w]*/g, "" );
@@ -1193,9 +1196,9 @@ words
 // ["MR","JONES","ISNT","RESPONS...","FOR","THIS","DISASTER"]
 ```
 
-Think about each value that goes through this flow of transformations. The first value in the `words` list starts out as `"Mr."`, becomes `"Mr"`, then `"MR"`, and then passes through `elide(..)` unchanged. Another piece of data flows: `"responsible"` -> `"responsible"` -> `"RESPONSIBLE"` -> `"RESPONS..."`.
+Подумайте о каждом значении, проходящем через этот поток трансформаций. Первое значение в списке `words` начинается как `"Mr."`, становится `"Mr"`, затем `"MR"` и проходит через `elide(..)` без изменений. Ещё одна единица данных: `"responsible"` -> `"responsible"` -> `"RESPONSIBLE"` -> `"RESPONS..."`.
 
-In other words, you could think of these data transformations like this:
+Иными словами, эти трансформации данных можно представить так:
 
 ```js
 elide( upper( removeInvalidChars( "Mr." ) ) );
@@ -1205,7 +1208,7 @@ elide( upper( removeInvalidChars( "responsible" ) ) );
 // "RESPONS..."
 ```
 
-Did you catch the point? We can express the three separate steps of the adjacent `map(..)` calls as a composition of the transformers, since they are all unary functions and each returns the value that's suitable as input to the next. We can fuse the mapper functions using `compose(..)`, and then pass the composed function to a single `map(..)` call:
+Уловили суть? Мы можем выразить три отдельных шага соседних вызовов `map(..)` как композицию трансформеров, поскольку все они являются унарными функциями и каждая возвращает значение, подходящее в качестве входного для следующей. Мы можем объединить функции-маппер через `compose(..)`, а затем передать получившуюся функцию в единственный вызов `map(..)`:
 
 ```js
 words
@@ -1215,7 +1218,7 @@ words
 // ["MR","JONES","ISNT","RESPONS...","FOR","THIS","DISASTER"]
 ```
 
-This is another case where `pipe(..)` can be a more convenient form of composition, for its ordering readability:
+Это ещё один случай, когда `pipe(..)` может быть более удобной формой композиции для удобства чтения порядка:
 
 ```js
 words
@@ -1225,34 +1228,34 @@ words
 // ["MR","JONES","ISNT","RESPONS...","FOR","THIS","DISASTER"]
 ```
 
-What about fusing two or more `filter(..)` predicate functions? Typically treated as unary functions, they seem suitable for composition. But the wrinkle is they each return a different kind of value (`boolean`) than the next one would want as input. Fusing adjacent `reduce(..)` calls is also possible, but reducers are not unary so that's a bit more challenging; we need more sophisticated tricks to pull this kind of fusion off. We'll cover these advanced techniques in [Appendix A](apA.md).
+Что насчёт слияния двух или более предикатных функций `filter(..)`? Обычно рассматриваемые как унарные функции, они кажутся пригодными для композиции. Но загвоздка в том, что каждая возвращает значение другого типа (`boolean`), которое следующая не хотела бы получать на входе. Слияние соседних вызовов `reduce(..)` тоже возможно, но редьюсеры не унарны, поэтому это немного сложнее; нам нужны более изощрённые трюки для такого слияния. Мы рассмотрим эти продвинутые техники в [Приложении A](apA.md).
 
-## Beyond Lists
+## За пределами списков
 
-So far we've been discussing operations in the context of the list (array) data structure; it's by far the most common scenario where you'll encounter them. But in a more general sense, these operations can be performed against any collection of values.
+До сих пор мы обсуждали операции в контексте структуры данных «список» (массив); это, безусловно, наиболее распространённый сценарий, где они встречаются. Но в более общем смысле эти операции можно выполнять над любой коллекцией значений.
 
-Just as we said earlier that array's `map(..)` adapts a single-value operation to all its values, any data structure can provide a `map(..)` operation to do the same. Likewise, it can implement `filter(..)`, `reduce(..)`, or any other operation that makes sense for working with the data structure's values.
+Как мы говорили ранее, `map(..)` массива адаптирует операцию над единственным значением ко всем его значениям — любая структура данных может предоставить операцию `map(..)` для того же. Точно так же она может реализовать `filter(..)`, `reduce(..)` или любую другую операцию, имеющую смысл для работы со значениями этой структуры данных.
 
-The important part to maintain in the spirit of FP is that these operators must behave according to value immutability, meaning that they must return a new data structure rather than mutating the existing one.
+Важная часть, которую нужно поддерживать в духе ФП, — то, что эти операторы должны вести себя в соответствии с неизменяемостью значений: они должны возвращать новую структуру данных, а не мутировать существующую.
 
 <img src="images/fig7.png" align="left" width="20%" hspace="20" vspace="20">
 
-Let's illustrate with a well-known data structure: the binary tree. A binary tree is a node (just an object!) that has at most two references to other nodes (themselves binary trees), typically referred to as *left* and *right* child trees. Each node in the tree holds one value of the overall data structure.
+Проиллюстрируем это хорошо известной структурой данных: бинарным деревом. Бинарное дерево — это узел (просто объект!), имеющий не более двух ссылок на другие узлы (сами являющиеся бинарными деревьями), обычно называемые *левым* и *правым* дочерними деревьями. Каждый узел в дереве хранит одно значение общей структуры данных.
 
-For ease of illustration, we'll make our binary tree a binary search tree (BST). However, the operations we'll identify work the same for any regular non-BST binary tree.
+Для простоты иллюстрации сделаем наше бинарное дерево деревом бинарного поиска (BST). Тем не менее операции, которые мы определим, одинаково работают для любого обычного не-BST бинарного дерева.
 
-**Note:** A binary search tree is a general binary tree with a special constraint on the relationship of values in the tree to each other. Each value of nodes on the left side of a tree is less than the value of the node at the root of that tree, which in turn is less than each value of nodes in the right side of the tree. The notion of "less than" is relative to the kind of data stored; it can be numerical for numbers, lexicographic for strings, and so on. BSTs by definition must remain balanced, which makes searching for a value in the tree more efficient, using a recursive binary search algorithm.
+**Примечание:** Дерево бинарного поиска — это общее бинарное дерево с особым ограничением на отношение значений узлов друг к другу. Каждое значение узлов левой части дерева меньше значения узла в корне этого дерева, которое, в свою очередь, меньше каждого значения узлов правой части дерева. Понятие «меньше» относительно типа хранимых данных: для чисел — числовое, для строк — лексикографическое и т.д. BST по определению должны оставаться сбалансированными, что делает поиск значения в дереве более эффективным с использованием рекурсивного алгоритма бинарного поиска.
 
-To make a binary tree node object, let's use this factory function:
+Создадим объект-узел бинарного дерева с помощью этой фабричной функции:
 
 ```js
 var BinaryTree =
     (value,parent,left,right) => ({ value, parent, left, right });
 ```
 
-For convenience, we make each node store the `left` and `right` child trees as well as a reference to its own `parent` node.
+Для удобства каждый узел хранит как дочерние деревья `left` и `right`, так и ссылку на свой собственный узел-родитель `parent`.
 
-Let's now define a BST of names of common produce (fruits, vegetables):
+Теперь определим BST из названий распространённых продуктов (фруктов, овощей):
 
 ```js
 var banana = BinaryTree( "banana" );
@@ -1265,20 +1268,20 @@ var cucumber = cherry.right = BinaryTree( "cucumber", cherry );
 var grape = cucumber.right = BinaryTree( "grape", cucumber );
 ```
 
-In this particular tree structure, `banana` is the root node; this tree could have been set up with nodes in different locations, but still had a BST with the same traversal.
+В этой конкретной структуре дерева `banana` является корневым узлом; это дерево могло бы быть выстроено с узлами в других местах, но всё равно являлось бы BST с тем же обходом.
 
-Our tree looks like:
+Наше дерево выглядит так:
 
 <p align="center">
     <img src="images/fig8.png" width="60%">
 </p>
 
-There are multiple ways to traverse a binary tree to process its values. If it's a BST (ours is!) and we do an *in-order* traversal -- always visit the left child tree first, then the node itself, then the right child tree -- we'll visit the values in ascending (sorted) order.
+Существует несколько способов обхода бинарного дерева для обработки его значений. Если это BST (как у нас!) и мы делаем *центрированный* обход — всегда сначала посещая левое дочернее дерево, затем сам узел, затем правое — мы посетим значения в возрастающем (отсортированном) порядке.
 
-Because you can't just easily `console.log(..)` a binary tree like you can with an array, let's first define a convenience method, mostly to use for printing. `forEach(..)` will visit the nodes of a binary tree in the same manner as an array:
+Поскольку бинарное дерево нельзя легко вывести через `console.log(..)`, как массив, давайте сначала определим удобный метод, преимущественно для печати. `forEach(..)` будет обходить узлы бинарного дерева так же, как массив:
 
 ```js
-// in-order traversal
+// центрированный обход
 BinaryTree.forEach = function forEach(visitFn,node){
     if (node) {
         if (node.left) {
@@ -1294,22 +1297,22 @@ BinaryTree.forEach = function forEach(visitFn,node){
 };
 ```
 
-**Note:** Working with binary trees lends itself most naturally to recursive processing. Our `forEach(..)` utility recursively calls itself to process both the left and right child trees. We already discussed recursion in [Chapter 8](ch8.md), where we covered recursion in the chapter on recursion.
+**Примечание:** Работа с бинарными деревьями наиболее естественно поддаётся рекурсивной обработке. Наша утилита `forEach(..)` рекурсивно вызывает себя для обработки как левого, так и правого дочерних деревьев. О рекурсии мы уже говорили в [Главе 8](ch8.md).
 
-Recall `forEach(..)` was described at the beginning of this chapter as only being useful for side effects, which is not very typically desired in FP. In this case, we'll use `forEach(..)` only for the side effect of I/O, so it's perfectly reasonable as a helper.
+Напомним, что `forEach(..)` в начале этой главы был описан как полезный только для побочных эффектов, что обычно нежелательно в ФП. В данном случае мы будем использовать `forEach(..)` только для побочного эффекта ввода-вывода, поэтому он вполне разумен в качестве вспомогательного инструмента.
 
-Use `forEach(..)` to print out values from the tree:
+Используем `forEach(..)` для вывода значений из дерева:
 
 ```js
 BinaryTree.forEach( node => console.log( node.value ), banana );
 // apple apricot avocado banana cantaloupe cherry cucumber grape
 
-// visit only the `cherry`-rooted subtree
+// посещаем только поддерево с корнем `cherry`
 BinaryTree.forEach( node => console.log( node.value ), cherry );
 // cantaloupe cherry cucumber grape
 ```
 
-To operate on our binary tree data structure using FP patterns, let's start by defining a `map(..)`:
+Чтобы работать с нашей структурой данных бинарного дерева с использованием ФП-паттернов, давайте начнём с определения `map(..)`:
 
 ```js
 BinaryTree.map = function map(mapperFn,node){
@@ -1333,9 +1336,9 @@ BinaryTree.map = function map(mapperFn,node){
 };
 ```
 
-You might have assumed we'd `map(..)` only the node `value` properties, but in general we might actually want to map the tree nodes themselves. So, the `mapperFn(..)` is passed the whole node being visited, and it expects to receive a new `BinaryTree(..)` node back, with the transformation applied. If you just return the same node, this operation will mutate your tree and quite possibly cause unexpected results!
+Возможно, вы предположили, что мы будем отображать только свойства `value` узлов, но в общем случае мы, возможно, захотим отображать сами узлы дерева. Поэтому `mapperFn(..)` передаётся весь посещаемый узел, и ожидается, что она вернёт новый узел `BinaryTree(..)` с применённым преобразованием. Если вы просто вернёте тот же узел — эта операция мутирует ваше дерево и, вероятно, приведёт к неожиданным результатам!
 
-Let's map our tree to a list of produce with all uppercase names:
+Давайте отобразим наше дерево в список продуктов, где все названия написаны заглавными буквами:
 
 ```js
 var BANANA = BinaryTree.map(
@@ -1347,16 +1350,16 @@ BinaryTree.forEach( node => console.log( node.value ), BANANA );
 // APPLE APRICOT AVOCADO BANANA CANTALOUPE CHERRY CUCUMBER GRAPE
 ```
 
-`BANANA` is a different tree (with all different nodes) than `banana`, just like calling `map(..)` on an array returns a new array. Just like arrays of other objects/arrays, if `node.value` itself references some object/array, you'll also need to handle manually copying it in the mapper function if you want deeper immutability.
+`BANANA` — это другое дерево (с полностью другими узлами), отличное от `banana`, точно так же как вызов `map(..)` на массиве возвращает новый массив. Как и в случае с массивами других объектов/массивов, если `node.value` сам ссылается на какой-то объект/массив, вам также нужно будет вручную скопировать его в функции-маппере, если вы хотите более глубокой неизменяемости.
 
-How about `reduce(..)`? Same basic process: do an in-order traversal of the tree nodes. One usage would be to `reduce(..)` our tree to an array of its values, which would be useful in further adapting other typical list operations. Or we can `reduce(..)` our tree to a string concatenation of all its produce names.
+Как насчёт `reduce(..)`? Тот же базовый процесс: центрированный обход узлов дерева. Одним из применений было бы сворачивание нашего дерева в массив его значений, что было бы полезно для дальнейшей адаптации других типичных операций со списками. Или мы можем свернуть дерево в строковую конкатенацию всех названий продуктов.
 
-We'll mimic the behavior of the array `reduce(..)`, which makes passing the `initialValue` argument optional. This algorithm is a little trickier, but still manageable:
+Мы воспроизведём поведение `reduce(..)` массива, делая передачу аргумента `initialValue` необязательной. Алгоритм немного сложнее, но всё ещё управляем:
 
 ```js
 BinaryTree.reduce = function reduce(reducerFn,initialValue,node){
     if (arguments.length < 3) {
-        // shift the parameters since `initialValue` was omitted
+        // сдвигаем параметры, так как `initialValue` опущен
         node = initialValue;
     }
 
@@ -1389,7 +1392,7 @@ BinaryTree.reduce = function reduce(reducerFn,initialValue,node){
 };
 ```
 
-Let's use `reduce(..)` to make our shopping list (an array):
+Давайте используем `reduce(..)` для составления нашего списка покупок (массива):
 
 ```js
 BinaryTree.reduce(
@@ -1401,7 +1404,7 @@ BinaryTree.reduce(
 //   "cherry","cucumber","grape"]
 ```
 
-Finally, let's consider `filter(..)` for our tree. This algorithm is trickiest so far because it effectively (not actually) involves removing nodes from the tree, which requires handling several corner cases. Don't get intimidated by the implementation, though. Just skip over it for now, if you prefer, and focus on how we use it instead.
+Наконец, рассмотрим `filter(..)` для нашего дерева. Этот алгоритм наиболее сложен из всех, поскольку фактически (хотя и не буквально) подразумевает удаление узлов из дерева, что требует обработки нескольких граничных случаев. Не пугайтесь реализации. При желании просто пропустите её и сосредоточьтесь на том, как мы её используем.
 
 ```js
 BinaryTree.filter = function filter(predicateFn,node){
@@ -1480,9 +1483,9 @@ BinaryTree.filter = function filter(predicateFn,node){
 };
 ```
 
-The majority of this code listing is dedicated to handling the shifting of a node's parent/child references if it's "removed" (filtered out) of the duplicated tree structure.
+Большая часть этого кода посвящена обработке сдвига ссылок родитель/потомок узла, если он «удалён» (отфильтрован) из дублированной структуры дерева.
 
-As an example to illustrate using `filter(..)`, let's narrow our produce tree down to only vegetables:
+Для иллюстрации использования `filter(..)` давайте сузим наше дерево продуктов только до овощей:
 
 ```js
 var vegetables = [ "asparagus", "avocado", "broccoli", "carrot",
@@ -1490,12 +1493,12 @@ var vegetables = [ "asparagus", "avocado", "broccoli", "carrot",
     "zucchini" ];
 
 var whatToBuy = BinaryTree.filter(
-    // filter the produce list only for vegetables
+    // фильтруем список продуктов только по овощам
     node => vegetables.indexOf( node.value ) != -1,
     banana
 );
 
-// shopping list
+// список покупок
 BinaryTree.reduce(
     (result,node) => [ ...result, node.value ],
     [],
@@ -1504,20 +1507,20 @@ BinaryTree.reduce(
 // ["avocado","cucumber"]
 ```
 
-**Note:** We aren't making any effort to rebalance a tree after any of the `map`/`reduce`/`filter` operations on BSTs. Technically, this means the results are not themselves binary *search* trees. Most JS values have a reasonable less-than comparison operation (`<`) by which we could rebalance such a tree, but some values (like promises) wouldn't have any such definition. For the sake of keeping this chapter practical in length, we'll punt on handling this complication.
+**Примечание:** Мы не предпринимаем никаких попыток восстановить баланс дерева после каких-либо операций `map`/`reduce`/`filter` на BST. Технически это означает, что результаты сами по себе не являются деревьями *бинарного поиска*. У большинства JS-значений есть разумная операция сравнения «меньше чем» (`<`), с помощью которой мы могли бы перебалансировать такое дерево, но у некоторых значений (например, промисов) такого определения нет. В целях сохранения практической длины главы мы не будем решать это усложнение.
 
-You will likely use most of the list operations from this chapter in the context of simple arrays. But now we've seen that the concepts apply to whatever data structures and operations you might need. That's a powerful expression of how FP can be widely applied to many different application scenarios!
+Вы, скорее всего, будете использовать большинство операций со списками из этой главы в контексте обычных массивов. Но теперь мы убедились, что концепции применимы к любым структурам данных и операциям, которые могут вам понадобиться. Это мощное выражение того, насколько широко ФП может применяться в самых разных сценариях!
 
-## Summary
+## Резюме
 
-Three common and powerful list operations we looked at:
+Три распространённые и мощные операции со списками, которые мы рассмотрели:
 
-* `map(..)`: Transforms values as it projects them to a new list.
-* `filter(..)`: Selects or excludes values as it projects them to a new list.
-* `reduce(..)`: Combines values in a list to produce some other (usually but not always non-list) value.
+* `map(..)`: Преобразует значения, проецируя их в новый список.
+* `filter(..)`: Отбирает или исключает значения, проецируя их в новый список.
+* `reduce(..)`: Объединяет значения в списке, создавая некое другое (обычно, хотя и не всегда, не являющееся списком) значение.
 
-Other more advanced operations that are useful in processing lists: `unique(..)`, `flatten(..)`, and `merge(..)`.
+Другие более продвинутые операции, полезные при обработке списков: `unique(..)`, `flatten(..)` и `merge(..)`.
 
-Fusion uses function composition to consolidate multiple adjacent `map(..)` calls. This is mostly a performance optimization, but it also improves the declarative nature of your list operations.
+Слияние использует композицию функций для консолидации нескольких соседних вызовов `map(..)`. Это в первую очередь оптимизация производительности, но это также улучшает декларативность ваших операций над списками.
 
-Lists are typically visualized as arrays, but can be generalized as any data structure that represents/produces an ordered collection of values. As such, all these "list operations" are actually "data structure operations".
+Списки обычно визуализируются как массивы, но могут быть обобщены до любой структуры данных, представляющей/производящей упорядоченную коллекцию значений. Как таковые, все эти «операции со списками» на самом деле являются «операциями со структурами данных».
