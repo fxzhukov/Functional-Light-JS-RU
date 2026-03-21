@@ -1,45 +1,45 @@
 # Functional-Light JavaScript
-# Appendix C: FP Libraries
+# Приложение C: ФП-библиотеки
 
-If you've been reading this book from start to finish, take a minute to stop and look back how far you've come since [Chapter 1](ch1.md). It's been quite a journey. I hope you've learned a lot and gained insight into thinking functionally for your own programs.
+Если вы читали эту книгу от начала до конца — остановитесь на минуту и оглянитесь назад, как далеко вы продвинулись с [Главы 1](ch1.md). Это было настоящее путешествие. Надеюсь, вы многому научились и получили понимание того, как мыслить функционально в своих программах.
 
-I want to close this book leaving you with some quick pointers of working with common/popular FP libraries. This is not an exhaustive documentation on each, but a quick glance at the things you should be aware of as you venture beyond "Functional-Light" into broader FP.
+Хочу завершить книгу, оставив вам несколько быстрых подсказок по работе с распространёнными/популярными ФП-библиотеками. Это не исчерпывающая документация по каждой из них, а краткий взгляд на вещи, о которых стоит знать, когда вы выйдете за пределы «Functional-Light» в более широкое ФП.
 
-Wherever possible, I recommend you *not* reinvent any wheels. If you find an FP library that suits your needs, use it. Only use the ad hoc helper utilities from this book -- or invent ones of your own! -- if you can't find a suitable library method for your circumstance.
+Где только возможно, рекомендую *не* изобретать велосипед. Если вы найдёте ФП-библиотеку, соответствующую вашим потребностям, — используйте её. Используйте вспомогательные утилиты из этой книги — или изобретайте собственные! — только если не можете найти подходящий метод в библиотеке для вашей ситуации.
 
-## Stuff to Investigate
+## Что стоит изучить
 
-Let's expand the [list of FP libraries to be aware of, from Chapter 1](ch1.md/#libraries). We won't cover all of these (as there's a lot of overlap), but here are the ones that should probably be on your radar screen:
+Расширим [список ФП-библиотек, заслуживающих внимания, из Главы 1](ch1.md/#libraries). Мы не будем охватывать все из них (поскольку между ними много пересечений), но вот те, что должны быть в вашем поле зрения:
 
-* [Ramda](http://ramdajs.com): General FP Utilities
-* [Sanctuary](https://github.com/sanctuary-js/sanctuary): Ramda Companion for FP Types
-* [lodash/fp](https://github.com/lodash/lodash/wiki/FP-Guide): General FP Utilities
-* [functional.js](http://functionaljs.com/): General FP Utilities
-* [Immutable](https://github.com/facebook/immutable-js): Immutable Data Structures
-* [Mori](https://github.com/swannodette/mori): (ClojureScript Inspired) Immutable Data Structures
-* [Seamless-Immutable](https://github.com/rtfeldman/seamless-immutable): Immutable Data Helpers
-* [transducers-js](https://github.com/cognitect-labs/transducers-js): Transducers
-* [monet.js](https://github.com/monet/monet.js): Monadic Types
+* [Ramda](http://ramdajs.com): Общие ФП-утилиты
+* [Sanctuary](https://github.com/sanctuary-js/sanctuary): Дополнение к Ramda для ФП-типов
+* [lodash/fp](https://github.com/lodash/lodash/wiki/FP-Guide): Общие ФП-утилиты
+* [functional.js](http://functionaljs.com/): Общие ФП-утилиты
+* [Immutable](https://github.com/facebook/immutable-js): Неизменяемые структуры данных
+* [Mori](https://github.com/swannodette/mori): Неизменяемые структуры данных (под влиянием ClojureScript)
+* [Seamless-Immutable](https://github.com/rtfeldman/seamless-immutable): Хелперы для неизменяемых данных
+* [transducers-js](https://github.com/cognitect-labs/transducers-js): Трансдьюсеры
+* [monet.js](https://github.com/monet/monet.js): Монадические типы
 
-There are dozens of other fine libraries not on this list. Just because it's not on my list here doesn't mean it's not good, nor is this list a particular endorsement. It's just a quick glance at the landscape of FP-in-JavaScript. A much longer list of FP resources can be [found here](https://github.com/stoeffel/awesome-fp-js).
+Существуют десятки других хороших библиотек, не вошедших в этот список. То, что библиотека не в списке, не значит, что она плоха, и список не является какой-либо рекомендацией. Это лишь быстрый взгляд на ландшафт ФП в JavaScript. Значительно более длинный список ФП-ресурсов можно [найти здесь](https://github.com/stoeffel/awesome-fp-js).
 
-One resource that's extremely important to the FP world -- it's not a library but more an encyclopedia! -- is [Fantasy Land](https://github.com/fantasyland/fantasy-land) (aka FL).
+Один ресурс, крайне важный для мира ФП — не библиотека, а скорее энциклопедия! — это [Fantasy Land](https://github.com/fantasyland/fantasy-land) (сокр. FL).
 
-This is definitely not light reading for the faint of heart. It's a complete detailed roadmap of all of FP as it's interpreted in JavaScript. FL has become a de facto standard for JavaScript FP libraries to adhere to, to ensure maximum interoperability.
+Это определённо не лёгкое чтение для слабонервных. Это полная подробная дорожная карта всего ФП в интерпретации JavaScript. FL стал де-факто стандартом, которому придерживаются JavaScript-ФП-библиотеки для обеспечения максимальной совместимости.
 
-Fantasy Land is pretty much the exact opposite of "Functional-Light". It's the full-on no-holds-barred approach to FP in JavaScript. That said, as you venture beyond this book, it's likely that FL will be on that road for you. I'd recommend you bookmark it, and go back to it after you've had at least six months of real-world practice with this book's concepts.
+Fantasy Land — почти полная противоположность «Functional-Light». Это полноценный беззастенчивый подход к ФП в JavaScript. Тем не менее, выходя за рамки этой книги, вы, скорее всего, встретите FL на своём пути. Рекомендую добавить его в закладки и вернуться к нему, проработав с концепциями этой книги хотя бы шесть месяцев на реальных задачах.
 
 ## Ramda (0.23.0)
 
-From the [Ramda documentation](http://ramdajs.com/):
+Из [документации Ramda](http://ramdajs.com/):
 
-> Ramda functions are automatically curried.
+> Функции Ramda автоматически каррированы.
 >
-> The parameters to Ramda functions are arranged to make it convenient for currying. The data to be operated on is generally supplied last.
+> Параметры функций Ramda расставлены так, чтобы упростить каррирование. Данные, над которыми выполняется операция, обычно передаются последними.
 
-I find that design decision to be one of Ramda's strengths. It's also important to note that Ramda's form of currying (as with most libraries, it seems) is the ["loose currying" we talked about in Chapter 3](ch3.md/#user-content-loosecurry).
+Это дизайнерское решение я считаю одной из сильных сторон Ramda. Также важно отметить, что форма каррирования в Ramda (как и в большинстве библиотек, по всей видимости) является [«мягким каррированием», о котором мы говорили в Главе 3](ch3.md/#user-content-loosecurry).
 
-The [final example of Chapter 3](ch3.md/#user-content-finalshortlong) -- recall defining a point-free `printIf(..)` utility -- can be done with Ramda like this:
+[Финальный пример Главы 3](ch3.md/#user-content-finalshortlong) — вспомните, мы определяли безточечную утилиту `printIf(..)` — можно сделать с Ramda следующим образом:
 
 ```js
 function output(msg) {
@@ -64,23 +64,23 @@ printIf( isLongEnough, msg1 );
 printIf( isLongEnough, msg2 );            // Hello World
 ```
 
-A few differences to point out compared to [Chapter 3's approach](ch3.md/#user-content-finalshortlong):
+Несколько отличий от [подхода Главы 3](ch3.md/#user-content-finalshortlong):
 
-* We use `R.complement(..)` instead of `not(..)` to create a negating function `isLongEnough(..)` around `isShortEnough(..)`.
+* Мы используем `R.complement(..)` вместо `not(..)` для создания отрицающей функции `isLongEnough(..)` из `isShortEnough(..)`.
 
-* We use `R.flip(..)` instead of `reverseArgs(..)`. It's important to note that `R.flip(..)` only swaps the first two arguments, whereas `reverseArgs(..)` reverses all of them. In this case, `flip(..)` is more convenient for us, so we don't need to do `partialRight(..)` or any of that kind of juggling.
+* Мы используем `R.flip(..)` вместо `reverseArgs(..)`. Важно отметить, что `R.flip(..)` меняет местами только первые два аргумента, тогда как `reverseArgs(..)` переворачивает все. В данном случае `flip(..)` удобнее, так что нам не нужно ни `partialRight(..)`, ни прочего жонглирования.
 
-* `R.partial(..)` takes all of its subsequent arguments (beyond the function) as a single array.
+* `R.partial(..)` принимает все последующие аргументы (помимо функции) в виде одного массива.
 
-* Because Ramda is using loose currying, we don't need to use `R.uncurryN(..)` to get a `printIf(..)` that takes both its arguments. If we did, it would look like `R.uncurryN( 2, .. )` wrapped around the `R.partial(..)` call; but that's not necessary.
+* Поскольку Ramda использует мягкое каррирование, нам не нужен `R.uncurryN(..)` для получения `printIf(..)`, принимающей оба аргумента. Если бы он нужен, это выглядело бы как `R.uncurryN( 2, .. )`, обёрнутый вокруг вызова `R.partial(..)`; но это не обязательно.
 
-Ramda is a very popular and powerful library. It's a really good place to start if you're practicing adding FP to your code base.
+Ramda — очень популярная и мощная библиотека. Это отличная отправная точка, если вы практикуете добавление ФП в свою кодовую базу.
 
 ## Lodash/fp (4.17.4)
 
-Lodash is one of the most popular libraries in the entire JS ecosystem. They publish an "FP-friendly" version of their API as ["lodash/fp"](https://github.com/lodash/lodash/wiki/FP-Guide).
+Lodash — одна из самых популярных библиотек во всей экосистеме JS. Они публикуют «ФП-дружественную» версию своего API под названием [«lodash/fp»](https://github.com/lodash/lodash/wiki/FP-Guide).
 
-In [Chapter 9, we looked at composing standalone list operations](ch9.md/#composing-standalone-utilities) (`map(..)`, `filter(..)`, and `reduce(..)`). Here's how we could do it with "lodash/fp":
+В [Главе 9 мы рассматривали компоновку стандалон-операций над списками](ch9.md/#composing-standalone-utilities) (`map(..)`, `filter(..)` и `reduce(..)`). Вот как это можно сделать с «lodash/fp»:
 
 ```js
 var sum = (x,y) => x + y;
@@ -95,17 +95,17 @@ fp.compose( [
 ( [1,2,3,4,5] );                    // 18
 ```
 
-Instead of the more familiar `_.` namespace prefix, "lodash/fp" defines its methods with `fp.` as the namespace prefix. I find that a helpful distinguisher, and also generally more easy on my eyes than `_.` anyway!
+Вместо более привычного префикса пространства имён `_.`, «lodash/fp» определяет свои методы с префиксом `fp.`. Я нахожу это полезным отличием, а также в целом более удобочитаемым, чем `_.`!
 
-Notice that `fp.compose(..)` (also known as `_.flowRight(..)` in lodash proper) takes an array of functions instead of individual arguments.
+Обратите внимание, что `fp.compose(..)` (также известный как `_.flowRight(..)` в самом lodash) принимает массив функций вместо отдельных аргументов.
 
-You cannot beat the stability, widespread community support, and performance of lodash. It's a solid bet for your FP explorations.
+Стабильность, широкая поддержка сообщества и производительность lodash — это трудно превзойти. Надёжный выбор для ваших ФП-исследований.
 
 ## Mori (0.3.2)
 
-In [Chapter 6](ch6.md), we already briefly glanced at the Immutable.js library, probably the most well-known for immutable data structures.
+В [Главе 6](ch6.md) мы уже кратко упоминали библиотеку Immutable.js, пожалуй, наиболее известную в области неизменяемых структур данных.
 
-Let's instead look at another popular library: [Mori](https://github.com/swannodette/mori). Mori is designed with a different (ostensibly more FP-like) take on API: it uses standalone functions instead of methods directly on the values.
+Давайте вместо этого рассмотрим другую популярную библиотеку: [Mori](https://github.com/swannodette/mori). Mori спроектирован с иным (предположительно, более ФП-подобным) взглядом на API: он использует стандалон-функции вместо методов непосредственно на значениях.
 
 ```js
 var state = mori.vector( 1, 2, 3, 4 );
@@ -127,21 +127,21 @@ mori.get( newState, 42 );                // "meaning of life"
 mori.toJs( newState ).slice( 1, 3 );    // [2,3]
 ```
 
-Some interesting things to point out about Mori for this example:
+Несколько интересных наблюдений о Mori на этом примере:
 
-* We're using a `vector` instead of a `list` (as one might assume), mostly because the documentation says it behaves more like we expect JS arrays to be.
+* Мы используем `vector` вместо `list` (как можно было предположить) в первую очередь потому, что документация говорит, что он ведёт себя больше так, как мы ожидаем от JS-массивов.
 
-* We cannot just randomly set a position past the end of the vector like we can with JS arrays; that throws an exception. So we have to first "grow" the vector using `mori.into(..)` with an array of the appropriate size of extra slots we want. Once we have a vector with 43 slots (4 + 39), we can set the final slot (position `42`) to the `"meaning of life"` value using the `mori.assoc(..)` method.
+* Нельзя просто произвольно установить позицию за пределами вектора, как можно с JS-массивами; это вызовет исключение. Поэтому сначала нужно «увеличить» вектор с помощью `mori.into(..)` с массивом нужного размера дополнительных слотов. Получив вектор с 43 слотами (4 + 39), можно установить последний слот (позиция `42`) в значение `"meaning of life"` с помощью метода `mori.assoc(..)`.
 
-* The intermediate step of creating a larger vector with `mori.into(..)` and then creating another from it with `mori.assoc(..)` might sound inefficient. But the beauty of immutable data structures is that no cloning is going on here. Each time a "change" is made, the new data structure is just tracking the difference from the previous state.
+* Промежуточный шаг создания большего вектора через `mori.into(..)` и затем другого из него через `mori.assoc(..)` может казаться неэффективным. Но красота неизменяемых структур данных в том, что здесь не происходит никакого клонирования. При каждом «изменении» новая структура данных просто отслеживает разницу с предыдущим состоянием.
 
-Mori is heavily inspired by ClojureScript. Its API will be very familiar if you have experience (or currently work in!) that language. Since I don't have that experience, I find the method names a little strange to get used to.
+Mori сильно вдохновлён ClojureScript. Его API будет очень знакомым, если у вас есть опыт работы с этим языком. Поскольку у меня такого опыта нет, названия методов кажутся мне немного непривычными.
 
-But I really like the standalone function design instead of methods on values. Mori also has some functions that automatically return regular JS arrays, which is a nice convenience.
+Но мне очень нравится дизайн со стандалон-функциями вместо методов на значениях. В Mori также есть некоторые функции, автоматически возвращающие обычные JS-массивы — это удобная фича.
 
-## Bonus: FPO
+## Бонус: FPO
 
-In [Chapter 2, we introduced a pattern](ch2.md/#named-arguments) for dealing with arguments called "named arguments", which in JS means using an object at the call-site to map properties to destructured function parameters:
+В [Главе 2 мы представили паттерн](ch2.md/#named-arguments) работы с аргументами, называемый «именованными аргументами», который в JS означает использование объекта в месте вызова для сопоставления свойств с деструктурированными параметрами функции:
 
 ```js
 function foo( {x,y} = {} ) {
@@ -153,7 +153,7 @@ foo( {
 } );                    // undefined 3
 ```
 
-Then in [Chapter 3, we talked about extending](ch3.md/#order-matters) our ideas of currying and partial application to work with named arguments, like this:
+Затем в [Главе 3 мы говорили о расширении](ch3.md/#order-matters) наших идей о каррировании и частичном применении для работы с именованными аргументами:
 
 ```js
 function foo({ x, y, z } = {}) {
@@ -165,44 +165,44 @@ var f1 = curryProps( foo, 3 );
 f1( {y: 2} )( {x: 1} )( {z: 3} );
 ```
 
-One major benefit of this style is being able to pass arguments (even with currying or partial application!) in any order without needing to do `reverseArgs(..)`-style juggling of parameters. Another is being able to omit an optional argument by simply not specifying it, instead of passing an ugly placeholder.
+Одним из главных преимуществ этого стиля является возможность передавать аргументы (даже при каррировании или частичном применении!) в любом порядке без необходимости выполнять жонглирование параметрами в стиле `reverseArgs(..)`. Ещё одно — возможность опустить необязательный аргумент, просто не указывая его, вместо передачи уродливого заполнителя.
 
-In my journey learning FP, I've regularly been frustrated by both of those irritations of functions with traditional positional arguments; thus I've really appreciated the named arguments style for addressing those concerns.
+В своём ФП-путешествии я регулярно испытывал разочарование от обоих этих неудобств функций с традиционными позиционными аргументами; поэтому стиль именованных аргументов очень ценен для меня.
 
-One day, I was musing about with this style of FP coding, and wondered what it would be like if a whole FP library had all its API methods exposed in this style. I started experimenting, showed those experiments to a few FP folks, and got some positive feedback.
+Однажды я экспериментировал с таким стилем ФП-программирования и задумался: а каково было бы, если бы целая ФП-библиотека предоставляла все свои методы API именно в таком стиле? Я начал экспериментировать, показал эти эксперименты нескольким ФП-разработчикам и получил положительные отзывы.
 
-From those experiments, eventually the [FPO](https://github.com/getify/fpo) (pronounced "eff-poh") library was born; FPO stands for FP-with-Objects, in case you were wondering.
+Из этих экспериментов в итоге родилась библиотека [FPO](https://github.com/getify/fpo) (произносится «эф-пи-о»); FPO расшифровывается как FP-with-Objects — ФП с Объектами.
 
-From the documentation:
+Из документации:
 
 ```js
-// Ramda's `reduce(..)`
+// reduce(..) от Ramda
 R.reduce(
     (acc,v) => acc + v,
     0,
     [3,7,9]
 );  // 19
 
-// FPO named-argument method style
+// Стиль именованных аргументов FPO
 FPO.reduce({
     arr: [3,7,9],
     fn: ({acc,v}) => acc + v
 }); // 19
 ```
 
-With traditional library implementations of `reduce(..)` (like Ramda), the initial value parameter is in the middle, and not optional. FPO's `reduce(..)` method can take the arguments in any order, and you can omit the optional initial value if desired.
+В традиционных реализациях `reduce(..)` (как у Ramda) параметр начального значения стоит в середине и является обязательным. Метод `reduce(..)` в FPO принимает аргументы в любом порядке, и начальное значение можно опустить при желании.
 
-As with most other FP libraries, FPO's API methods are automatically loose-curried, so you can not only provide arguments in any order, but specialize the function by providing its arguments over multiple calls:
+Как и большинство других ФП-библиотек, методы API в FPO автоматически мягко каррированы, поэтому аргументы можно не только передавать в любом порядке, но и специализировать функцию, предоставляя аргументы в несколько вызовов:
 
 ```js
 var f = FPO.reduce({ arr: [3,7,9] });
 
-// later
+// позже
 
 f({ fn: ({acc,v}) => acc + v });    // 19
 ```
 
-Lastly, all of FPO's API methods are also exposed using the traditional positional arguments style -- you'll find they're all very similar to Ramda and other libraries -- under the `FPO.std.*` namespace:
+Наконец, все методы API в FPO также доступны в традиционном стиле позиционных аргументов — они очень похожи на Ramda и другие библиотеки — в пространстве имён `FPO.std.*`:
 
 ```js
 FPO.std.reduce(
@@ -212,17 +212,17 @@ FPO.std.reduce(
 );  // 19
 ```
 
-If FPO's named argument form of FP appeals to you, perhaps check out the library and see what you think. It has a full test suite and most of the major FP functionality you'd expect, including everything we covered in this text to get you up and going with Functional-Light JavaScript!
+Если форма ФП с именованными аргументами в FPO вам импонирует — ознакомьтесь с библиотекой и составьте своё мнение. У неё есть полный набор тестов и большинство основных ФП-функций, которых вы ожидаете, включая всё, что мы рассматривали в этой книге для начала работы с Functional-Light JavaScript!
 
-## Bonus #2: fasy
+## Бонус #2: fasy
 
-FP iterations (`map(..)`, `filter(..)`, etc.) are almost always modeled as synchronous operations, meaning we eagerly run through all the steps of the iteration immediately. As a matter of fact, other FP patterns like composition and even transducing are also iterations, and are also modeled exactly this way.
+ФП-итерации (`map(..)`, `filter(..)` и т.д.) почти всегда моделируются как синхронные операции: мы жадно выполняем все шаги итерации немедленно. По факту, другие ФП-паттерны вроде композиции и даже трансдьюсирования тоже являются итерациями и моделируются именно так.
 
-But what happens if one or more of the steps in an iteration needs to complete asynchronously? You might jump to thinking that Observables (see [Chapter 10](ch10.md/#observables)) is the natural answer, but they're not what we need.
+Но что происходит, если одному или нескольким шагам итерации нужно завершиться асинхронно? Возможно, вы захотите подумать об Observable (см. [Главу 10](ch10.md/#observables)) как о естественном ответе, но они — не то, что нам нужно.
 
-Let me quickly illustrate.
+Позвольте быстро проиллюстрировать.
 
-Imagine you have a list of URLs that represent images you want to load into a web page. The fetching of the images is asynchronous, obviously. So, this isn't going to work quite like you'd hope:
+Представьте, что у вас есть список URL изображений, которые нужно загрузить на веб-страницу. Загрузка изображений, очевидно, асинхронна. Поэтому следующее не сработает так, как хотелось бы:
 
 ```js
 var imageURLs = [
@@ -234,9 +234,9 @@ var imageURLs = [
 var images = imageURLs.map( fetchImage );
 ```
 
-The `images` array won't contain the images. Depending on the behavior of `fetchImage(..)`, it probably returns a promise for the image object once it finishes downloading. So `images` would now be a list of promises.
+Массив `images` не будет содержать изображения. В зависимости от поведения `fetchImage(..)`, скорее всего, она возвращает Promise для объекта изображения после завершения загрузки. Так что `images` теперь будет списком промисов.
 
-Of course, you could then use `Promise.all(..)` to wait for all those promises to resolve, and then unwrap an array of the image object results at its completion:
+Конечно, можно воспользоваться `Promise.all(..)`, чтобы дождаться разрешения всех промисов, и затем получить массив результатов:
 
 ```js
 Promise.all( images )
@@ -245,25 +245,25 @@ Promise.all( images )
 });
 ```
 
-Unfortunately, this "trick" only works if you're going to do all the asynchronous steps concurrently (rather than serially, one after the other), and only if the operation is a `map(..)` call as shown. If you want serial asynchrony, or you want to, for example, do a `filter(..)` concurrently, this won't quite work; it's possible, but it's messier.
+К сожалению, этот «трюк» работает только если вы хотите выполнить все асинхронные шаги конкурентно (а не последовательно, один за другим), и только если операция — это вызов `map(..)`, как показано. Если вам нужна последовательная асинхронность или, например, конкурентный `filter(..)` — это не совсем сработает; это возможно, но будет громоздко.
 
-And some operations naturally require serial asynchrony, like for example an asynchronous `reduce(..)`, which clearly needs to work left-to-right one at a time; those steps can't be run concurrently and have that operation make any sense.
+И некоторые операции естественным образом требуют последовательной асинхронности: например, асинхронный `reduce(..)` явно должен работать слева направо по одному шагу; эти шаги нельзя выполнять конкурентно и сохранять смысл операции.
 
-As I said, Observables (see [Chapter 10](ch10.md/#observables)) aren't the answer to these kinds of tasks. The reason is, an Observable's coordination of asynchrony is between separate operations, not between steps/iterations at a single level of operation.
+Как я уже сказал, Observable (см. [Главу 10](ch10.md/#observables)) не являются ответом на задачи такого рода. Причина в том, что координация асинхронности в Observable происходит между отдельными операциями, а не между шагами/итерациями на одном уровне операции.
 
-Another way to visualize this distinction is that Observables support "vertical asynchrony", whereas what I'm talking about would be "horizontal asynchrony".
+Другой способ визуализировать это различие: Observable поддерживает «вертикальную асинхронность», тогда как я говорю о «горизонтальной асинхронности».
 
-Consider:
+Рассмотрим:
 
 ```js
 var obsv = Rx.Observable.from( [1,2,3,4,5] );
 
 obsv
 .map( x => x * 2 )
-.delay( 100 )        // <-- vertical asynchrony
+.delay( 100 )        // <-- вертикальная асинхронность
 .map( x => x + 1 )
 .subscribe( v => console.log );
-// {after 100 ms}
+// {через 100 мс}
 // 3
 // 5
 // 7
@@ -271,15 +271,15 @@ obsv
 // 11
 ```
 
-If for some reason I wanted to ensure that there was a delay of 100 ms between when `1` was processed by the first `map(..)` and when `2` was processed, that would be the "horizontal asynchrony" I'm referring to. There's not really a clean way to model that.
+Если по какой-то причине я хочу обеспечить задержку в 100 мс между обработкой `1` первым `map(..)` и обработкой `2` — это «горизонтальная асинхронность», о которой я говорю. Чистого способа смоделировать это нет.
 
-And of course, I'm using an arbitrary delay in that description, but in practice that would more likely be serial-asynchrony like an asynchronous reduce, where each step in that reduction iteration could take some time before it completes and lets the next step be processed.
+И конечно, я использую произвольную задержку в этом описании, но на практике это скорее всего была бы последовательно-асинхронная операция вроде асинхронного reduce, где каждый шаг итерации свёртки может занять некоторое время перед завершением и передачей управления следующему.
 
-So, how do we support both serial and concurrent iteration across asynchronous operations?
+Итак, как поддерживать как последовательную, так и конкурентную итерацию по асинхронным операциям?
 
-**fasy** (pronounced like "Tracy" but with an "f") is a little utility library I built for supporting exactly those kinds of tasks. You can find more information about it [here](https://github.com/getify/fasy).
+**fasy** (произносится как «Tracy», но с «f») — небольшая утилитарная библиотека, которую я создал именно для поддержки таких задач. Подробнее о ней [здесь](https://github.com/getify/fasy).
 
-To illustrate **fasy**, let's consider a concurrent `map(..)` versus a serial `map(..)`:
+Для иллюстрации **fasy** рассмотрим конкурентный `map(..)` против последовательного `map(..)`:
 
 ```js
 FA.concurrent.map( fetchImage, imageURLs )
@@ -293,20 +293,20 @@ FA.serial.map( fetchImage, imageURLs )
 } );
 ```
 
-In both cases, the `then(..)` handler will only be invoked once all the fetches have fully completed. The difference is whether the fetches will all initiate concurrently (aka, "in parallel") or go out one at a time.
+В обоих случаях обработчик `then(..)` будет вызван только после полного завершения всех загрузок. Разница — будут ли загрузки инициироваться конкурентно (то есть «параллельно») или по одной.
 
-Your instinct might be that concurrent would always be preferable, and while that may be common, it's not always the case.
+Инстинктивно кажется, что конкурентный подход всегда предпочтительнее, и хотя это может быть типичным, это не всегда так.
 
-For example, what if `fetchImage(..)` maintains a cache of fetched images, and it checks the cache before making the actual network request? What if, in addition to that, the list of `imageURLs` could have duplicates in it? You'd certainly want the first fetch of an image URL to complete (and populate the cache) before doing the check on the duplicate image URL later in the list.
+Например, что если `fetchImage(..)` поддерживает кэш загруженных изображений и проверяет его перед фактическим сетевым запросом? Что если, помимо этого, список `imageURLs` может содержать дубликаты? Вы явно захотите, чтобы первая загрузка URL изображения завершилась (и заполнила кэш) перед проверкой дублирующегося URL изображения далее в списке.
 
-Again, there will inevitably be cases where concurrent or serial asynchrony will be called for. Asynchronous reductions will always be serial, whereas asynchronous mappings may likely tend to be more concurrent but can also need to be serial in some cases. That's why **fasy** supports all these options.
+Опять же, неизбежно будут случаи, когда потребуется конкурентная или последовательная асинхронность. Асинхронные свёртки всегда будут последовательными, тогда как асинхронные отображения в большинстве случаев будут конкурентными, но в некоторых ситуациях тоже должны быть последовательными. Именно поэтому **fasy** поддерживает все эти варианты.
 
-Along with Observables, **fasy** will help you extend more FP patterns and principles to your asynchronous operations.
+Наряду с Observable, **fasy** поможет вам расширить больше ФП-паттернов и принципов на асинхронные операции.
 
-## Summary
+## Резюме
 
-JavaScript is not particularly designed as an FP language. However, it does have enough of the basics (like function values, closures, etc.) for us to make it FP-friendly. And the libraries we've examined here will help you do that.
+JavaScript не спроектирован специально как ФП-язык. Тем не менее, у него есть достаточно основ (таких как функции-значения, замыкания и т.д.), чтобы сделать его ФП-дружественным. И библиотеки, которые мы рассмотрели здесь, помогут вам в этом.
 
-Armed with the concepts from this book, you're ready to start tackling real-world code. Find a good, comfortable FP library and jump in. Practice, practice, practice!
+Вооружившись концепциями из этой книги, вы готовы браться за реальный код. Найдите хорошую, подходящую вам ФП-библиотеку и погрузитесь в работу. Практика, практика, практика!
 
-So... that's it. I've shared what I have for you, for now. I hereby officially certify you as a "Functional-Light JavaScript" programmer! It's time to close out this "chapter" of our story of learning FP together. But my learning journey still continues; I hope yours does, too!
+Итак... вот и всё. Я поделился тем, что у меня есть для вас, на сегодняшний день. Настоящим официально сертифицирую вас как «Functional-Light JavaScript»-программиста! Пришло время закрыть эту «главу» нашей истории изучения ФП вместе. Но мой путь обучения продолжается — надеюсь, и ваш тоже!
