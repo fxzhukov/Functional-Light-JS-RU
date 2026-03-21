@@ -1,57 +1,57 @@
 # Functional-Light JavaScript
-# Appendix B: The Humble Monad
+# Приложение B: Скромная монада
 
-Let me just start off this appendix by admitting: I did not know much about what a monad was before starting to write this appendix. And it took a lot of mistakes to get something sensible. If you don't believe me, go look at the commit history of this appendix in the [Github repository for this book](https://github.com/getify/Functional-Light-JS)!
+Позвольте начать это приложение с признания: до того как я приступил к его написанию, я почти ничего не знал о монадах. И мне потребовалось немало ошибок, чтобы написать что-то внятное. Если не верите — посмотрите историю коммитов этого приложения в [репозитории GitHub для этой книги](https://github.com/getify/Functional-Light-JS)!
 
-I am including the topic of monads in the book because it's part of the journey that every developer will encounter while learning FP, just as I have in this book writing.
+Я включаю тему монад в книгу, потому что с ней неизбежно столкнётся каждый разработчик на пути изучения ФП — как это случилось со мной при написании этой книги.
 
-We're basically ending this book with a brief glimpse at monads, whereas most other FP literature kinda almost starts with monads! I do not encounter in my "Functional-Light" programming much of a need to think explicitly in terms of monads, so that's why this material is more bonus than main core. But that's not to say monads aren't useful or prevalent -- they very much are.
+Мы заканчиваем книгу кратким взглядом на монады, тогда как большинство другой ФП-литературы практически начинается с монад! В моём «Functional-Light»-программировании мне редко приходится явно думать в терминах монад, поэтому этот материал скорее бонус, чем основная часть. Но это не значит, что монады бесполезны или редко встречаются — как раз наоборот.
 
-There's a bit of a joke around the JavaScript FP world that pretty much everybody has to write their own tutorial or blog post on what a monad is, like the writing of it alone is some rite of passage. Over the years, monads have variously been depicted as burritos, onions, and all sorts of other wacky conceptual abstractions. I hope there's none of that silly business going on here!
+В мире ФП на JavaScript существует что-то вроде шутки: практически каждый обязан написать своё собственное руководство или пост в блоге о том, что такое монада, как будто само написание является неким обрядом посвящения. На протяжении многих лет монады изображались по-разному — как буррито, луковицы и всевозможные другие причудливые концептуальные абстракции. Надеюсь, здесь ничего подобного нет!
 
-> A monad is just a monoid in the category of endofunctors.
+> Монада — это просто моноид в категории эндофункторов.
 
-We started the preface with this quote, so it seems fitting we come back to it here. But no, we won't be talking about monoids, endofunctors, or category theory. That quote is not only condescending, but totally unhelpful.
+Мы начали предисловие с этой цитаты, так что уместно вернуться к ней здесь. Но нет — мы не будем говорить о моноидах, эндофункторах или теории категорий. Эта цитата не только снисходительна, но и абсолютно бесполезна.
 
-My only hope for what you get out of this discussion is to not be scared of the term monad or the concept anymore -- I have been, for years! -- and to be able to recognize them when you see them. You might, just maybe, even use them on occasion.
+Моя единственная надежда на то, что вы вынесете из этого обсуждения, — перестать бояться термина «монада» или самой концепции — я боялся их годами! — и уметь распознавать их, когда встречаете. Возможно, вы даже будете время от времени их использовать.
 
-## Type
+## Тип
 
-There's a huge area of interest in FP that we've basically stayed entirely away from throughout this book: type theory. I'm not going to get very deep into type theory, because quite frankly I'm not qualified to do so. And you wouldn't appreciate it even if I did.
+В ФП существует огромная область интереса, которую мы в этой книге практически полностью обходили стороной: теория типов. Я не буду глубоко погружаться в теорию типов, поскольку, откровенно говоря, недостаточно квалифицирован для этого. Да и вы вряд ли оценили бы это даже при желании.
 
-But what I will say is that a monad is basically a value type.
+Но вот что я скажу: монада по сути является типом значения.
 
-The number `42` has a value type (number!) that brings with it certain characteristics and capabilities that we rely on. The string `"42"` may look very similar, but it has a different purpose in our program.
+Число `42` имеет тип значения (число!), который несёт с собой определённые характеристики и возможности, на которые мы полагаемся. Строка `"42"` может выглядеть очень похоже, но в нашей программе она имеет другое назначение.
 
-In object-oriented programming, when you have a set of data (even a single discrete value) and you have some behavior you want to bundle with it, you create an object/class to represent that "type". Instances are then members of that type. This practice generally goes by the name "data structures".
+В объектно-ориентированном программировании, когда у вас есть набор данных (даже одно отдельное значение) и некоторое поведение, которое вы хотите с ним связать, вы создаёте объект/класс для представления этого «типа». Экземпляры затем являются членами этого типа. Эта практика обычно называется «структурами данных».
 
-I'm going to use the notion of data structures very loosely here, and assert that we may find it useful in a program to define a set of behaviors and constraints for a certain value, and bundle them together with that value into a single abstraction. That way, as we work with one or more of those kinds of values in our program, their behaviors come along for free and will make working with them more convenient. And by convenient, I mean more declarative and approachable for the reader of your code!
+Я буду использовать понятие структур данных очень широко и утверждать: в программе может оказаться полезным определить набор поведений и ограничений для определённого значения и объединить их вместе с этим значением в единую абстракцию. Тогда при работе с одним или несколькими значениями такого рода в программе их поведение будет идти «в комплекте», что сделает работу с ними удобнее. И под «удобнее» я имею в виду более декларативно и доступно для читателя вашего кода!
 
-A monad is a data structure. It's a type. It's a set of behaviors that are specifically designed to make working with a value predictable.
+Монада — это структура данных. Это тип. Это набор поведений, специально разработанных для того, чтобы сделать работу со значением предсказуемой.
 
-Recall in [Chapter 9 that we talked about functors](ch9.md/#a-word-functors): a value along with a map-like utility to perform an operation on all its constitute data members. A monad is a functor that includes some additional behavior.
+Вспомните из [Главы 9, где мы говорили о функторах](ch9.md/#a-word-functors): значение вместе с утилитой, похожей на map, для выполнения операции над всеми составляющими его данными. Монада — это функтор, включающий дополнительное поведение.
 
-## Loose Interface
+## Нечёткий интерфейс
 
-Actually, a monad isn't a single data type, it's really more like a related collection of data types. It's kind of an interface that's implemented differently depending on the needs of different values. Each implementation is a different type of monad.
+На самом деле монада — это не единственный тип данных, это скорее связанная коллекция типов данных. Она больше похожа на интерфейс, реализуемый по-разному в зависимости от потребностей разных значений. Каждая реализация — это другой вид монады.
 
-For example, you may read about the "Identity Monad", the "IO Monad", the "Maybe Monad", the "Either Monad", or a variety of others. Each of these has the basic monad behavior defined, but it extends or overrides the interactions according to the use cases for each different type of monad.
+Например, вы можете читать об «Монаде Identity», «Монаде IO», «Монаде Maybe», «Монаде Either» или о множестве других. Каждая из них имеет определённое базовое монадическое поведение, но расширяет или переопределяет взаимодействия в соответствии с вариантами использования каждого конкретного типа монады.
 
-It's a little more than an interface though, because it's not just the presence of certain API methods that makes an object a monad. There's a certain set of guarantees about the interactions of these methods that is necessary, to be monadic. These well-known invariants are critical to usage of monads improving readability by familiarity; otherwise, it's just an ad hoc data structure that must be fully read to be understood by the reader.
+Это немного больше, чем просто интерфейс, потому что наличие определённых методов API ещё не делает объект монадой. Необходим определённый набор гарантий взаимодействия этих методов, чтобы быть монадическим. Эти хорошо известные инварианты критически важны для того, чтобы использование монад улучшало читаемость кода за счёт знакомости; иначе это просто специализированная структура данных, которую читатель должен прочесть целиком для понимания.
 
-As a matter of fact, there's not even just one single unified agreement on the names of these monadic methods, the way a true interface would mandate; a monad is more like a loose interface. Some people call a certain method `bind(..)`, some call it `chain(..)`, some call it `flatMap(..)`, and so on.
+Более того, даже единого соглашения о названиях этих монадических методов не существует — в отличие от настоящего интерфейса. Монада больше похожа на нечёткий интерфейс. Одни называют определённый метод `bind(..)`, другие — `chain(..)`, третьи — `flatMap(..)` и так далее.
 
-So a monad is an object data structure with sufficient methods (of practically any name or sort) that at a minimum satisfy the main behavioral requirements of the monad definition. Each kind of monad has a different kind of extension above the minimum. But, because they all have an overlap in behavior, using two different kinds of monads together is still straightforward and predictable.
+Итак, монада — это объектная структура данных с достаточным количеством методов (практически любых названий и вида), которые как минимум удовлетворяют основным требованиям к поведению, определённым для монады. Каждый вид монады имеет своё расширение сверх минимума. Но поскольку у всех есть пересечение в поведении, совместное использование двух разных видов монад всё равно остаётся простым и предсказуемым.
 
-It's in that sense that monads are sort of like an interface.
+Именно в этом смысле монады чем-то напоминают интерфейс.
 
-## Just a Monad
+## Просто монада
 
-A basic primitive monad underlying many other monads you will run across is called Just. It's *just* a simple monadic wrapper for any regular (aka, non-empty) value.
+Базовая примитивная монада, лежащая в основе многих других монад, с которыми вы столкнётесь, называется Just (Просто). Это *просто* простая монадическая обёртка для любого обычного (то есть непустого) значения.
 
-Since a monad is a type, you might think we'd define `Just` as a class to be instantiated. That's a valid way of doing it, but it introduces `this`-binding issues in the methods that I don't want to juggle; instead, I'm going to stick with just a simple function approach.
+Поскольку монада является типом, вы могли бы подумать, что мы определим `Just` как класс для инстанцирования. Это допустимый способ, но он создаёт проблемы с привязкой `this` в методах, с которыми я не хочу бороться; вместо этого я буду придерживаться простого функционального подхода.
 
-Here's a basic implementation:
+Вот базовая реализация:
 
 ```js
 function Just(val) {
@@ -72,17 +72,17 @@ function Just(val) {
 }
 ```
 
-**Note:** The `inspect(..)` method is included here only for our demonstration purposes. It serves no direct role in the monadic sense.
+**Примечание:** Метод `inspect(..)` включён здесь исключительно в демонстрационных целях. В монадическом смысле он не играет прямой роли.
 
-You'll notice that whatever `val` value a `Just(..)` instance holds, it's never changed. All monad methods create new monad instances instead of mutating the monad's value itself.
+Вы заметите, что какое бы значение `val` ни хранил экземпляр `Just(..)` — оно никогда не меняется. Все методы монады создают новые экземпляры монады вместо мутации самого значения монады.
 
-Don't worry if most of this doesn't make sense right now. We're not gonna obsess too much over the details or the math/theory behind the design of the monad. Instead, we'll focus more on illustrating what we can do with them.
+Не беспокойтесь, если большинство из этого пока не имеет смысла. Мы не будем слишком зацикливаться на деталях или математике/теории, лежащей в основе дизайна монады. Вместо этого сосредоточимся на иллюстрации того, что мы можем с ними делать.
 
-### Working with Monad Methods
+### Работа с методами монады
 
-All monad instances will have `map(..)`, `chain(..)` (also called `bind(..)` or `flatMap(..)`), and `ap(..)` methods. The purpose of these methods and their behavior is to provide a standardized way of multiple monad instances interacting with each other.
+Все экземпляры монад будут иметь методы `map(..)`, `chain(..)` (также называемый `bind(..)` или `flatMap(..)`), и `ap(..)`. Назначение этих методов и их поведение — обеспечить стандартизированный способ взаимодействия нескольких экземпляров монад между собой.
 
-Let's look first at the monadic `map(..)` function. Like `map(..)` on an array (see [Chapter 9](ch9.md/#map)) that calls a mapper function with its value(s) and produces a new array, a monad's `map(..)` calls a mapper function with the monad's value, and whatever is returned is wrapped in a new Just monad instance:
+Сначала рассмотрим монадическую функцию `map(..)`. Подобно `map(..)` на массиве (см. [Главу 9](ch9.md/#map)), которая вызывает функцию-маппер со своими значениями и создаёт новый массив, метод `map(..)` монады вызывает функцию-маппер со значением монады, и всё, что возвращается, оборачивается в новый экземпляр монады Just:
 
 ```js
 var A = Just( 10 );
@@ -91,7 +91,7 @@ var B = A.map( v => v * 2 );
 B.inspect();                // Just(20)
 ```
 
-Monadic `chain(..)` kinda does the same thing as `map(..)`, but then it sort of unwraps the resulting value from its new monad. However, instead of thinking informally about "unwrapping" a monad, the more formal explanation would be that `chain(..)` flattens the monad. Consider:
+Монадический `chain(..)` делает примерно то же самое, что `map(..)`, но затем как бы «разворачивает» результирующее значение из его новой монады. Впрочем, вместо неформального «разворачивания» монады более корректным объяснением будет то, что `chain(..)` выравнивает монаду. Рассмотрим:
 
 ```js
 var A = Just( 10 );
@@ -101,9 +101,9 @@ eleven;                     // 11
 typeof eleven;              // "number"
 ```
 
-`eleven` is the actual primitive number `11`, not a monad holding that value.
+`eleven` — это настоящее примитивное число `11`, а не монада, хранящая это значение.
 
-To connect this `chain(..)` method conceptually to stuff we've already learned, we'll point out that many monad implementations name this method `flatMap(..)`. Now, recall from [Chapter 9 what `flatMap(..)`](ch9.md/#user-content-flatmap) does (as compared to `map(..)`) with an array:
+Чтобы концептуально связать метод `chain(..)` с тем, что мы уже изучили, отметим: многие реализации монад называют этот метод `flatMap(..)`. Напомним из [Главы 9, что делает `flatMap(..)`](ch9.md/#user-content-flatmap) (по сравнению с `map(..)`) с массивом:
 
 ```js
 var x = [3];
@@ -112,11 +112,11 @@ map( v => [v,v+1], x );         // [[3,4]]
 flatMap( v => [v,v+1], x );     // [3,4]
 ```
 
-See the difference? The mapper function `v => [v,v+1]` results in a `[3,4]` array, which ends up in the single first position of the outer array, so we get `[[3,4]]`. But `flatMap(..)` flattens out the inner array into the outer array, so we get just `[3,4]` instead.
+Видите разницу? Функция-маппер `v => [v,v+1]` возвращает массив `[3,4]`, который оказывается на единственной первой позиции внешнего массива — получаем `[[3,4]]`. Но `flatMap(..)` выравнивает внутренний массив во внешний, и мы получаем просто `[3,4]`.
 
-That's the same kind of thing going on with a monad's `chain(..)` (often referred to as `flatMap(..)`). Instead of getting a monad holding the value as `map(..)` does, `chain(..)` additionally flattens the monad into the underlying value. Actually, instead of creating that intermediate monad only to immediately flatten it, `chain(..)` is generally implemented more performantly to just take a shortcut and not create the monad in the first place. Either way, the end result is the same.
+То же самое происходит с `chain(..)` монады (часто именуемым `flatMap(..)`). Вместо того чтобы получать монаду, хранящую значение, как делает `map(..)`, `chain(..)` дополнительно выравнивает монаду до лежащего в основе значения. На практике вместо создания промежуточной монады с немедленным её выравниванием `chain(..)` обычно реализован более эффективно — просто пропуская создание монады. В любом случае конечный результат одинаков.
 
-One way to illustrate `chain(..)` in this manner is in combination with the `identity(..)` utility (see [Chapter 3](ch3.md/#one-on-one)), to effectively extract a value from a monad:
+Один из способов проиллюстрировать `chain(..)` — в сочетании с утилитой `identity(..)` (см. [Главу 3](ch3.md/#one-on-one)) для эффективного извлечения значения из монады:
 
 ```js
 var identity = v => v;
@@ -124,19 +124,19 @@ var identity = v => v;
 A.chain( identity );        // 10
 ```
 
-`A.chain(..)` calls `identity(..)` with the value in `A`, and whatever value `identity(..)` returns (`10` in this case) just comes right out without any intervening monad. In other words, from that earlier `Just(..)` code listing, we wouldn't actually need to include that optional `inspect(..)` helper, as `chain(identity)` accomplishes the same goal; it's purely for ease of debugging as we learn monads.
+`A.chain(..)` вызывает `identity(..)` со значением в `A`, и какое бы значение ни вернула `identity(..)` (`10` в данном случае) — оно выходит наружу без какой-либо промежуточной монады. Иными словами, из предыдущего кода `Just(..)` нам не нужен необязательный хелпер `inspect(..)`, так как `chain(identity)` достигает той же цели; он существует исключительно для удобства отладки при изучении монад.
 
-At this point, hopefully both `map(..)` and `chain(..)` feel fairly reasonable to you.
+На этом этапе, надеюсь, и `map(..)`, и `chain(..)` кажутся вам достаточно разумными.
 
-By contrast, a monad's `ap(..)` method will likely be much less intuitive at first glance. It will seem like a strange contortion of interaction, but there's deep and important reasoning behind the design. Let's take a moment to break it down.
+Напротив, метод `ap(..)` монады, скорее всего, поначалу будет значительно менее интуитивным. Он покажется странным искажением взаимодействия, но за дизайном стоит глубокая и важная причина. Давайте уделим момент его разбору.
 
-`ap(..)` takes the value wrapped in a monad and "applies" it to another monad using that other monad's `map(..)`. OK, fine so far.
+`ap(..)` берёт значение, обёрнутое в монаду, и «применяет» его к другой монаде, используя `map(..)` этой другой монады. Пока всё в порядке.
 
-However, `map(..)` always expects a function. So that means the monad you call `ap(..)` on has to actually contain a function as its value, to pass to that other monad's `map(..)`.
+Однако `map(..)` всегда ожидает функцию. Значит, монада, на которой вы вызываете `ap(..)`, должна фактически содержать функцию в качестве своего значения — для передачи в `map(..)` другой монады.
 
-Confused? Yeah, not what you might have expected. We'll try to briefly illuminate, but just expect that these things will be fuzzy for a while until you've had a lot more exposure and practice with monads.
+Запутались? Да, не совсем то, чего вы могли ожидать. Попробуем кратко пояснить, но пока рассчитывайте на то, что это будет туманно ещё некоторое время — пока у вас не накопится больше опыта и практики с монадами.
 
-We'll define `A` as a monad that contains a value `10`, and `B` as a monad that contains the value `3`:
+Определим `A` как монаду, содержащую значение `10`, и `B` как монаду, содержащую значение `3`:
 
 ```js
 var A = Just( 10 );
@@ -146,11 +146,11 @@ A.inspect();                // Just(10)
 B.inspect();                // Just(3)
 ```
 
-Now, how could we make a new monad where the values `10` and `3` had been added together, say via a `sum(..)` function? Turns out `ap(..)` can help.
+Как можно создать новую монаду, в которой значения `10` и `3` сложены вместе — скажем, через функцию `sum(..)`? Оказывается, `ap(..)` может помочь.
 
-To use `ap(..)`, we said we first need to construct a monad that holds a function. Specifically, we need one that holds a function that itself holds (remembers via closure) the value in `A`. Let that sink in for a moment.
+Чтобы использовать `ap(..)`, нам сначала нужно создать монаду, хранящую функцию. Конкретно, нам нужна та, что хранит функцию, которая сама хранит (помнит через замыкание) значение в `A`. Дайте этому немного уложиться.
 
-To make a monad from `A` that holds a value-containing function, we call `A.map(..)`, giving it a curried function that "remembers" that extracted value (see [Chapter 3](ch3.md/#one-at-a-time)) as its first argument. We'll call this new function-containing monad `C`:
+Чтобы создать монаду из `A`, хранящую функцию-со-значением, вызываем `A.map(..)`, давая ей каррированную функцию, «помнящую» (см. [Главу 3](ch3.md/#one-at-a-time)) это извлечённое значение как первый аргумент. Назовём эту новую монаду-с-функцией `C`:
 
 ```js
 function sum(x,y) { return x + y; }
@@ -161,9 +161,9 @@ C.inspect();
 // Just(function curried...)
 ```
 
-Think about how that works. The curried `sum(..)` function is expecting two values to do its work, and we give it the first of those values by having `A.map(..)` extract `10` and pass it in. `C` now holds the function that remembers `10` via closure.
+Подумайте, как это работает. Каррированная функция `sum(..)` ждёт два значения для работы, и мы даём ей первое из них, заставив `A.map(..)` извлечь `10` и передать его. `C` теперь хранит функцию, помнящую `10` через замыкание.
 
-Now, to get the second value (`3` inside `B`) passed to the waiting curried function in `C`:
+Теперь, чтобы передать второе значение (`3` внутри `B`) в ожидающую каррированную функцию в `C`:
 
 ```js
 var D = C.ap( B );
@@ -171,7 +171,7 @@ var D = C.ap( B );
 D.inspect();                // Just(13)
 ```
 
-The value `10` came out of `C`, and `3` came out of `B`, and `sum(..)` added them together to `13` and wrapped that in the monad `D`. Let's put the two steps together so you can see their connection more clearly:
+Значение `10` вышло из `C`, `3` — из `B`, и `sum(..)` сложила их в `13`, обернув результат в монаду `D`. Соединим два шага вместе, чтобы отчётливее увидеть их связь:
 
 ```js
 var D = A.map( curry( sum ) ).ap( B );
@@ -179,7 +179,7 @@ var D = A.map( curry( sum ) ).ap( B );
 D.inspect();                // Just(13)
 ```
 
-To illustrate what `ap(..)` is helping us with, we could have achieved the same result this way:
+Для иллюстрации того, что `ap(..)` нам даёт, мы могли бы достичь того же результата вот так:
 
 ```js
 var D = B.map( A.chain( curry( sum ) ) );
@@ -187,7 +187,7 @@ var D = B.map( A.chain( curry( sum ) ) );
 D.inspect();                // Just(13);
 ```
 
-And that of course is just a composition (see [Chapter 4](ch4.md)):
+А это, конечно, просто композиция (см. [Главу 4](ch4.md)):
 
 ```js
 var D = compose( B.map, A.chain, curry )( sum );
@@ -195,17 +195,17 @@ var D = compose( B.map, A.chain, curry )( sum );
 D.inspect();                // Just(13)
 ```
 
-Cool, huh!?
+Круто, правда!?
 
-If the *how* of this discussion on monad methods is unclear so far, go back and re-read. If the *why* is elusive, just hang in there. Monads so easily confound developers, that's *just* how it is!
+Если *как* из этого обсуждения методов монады до сих пор не ясно, вернитесь и перечитайте. Если *почему* ускользает — просто держитесь. Монады так легко сбивают разработчиков с толку — это *просто* так устроено!
 
 ## Maybe
 
-It's very common in FP material to cover well-known monads like Maybe. Actually, the Maybe monad is a particular pairing of two other simpler monads: Just and Nothing.
+В ФП-материалах очень принято рассматривать хорошо известные монады, такие как Maybe. По факту, монада Maybe является конкретным сочетанием двух других более простых монад: Just и Nothing.
 
-We've already seen Just; Nothing is a monad that holds an empty value. Maybe is a monad that either holds a Just or a Nothing.
+Мы уже видели Just; Nothing — это монада, хранящая пустое значение. Maybe — это монада, хранящая либо Just, либо Nothing.
 
-Here's a minimal implementation of Maybe:
+Вот минимальная реализация Maybe:
 
 ```js
 var Maybe = { Just, Nothing, of/* aka: unit, pure */: Just };
@@ -223,24 +223,24 @@ function Nothing() {
 }
 ```
 
-**Note:** `Maybe.of(..)` (sometimes referred to as `unit(..)` or `pure(..)`) is a convenience alias for `Just(..)`.
+**Примечание:** `Maybe.of(..)` (иногда называемый `unit(..)` или `pure(..)`) — это удобный псевдоним для `Just(..)`.
 
-In contrast to `Just()` instances, `Nothing()` instances have no-op definitions for all monadic methods. So if such a monad instance shows up in any monadic operations, it has the effect of basically short-circuiting to have no behavior happen. Notice there's no imposition here of what "empty" means -- your code gets to decide that. More on that later.
+В отличие от экземпляров `Just()`, экземпляры `Nothing()` имеют no-op-определения для всех монадических методов. Поэтому если такой экземпляр монады появляется в любых монадических операциях, он эффективно замыкает (short-circuit) цепочку, ничего не делая. Заметьте, что здесь нет никакого навязанного определения «пустого» — ваш код сам решает, что это означает. Подробнее — чуть ниже.
 
-In Maybe, if a value is non-empty, it's represented by an instance of `Just(..)`; if it's empty, it's represented by an instance of `Nothing()`.
+В Maybe, если значение непустое, оно представлено экземпляром `Just(..)`; если пустое — экземпляром `Nothing()`.
 
-But the importance of this kind of monad representation is that whether we have a `Just(..)` instance or a `Nothing()` instance, we'll use the API methods the same.
+Но важность такого монадического представления в том, что вне зависимости от того, имеем ли мы экземпляр `Just(..)` или `Nothing()`, мы используем методы API одинаково.
 
-The power of the Maybe abstraction is to encapsulate that behavior/no-op duality implicitly.
+Мощь абстракции Maybe — в неявной инкапсуляции этой двойственности «поведение/бездействие».
 
-### Different Maybes
+### Разные Maybe
 
-Many implementations of a JavaScript Maybe monad include a check (usually in `map(..)`) to see if the value is `null`/`undefined`, and skipping the behavior if so. In fact, Maybe is trumpeted as being valuable precisely because it sort of automatically short-circuits its behavior with the encapsulated empty-value check.
+Многие реализации JavaScript-монады Maybe включают проверку (обычно в `map(..)`) на `null`/`undefined` и пропуск поведения в таком случае. По факту, Maybe превозносится именно за то, что автоматически замыкает своё поведение с инкапсулированной проверкой на пустое значение.
 
-Here's how Maybe is usually illustrated:
+Вот как обычно иллюстрируют Maybe:
 
 ```js
-// instead of unsafe `console.log( someObj.something.else.entirely )`:
+// вместо небезопасного `console.log( someObj.something.else.entirely )`:
 
 Maybe.of( someObj )
 .map( prop( "something" ) )
@@ -249,17 +249,17 @@ Maybe.of( someObj )
 .map( console.log );
 ```
 
-In other words, if at any point in the chain we get a `null`/`undefined` value, the Maybe magically switches into no-op mode -- it's now a `Nothing()` monad instance! -- and stops doing anything for the rest of the chain. That makes the nested-property access safe against throwing JS exceptions if some property is missing/empty. That's cool, and a nice helpful abstraction for sure!
+Иными словами, если в любой точке цепочки мы получаем значение `null`/`undefined`, Maybe волшебным образом переключается в режим no-op — теперь это экземпляр монады `Nothing()`! — и перестаёт что-либо делать для остатка цепочки. Это делает доступ к вложенным свойствам безопасным — без исключений JS при отсутствии/пустом свойстве. Это круто и очень полезная абстракция!
 
-But... ***that approach to Maybe is not a pure monad.***
+Но... ***такой подход к Maybe — не чистая монада.***
 
-The core spirit of a Monad says that it must be valid for all values and cannot do any inspection of the value, at all -- not even a null check. So those other implementations are cutting corners for the sake of convenience. It's not a huge deal, but when it comes to learning something, you should probably learn it in its purest form first before you go bending the rules.
+Суть монады говорит, что она должна быть допустимой для всех значений и не может проверять значение вообще — даже на null. Поэтому те другие реализации срезают углы ради удобства. Это не огромная проблема, но когда вы что-то изучаете, вероятно, стоит сначала узнать это в чистейшей форме, прежде чем нарушать правила.
 
-The earlier implementation of the Maybe monad I provided differs from other Maybes primarily in that it does not have the empty-check in it. Also, we present `Maybe` merely as a loose pairing of `Just(..)`/`Nothing()`.
+Приведённая ранее реализация монады Maybe отличается от других тем, что в ней нет проверки на пустое значение. Также мы представляем `Maybe` лишь как нечёткое сочетание `Just(..)`/`Nothing()`.
 
-So wait. If we don't get the automatic short-circuiting, why is Maybe useful at all?!? That seems like its whole point.
+Но подождите. Если мы не получаем автоматическое замыкание — зачем вообще нужен Maybe!? Казалось бы, в этом весь его смысл.
 
-Never fear! We can simply provide the empty-check externally, and the rest of the short-circuiting behavior of the Maybe monad will work just fine. Here's how you could do the nested-property access (`someObj.something.else.entirely`) from before, but more "correctly":
+Не бойтесь! Мы можем просто предоставить проверку на пустое значение снаружи, и оставшееся замыкающее поведение монады Maybe будет работать прекрасно. Вот как можно сделать доступ к вложенному свойству (`someObj.something.else.entirely`) из предыдущего примера, но более «правильно»:
 
 ```js
 function isEmpty(val) {
@@ -278,32 +278,32 @@ Maybe.of( someObj )
 .map( console.log );
 ```
 
-We made a `safeProp(..)` that does the empty-check, and selects either a `Nothing()` monad instance if so, or wraps the value in a `Just(..)` instance (via `Maybe.of(..)`). Then instead of `map(..)`, we use `chain(..)` which knows how to "unwrap" the monad that `safeProp(..)` returns.
+Мы создали `safeProp(..)`, который делает проверку на пустое значение и выбирает либо экземпляр монады `Nothing()`, либо оборачивает значение в экземпляр `Just(..)` (через `Maybe.of(..)`). Затем вместо `map(..)` мы используем `chain(..)`, который умеет «разворачивать» монаду, возвращаемую `safeProp(..)`.
 
-We get the same chain short-circuiting upon encountering an empty value. We just don't embed that logic into the Maybe.
+Мы получаем то же замыкание цепочки при встрече пустого значения. Просто мы не встраиваем эту логику в Maybe.
 
-The benefit of the monad, and Maybe specifically, is that our `map(..)` and `chain(..)` methods have a consistent and predictable interaction regardless of which kind of monad comes back. That's pretty cool!
+Преимущество монады, и Maybe в частности, в том, что наши методы `map(..)` и `chain(..)` имеют согласованное и предсказуемое взаимодействие независимо от того, какой вид монады возвращается. Это весьма замечательно!
 
-## Humble
+## Скромная монада
 
-Now that we have a little more understanding of Maybe and what it does, I'm going to put a little twist on it -- and add some self-deferential humor to our discussion -- by inventing the Maybe+Humble monad. Technically, `MaybeHumble(..)` is not a monad itself, but a factory function that produces a Maybe monad instance.
+Теперь, немного лучше понимая Maybe и что он делает, я немного изменю его — и добавлю в наше обсуждение самоиронии, — изобретя монаду Maybe+Humble (Maybe+Скромная). Технически, `MaybeHumble(..)` — это не монада сама по себе, а фабричная функция, создающая экземпляр монады Maybe.
 
-Humble is an admittedly contrived data structure wrapper that uses Maybe to track the status of an `egoLevel` number. Specifically, `MaybeHumble(..)`-produced monad instances only operate affirmatively if their ego-level value is low enough (less than `42`!) to be considered humble; otherwise it's a `Nothing()` no-op. That should sound a lot like Maybe; it's pretty similar!
+Humble — заведомо надуманная обёртка структуры данных, использующая Maybe для отслеживания статуса числа `egoLevel` (уровень эго). Конкретно, монадические экземпляры, производимые `MaybeHumble(..)`, работают утвердительно только если их значение уровня эго достаточно низкое (меньше `42`!), чтобы считаться скромным; иначе это no-op `Nothing()`. Это должно звучать очень похоже на Maybe; оно весьма схоже!
 
-Here's the factory function for our Maybe+Humble monad:
+Вот фабричная функция для нашей монады Maybe+Humble:
 
 ```js
 function MaybeHumble(egoLevel) {
-    // accept anything other than a number that's 42 or higher
+    // принимаем всё, кроме числа 42 и выше
     return !(Number( egoLevel ) >= 42) ?
         Maybe.of( egoLevel ) :
         Maybe.Nothing();
 }
 ```
 
-You'll notice that this factory function is kinda like `safeProp(..)`, in that it uses a condition to decide if it should pick the `Just(..)` or the `Nothing()` part of the Maybe.
+Вы заметите, что эта фабричная функция немного похожа на `safeProp(..)` — она использует условие для выбора между `Just(..)` и `Nothing()` части Maybe.
 
-Let's illustrate some basic usage:
+Проиллюстрируем базовое использование:
 
 ```js
 var bob = MaybeHumble( 45 );
@@ -313,7 +313,7 @@ bob.inspect();              // Nothing
 alice.inspect();            // Just(39)
 ```
 
-What if Alice wins a big award and is now a bit more proud of herself?
+Что если Алиса получает большую награду и теперь немного гордится собой?
 
 ```js
 function winAward(ego) {
@@ -324,9 +324,9 @@ alice = alice.chain( winAward );
 alice.inspect();            // Nothing
 ```
 
-The `MaybeHumble( 39 + 3 )` call creates a `Nothing()` monad instance to return back from the `chain(..)` call, so now Alice doesn't qualify as humble anymore.
+Вызов `MaybeHumble( 39 + 3 )` создаёт экземпляр монады `Nothing()` для возврата из вызова `chain(..)`, так что теперь Алиса больше не квалифицируется как скромная.
 
-Now, let's use a few monads together:
+Теперь используем несколько монад вместе:
 
 ```js
 var bob = MaybeHumble( 41 );
@@ -340,27 +340,27 @@ bob.map( teamMembers ).ap( alice );
 // Our humble team's egos: 41 39
 ```
 
-Recalling the usage of `ap(..)` from earlier, we can now explain how this code works.
+Вспомнив использование `ap(..)` из предыдущего раздела, мы теперь можем объяснить, как работает этот код.
 
-Because `teamMembers(..)` is curried, the `bob.map(..)` call passes in the `bob` ego level (`41`), and creates a monad instance with the remaining function wrapped up. Calling `ap(alice)` on *that* monad calls `alice.map(..)` and passes to it the function from the monad. The effect is that both the `bob` and `alice` monad's numeric values have been provided to `teamMembers(..)` function, printing out the message as shown.
+Поскольку `teamMembers(..)` каррирована, вызов `bob.map(..)` передаёт уровень эго `bob` (`41`) и создаёт экземпляр монады с обёрнутой оставшейся функцией. Вызов `ap(alice)` на *этой* монаде вызывает `alice.map(..)` и передаёт ей функцию из монады. Эффект: числовые значения монад `bob` и `alice` оба были переданы в функцию `teamMembers(..)`, напечатав сообщение как показано.
 
-However, if either or both monads are actually `Nothing()` instances (because their ego level was too high):
+Однако, если одна или обе монады фактически являются экземплярами `Nothing()` (потому что их уровень эго был слишком высок):
 
 ```js
 var frank = MaybeHumble( 45 );
 
 bob.map( teamMembers ).ap( frank );
-// ..no output..
+// ..нет вывода..
 
 frank.map( teamMembers ).ap( bob );
-// ..no output..
+// ..нет вывода..
 ```
 
-`teamMembers(..)` never gets called (and no message is printed), because `frank` is a `Nothing()` instance. That's the power of the Maybe monad, and our `MaybeHumble(..)` factory allows us to select based on the ego level. Cool!
+`teamMembers(..)` никогда не вызывается (и сообщение не печатается), поскольку `frank` является экземпляром `Nothing()`. Вот в чём мощь монады Maybe, а наш `MaybeHumble(..)` позволяет выбирать на основе уровня эго. Круто!
 
-### Humility
+### Смирение
 
-One more example to illustrate the behaviors of our Maybe+Humble data structure:
+Ещё один пример для иллюстрации поведения нашей структуры данных Maybe+Humble:
 
 ```js
 function introduction() {
@@ -385,12 +385,12 @@ learner
 // Learned closures.
 // Learned side effects.
 // Learned recursion.
-// ..nothing else..
+// ..ничего дальше..
 ```
 
-Unfortunately, the learning process seems to have been cut short. You see, I've found that learning a bunch of stuff without sharing with others inflates your ego too much and is not good for your skills.
+К сожалению, процесс обучения, кажется, был прерван. Видите ли, я обнаружил, что изучение кучи всего без передачи другим слишком раздувает эго и вредит вашим навыкам.
 
-Let's try a better approach to learning:
+Давайте попробуем лучший подход к обучению:
 
 ```js
 var share = egoChange( -2 );
@@ -416,12 +416,12 @@ learner
 // I'm just a learner like you! :)
 ```
 
-Sharing while you learn. That's the best way to learn more and learn better.
+Делиться, пока учишься. Это лучший способ учиться больше и лучше.
 
-## Summary
+## Резюме
 
-What is a monad, anyway? A monad is a value type, an interface, an object data structure with encapsulated behaviors.
+Что же такое монада? Монада — это тип значения, интерфейс, объектная структура данных с инкапсулированными поведениями.
 
-But none of those definitions are particularly useful. Here's an attempt at something better: **a monad is how you organize behavior around a value in a more declarative way.**
+Но ни одно из этих определений не является особенно полезным. Вот попытка сформулировать лучше: **монада — это то, как вы организуете поведение вокруг значения более декларативным способом.**
 
-As with everything else in this book, use monads where they are helpful but don't use them just because everyone else talks about them in FP. Monads aren't a universal silver bullet, but they do offer some utility when used conservatively.
+Как и со всем остальным в этой книге: используйте монады там, где они полезны, но не используйте их только потому, что все о них говорят в ФП. Монады — не универсальная серебряная пуля, но они предлагают определённую пользу при консервативном использовании.
