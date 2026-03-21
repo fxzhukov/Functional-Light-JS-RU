@@ -1,21 +1,21 @@
 # Functional-Light JavaScript
-# Appendix A: Transducing
+# Приложение A: Трансдьюсеры
 
-Transducing is a more advanced technique than we've covered in this book. It extends many of the concepts from [Chapter 9](ch9.md) on list operations.
+Трансдьюсеры (transducing) — это более продвинутая техника, чем те, что мы рассматривали в книге. Она расширяет многие концепции из [Главы 9](ch9.md) об операциях со списками.
 
-I wouldn't necessarily call this topic strictly "Functional-Light", but more like a bonus on top. I've presented this as an appendix because you might very well need to skip the discussion for now and come back to it once you feel fairly comfortable with -- and make sure you've practiced! -- the main book concepts.
+Я бы не назвал эту тему строго «Functional-Light» — скорее это бонус сверху. Я поместил её в приложение, потому что вы вполне можете пропустить это обсуждение сейчас и вернуться к нему, когда будете достаточно уверены в основных концепциях книги — и главное, отработаете их на практике!
 
-To be honest, even after teaching transducing many times, and writing this chapter, I am still trying to fully wrap my brain around this technique. So don't feel bad if it twists you up. Bookmark this appendix and come back when you're ready.
+Если честно, даже после многократного преподавания трансдьюсеров и написания этой главы я всё ещё пытаюсь полностью уложить эту технику в голове. Так что не расстраивайтесь, если она запутает вас. Добавьте это приложение в закладки и вернитесь, когда будете готовы.
 
-Transducing means transforming with reduction.
+Трансдьюсирование означает преобразование через свёртку.
 
-I know that may sound like a jumble of words that confuses more than it clarifies. But let's take a look at how powerful it can be. I actually think it's one of the best illustrations of what you can do once you grasp the principles of Functional-Light Programming.
+Понимаю, это может звучать как нагромождение слов, которое запутывает больше, чем проясняет. Но давайте посмотрим, насколько мощной может быть эта техника. На самом деле я считаю её одной из лучших иллюстраций того, чего можно достичь, освоив принципы Functional-Light Programming.
 
-As with the rest of this book, my approach is to first explain *why*, then *how*, then finally boil it down to a simplified, repeatable *what*. That's often the reverse of how many teach, but I think you'll learn the topic more deeply this way.
+Как и в остальной части книги, мой подход: сначала объяснить *почему*, затем *как*, и наконец свести это к упрощённому, воспроизводимому *что*. Это часто противоположно тому, как учат многие, но я думаю, что так вы усвоите тему глубже.
 
-## Why, First
+## Сначала — почему
 
-Let's start by extending a [scenario we covered back in Chapter 3](ch3.md/#user-content-shortlongenough), testing words to see if they're short enough and/or long enough:
+Начнём с расширения [сценария из Главы 3](ch3.md/#user-content-shortlongenough), где мы тестируем слова на соответствие условию «достаточно короткое» и/или «достаточно длинное»:
 
 ```js
 function isLongEnough(str) {
@@ -27,7 +27,7 @@ function isShortEnough(str) {
 }
 ```
 
-In [Chapter 3, we used these predicate functions](ch3.md/#user-content-shortlongenough) to test a single word. Then in Chapter 9, we learned how to repeat such tests [using list operations like `filter(..)`](ch9.md/#filter). For example:
+В [Главе 3 мы использовали эти предикатные функции](ch3.md/#user-content-shortlongenough) для проверки одного слова. Затем в Главе 9 мы узнали, как повторять такие проверки [с использованием операций над списками, например `filter(..)`](ch9.md/#filter):
 
 ```js
 var words = [ "You", "have", "written", "something", "very",
@@ -39,13 +39,13 @@ words
 // ["written","something"]
 ```
 
-It may not be obvious, but this pattern of separate adjacent list operations has some non-ideal characteristics. When we're dealing with only a single array of a small number of values, everything is fine. But if there were lots of values in the array, each `filter(..)` processing the list separately can slow down a bit more than we'd like.
+Может быть не очевидно, но этот паттерн из отдельных соседних операций над списками имеет некоторые не идеальные характеристики. Когда мы работаем с одним массивом небольшого числа значений — всё нормально. Но если в массиве много значений, каждый `filter(..)`, обрабатывающий список отдельно, может несколько замедлиться.
 
-A similar performance problem arises when our arrays are async/lazy (aka Observables), processing values over time in response to events (see [Chapter 10](ch10.md)). In this scenario, only a single value comes down the event stream at a time, so processing that discrete value with two separate `filter(..)`s function calls isn't really such a big deal.
+Аналогичная проблема производительности возникает, когда наши массивы асинхронны/ленивы (aka Observable), обрабатывая значения со временем в ответ на события (см. [Главу 10](ch10.md)). В этом сценарии через поток событий проходит только одно значение за раз, поэтому обработка этого дискретного значения двумя отдельными вызовами `filter(..)` не такая уж большая проблема.
 
-But what's not obvious is that each `filter(..)` method produces a separate observable. The overhead of pumping a value out of one observable into another can really add up. That's especially true since in these cases, it's not uncommon for thousands or millions of values to be processed; even such small overhead costs add up quickly.
+Но что не очевидно: каждый метод `filter(..)` создаёт отдельный observable. Накладные расходы на передачу значения из одного observable в другой могут существенно накапливаться. Особенно это справедливо, поскольку в таких случаях нередко обрабатываются тысячи или миллионы значений — даже небольшие накладные расходы быстро суммируются.
 
-The other downside is readability, especially when we need to repeat the same series of operations against multiple lists (or Observables). For example:
+Другим недостатком является читаемость, особенно когда нам нужно повторять одну и ту же серию операций для нескольких списков (или Observable):
 
 ```js
 zip(
@@ -55,9 +55,9 @@ zip(
 )
 ```
 
-Repetitive, right?
+Повторяемость налицо, не правда ли?
 
-Wouldn't it be better (both for readability and performance) if we could combine the `isLongEnough(..)` predicate with the `isShortEnough(..)` predicate? You could do so manually:
+Разве не было бы лучше (и для читаемости, и для производительности), если бы мы могли объединить предикат `isLongEnough(..)` с предикатом `isShortEnough(..)`? Это можно сделать вручную:
 
 ```js
 function isCorrectLength(str) {
@@ -65,9 +65,9 @@ function isCorrectLength(str) {
 }
 ```
 
-But that's not the FP way!
+Но это не ФП-подход!
 
-In [Chapter 9, we talked about fusion](ch9.md/#fusion) -- composing adjacent mapping functions. Recall:
+В [Главе 9 мы говорили о слиянии (fusion)](ch9.md/#fusion) — компоновке соседних функций отображения. Вспомним:
 
 ```js
 words
@@ -76,15 +76,15 @@ words
 );
 ```
 
-Unfortunately, combining adjacent predicate functions doesn't work as easily as combining adjacent mapping functions. To understand why, think about the "shape" of the predicate function -- a sort of academic way of describing the signature of inputs and output. It takes a single value in, and it returns a `true` or a `false`.
+К сожалению, объединение соседних предикатных функций работает не так просто, как объединение соседних функций отображения. Чтобы понять почему, подумайте о «форме» предикатной функции — своеобразном академическом способе описания сигнатуры входов и выхода. Она принимает одно значение и возвращает `true` или `false`.
 
-If you tried `isShortEnough(isLongEnough(str))`, it wouldn't work properly. `isLongEnough(..)` will return `true`/`false`, not the string value that `isShortEnough(..)` is expecting. Bummer.
+Если вы попробуете `isShortEnough(isLongEnough(str))`, это не сработает правильно. `isLongEnough(..)` вернёт `true`/`false`, а не строку, которую ожидает `isShortEnough(..)`. Облом.
 
-A similar frustration exists trying to compose two adjacent reducer functions. The "shape" of a reducer is a function that receives two values as input, and returns a single combined value. The output of a reducer as a single value is not suitable for input to another reducer expecting two inputs.
+Аналогичная проблема возникает при попытке скомпоновать две соседние функции-редьюсера. «Форма» редьюсера — это функция, принимающая два значения на входе и возвращающая одно объединённое значение. Выход редьюсера как единственное значение не подходит для входа другому редьюсеру, ожидающему два входных значения.
 
-Moreover, the `reduce(..)` helper takes an optional `initialValue` input. Sometimes this can be omitted, but sometimes it has to be passed in. That even further complicates composition, since one reduction might need one `initialValue` and the other reduction might seem like it needs a different `initialValue`. How can we possibly do that if we only make one `reduce(..)` call with some sort of composed reducer?
+Более того, хелпер `reduce(..)` принимает необязательное значение `initialValue`. Иногда его можно опустить, но иногда его нужно передать. Это ещё больше усложняет компоновку, поскольку одной свёртке может понадобиться одно `initialValue`, а другой — другое. Как это возможно сделать, если мы делаем только один вызов `reduce(..)` с каким-то скомпонованным редьюсером?
 
-Consider a chain like this:
+Рассмотрим цепочку вроде этой:
 
 ```js
 words
@@ -95,21 +95,21 @@ words
 // "WRITTENSOMETHING"
 ```
 
-Can you envision a composition that includes all of these steps: `map(strUppercase)`, `filter(isLongEnough)`, `filter(isShortEnough)`, `reduce(strConcat)`? The shape of each operator is different, so they won't directly compose together. We need to bend their shapes a little bit to fit them together.
+Можете ли вы представить себе композицию, включающую все эти шаги: `map(strUppercase)`, `filter(isLongEnough)`, `filter(isShortEnough)`, `reduce(strConcat)`? Форма каждого оператора разная, поэтому они не будут напрямую компоноваться. Нам нужно немного изменить их форму, чтобы они подошли друг к другу.
 
-Hopefully these observations have illustrated why simple fusion-style composition isn't up to the task. We need a more powerful technique, and transducing is that tool.
+Надеюсь, эти наблюдения проиллюстрировали, почему простая компоновка в стиле слияния не справляется с задачей. Нам нужна более мощная техника — и трансдьюсирование является таким инструментом.
 
-## How, Next
+## Затем — как
 
-Let's talk about how we might derive a composition of mappers, predicates, and/or reducers.
+Давайте поговорим о том, как мы могли бы получить композицию маперов, предикатов и/или редьюсеров.
 
-Don't get too overwhelmed: you won't have to go through all these mental steps we're about to explore in your own programming. Once you understand and can recognize the problem transducing solves, you'll be able to just jump straight to using a `transduce(..)` utility from a FP library and move on with the rest of your application!
+Не перегружайтесь: в своём программировании вам не придётся проходить через все эти мысленные шаги, которые мы вот-вот исследуем. Как только вы поймёте и сможете распознать проблему, которую решает трансдьюсирование, вы сможете сразу перейти к использованию утилиты `transduce(..)` из ФП-библиотеки и продолжить работу над остальным приложением!
 
-Let's jump in.
+Поехали.
 
-### Expressing Map/Filter as Reduce
+### Выражение Map/Filter через Reduce
 
-The first trick we need to perform is expressing our `filter(..)` and `map(..)` calls as `reduce(..)` calls. Recall [how we did that in Chapter 9](ch9.md/#map-as-reduce):
+Первый трюк, который нужно выполнить, — выразить вызовы `filter(..)` и `map(..)` как вызовы `reduce(..)`. Вспомните [как мы это делали в Главе 9](ch9.md/#map-as-reduce):
 
 ```js
 function strUppercase(str) { return str.toUpperCase(); }
@@ -138,11 +138,11 @@ words
 // "WRITTENSOMETHING"
 ```
 
-That's a decent improvement. We now have four adjacent `reduce(..)` calls instead of a mixture of three different methods all with different shapes. We still can't just `compose(..)` those four reducers, however, because they accept two arguments instead of one.
+Это приличное улучшение. Теперь у нас четыре соседних вызова `reduce(..)` вместо смеси трёх разных методов с разными формами. Тем не менее мы всё ещё не можем просто `compose(..)` эти четыре редьюсера, поскольку они принимают два аргумента, а не один.
 
 <a name="cheating"></a>
 
-In [Chapter 9, we sort of cheated](ch9.md/#user-content-reducecheating) and used `list.push(..)` to mutate as a side effect rather than creating a whole new array to concatenate onto. Let's step back and be a bit more formal for now:
+В [Главе 9 мы немного мошенничали](ch9.md/#user-content-reducecheating) и использовали `list.push(..)` для мутации как побочного эффекта вместо создания нового массива для конкатенации. Давайте шагнём назад и будем немного более формальными:
 
 ```js
 function strUppercaseReducer(list,str) {
@@ -160,11 +160,11 @@ function isShortEnoughReducer(list,str) {
 }
 ```
 
-Later, we'll revisit whether creating a new array (e.g., `[...list,str]`) to concatenate onto is necessary here or not.
+Позже мы вернёмся к вопросу, необходимо ли здесь создание нового массива (например, `[...list,str]`) для конкатенации или нет.
 
-### Parameterizing the Reducers
+### Параметризация редьюсеров
 
-Both filter reducers are almost identical, except they use a different predicate function. Let's parameterize that so we get one utility that can define any filter-reducer:
+Оба фильтрующих редьюсера почти идентичны, за исключением того, что они используют разную предикатную функцию. Давайте параметризуем это, чтобы получить одну утилиту, способную создавать любой фильтрующий-редьюсер:
 
 ```js
 function filterReducer(predicateFn) {
@@ -178,7 +178,7 @@ var isLongEnoughReducer = filterReducer( isLongEnough );
 var isShortEnoughReducer = filterReducer( isShortEnough );
 ```
 
-Let's do the same parameterization of the `mapperFn(..)` for a utility to produce any map-reducer:
+Сделаем то же самое для параметризации `mapperFn(..)` в утилиту, создающую любой отображающий-редьюсер:
 
 ```js
 function mapReducer(mapperFn) {
@@ -190,7 +190,7 @@ function mapReducer(mapperFn) {
 var strToUppercaseReducer = mapReducer( strUppercase );
 ```
 
-Our chain still looks the same:
+Наша цепочка по-прежнему выглядит так же:
 
 ```js
 words
@@ -200,20 +200,20 @@ words
 .reduce( strConcat, "" );
 ```
 
-### Extracting Common Combination Logic
+### Извлечение общей логики объединения
 
-Look very closely at the preceding `mapReducer(..)` and `filterReducer(..)` functions. Do you spot the common functionality shared in each?
+Посмотрите очень внимательно на предыдущие функции `mapReducer(..)` и `filterReducer(..)`. Видите ли вы общую функциональность, разделяемую ими?
 
-This part:
+Вот эта часть:
 
 ```js
 return [ ...list, .. ];
 
-// or
+// или
 return list;
 ```
 
-Let's define a helper for that common logic. But what shall we call it?
+Давайте определим хелпер для этой общей логики. Но как его назвать?
 
 ```js
 function WHATSITCALLED(list,val) {
@@ -221,7 +221,7 @@ function WHATSITCALLED(list,val) {
 }
 ```
 
-If you examine what that `WHATSITCALLED(..)` function does, it takes two values (an array and another value) and it "combines" them by creating a new array and concatenating the value onto the end of it. Very uncreatively, we could name this `listCombine(..)`:
+Если исследовать, что делает эта функция `WHATSITCALLED(..)`: она принимает два значения (массив и другое значение) и «объединяет» их, создавая новый массив и конкатенируя значение в его конец. Без лишних изысков можно назвать это `listCombine(..)`:
 
 ```js
 function listCombine(list,val) {
@@ -229,7 +229,7 @@ function listCombine(list,val) {
 }
 ```
 
-Let's now re-define our reducer helpers to use `listCombine(..)`:
+Теперь перепишем наши хелперы-редьюсеры с использованием `listCombine(..)`:
 
 ```js
 function mapReducer(mapperFn) {
@@ -246,11 +246,11 @@ function filterReducer(predicateFn) {
 }
 ```
 
-Our chain still looks the same (so we won't repeat it).
+Наша цепочка по-прежнему выглядит так же (повторять не будем).
 
-### Parameterizing the Combination
+### Параметризация объединения
 
-Our simple `listCombine(..)` utility is only one possible way that we might combine two values. Let's parameterize the use of it to make our reducers more generalized:
+Наша простая утилита `listCombine(..)` — лишь один из возможных способов объединить два значения. Давайте параметризуем её использование, чтобы сделать наши редьюсеры более обобщёнными:
 
 ```js
 function mapReducer(mapperFn,combinerFn) {
@@ -267,7 +267,7 @@ function filterReducer(predicateFn,combinerFn) {
 }
 ```
 
-To use this form of our helpers:
+Чтобы использовать эту форму наших хелперов:
 
 ```js
 var strToUppercaseReducer = mapReducer( strUppercase, listCombine );
@@ -275,7 +275,7 @@ var isLongEnoughReducer = filterReducer( isLongEnough, listCombine );
 var isShortEnoughReducer = filterReducer( isShortEnough, listCombine );
 ```
 
-Defining these utilities to take two arguments instead of one is less convenient for composition, so let's use our `curry(..)` approach:
+Определение этих утилит с двумя аргументами вместо одного менее удобно для компоновки, поэтому используем подход с `curry(..)`:
 
 ```js
 var curriedMapReducer =
@@ -301,15 +301,15 @@ var isShortEnoughReducer =
     curriedFilterReducer( isShortEnough )( listCombine );
 ```
 
-That looks a bit more verbose, and probably doesn't seem very useful.
+Выглядит немного более многословно и, возможно, не особо полезным.
 
-But this is actually necessary to get to the next step of our derivation. Remember, our ultimate goal here is to be able to `compose(..)` these reducers. We're almost there.
+Однако это действительно необходимо для следующего шага нашего вывода. Помните: наша конечная цель — иметь возможность `compose(..)` эти редьюсеры. Мы почти у цели.
 
-### Composing Curried
+### Компоновка каррированных функций
 
-This step is the trickiest of all to visualize. So read slowly and pay close attention here.
+Этот шаг — самый сложный для визуализации. Читайте медленно и внимательно.
 
-Let's consider the curried functions from earlier, but without the `listCombine(..)` function having been passed in to each:
+Рассмотрим каррированные функции из предыдущего примера, но без переданной в каждую функции `listCombine(..)`:
 
 ```js
 var x = curriedMapReducer( strUppercase );
@@ -317,9 +317,9 @@ var y = curriedFilterReducer( isLongEnough );
 var z = curriedFilterReducer( isShortEnough );
 ```
 
-Think about the shape of all three of these intermediate functions, `x(..)`, `y(..)`, and `z(..)`. Each one expects a single combination function, and produces a reducer function with it.
+Подумайте о форме всех трёх промежуточных функций: `x(..)`, `y(..)` и `z(..)`. Каждая ожидает единственную функцию объединения и создаёт с её помощью функцию-редьюсер.
 
-Remember, if we wanted the independent reducers from all these, we could do:
+Напомним: если нам нужны независимые редьюсеры из всех этих функций, мы можем:
 
 ```js
 var upperReducer = x( listCombine );
@@ -327,7 +327,7 @@ var longEnoughReducer = y( listCombine );
 var shortEnoughReducer = z( listCombine );
 ```
 
-But what would you get back if you called `y(z)`, instead of `y(listCombine)`? Basically, what happens when passing `z` in as the `combinerFn(..)` for the `y(..)` call? That returned reducer function internally looks kinda like this:
+Но что вы получите, если вызовете `y(z)` вместо `y(listCombine)`? По сути, что происходит при передаче `z` как `combinerFn(..)` в вызов `y(..)`? Возвращаемая функция-редьюсер внутри выглядит примерно так:
 
 ```js
 function reducer(list,val) {
@@ -336,38 +336,38 @@ function reducer(list,val) {
 }
 ```
 
-See the `z(..)` call inside? That should look wrong to you, because the `z(..)` function is supposed to receive only a single argument (a `combinerFn(..)`), not two arguments (`list` and `val`). The shapes don't match. That won't work.
+Видите вызов `z(..)` внутри? Это должно выглядеть неправильно, поскольку функция `z(..)` должна получать только один аргумент (a `combinerFn(..)`), а не два (`list` и `val`). Формы не совпадают. Это не сработает.
 
-Let's instead look at the composition `y(z(listCombine))`. We'll break that down into two separate steps:
+Давайте вместо этого рассмотрим композицию `y(z(listCombine))`. Разобьём её на два отдельных шага:
 
 ```js
 var shortEnoughReducer = z( listCombine );
 var longAndShortEnoughReducer = y( shortEnoughReducer );
 ```
 
-We create `shortEnoughReducer(..)`, then we pass *it* in as the `combinerFn(..)` to `y(..)` instead of calling `y(listCombine)`; this new call produces `longAndShortEnoughReducer(..)`. Re-read that a few times until it clicks.
+Мы создаём `shortEnoughReducer(..)`, затем передаём *его* как `combinerFn(..)` в `y(..)` вместо вызова `y(listCombine)`; этот новый вызов создаёт `longAndShortEnoughReducer(..)`. Перечитайте несколько раз, пока не щёлкнет.
 
-Now consider: what do `shortEnoughReducer(..)` and `longAndShortEnoughReducer(..)` look like internally? Can you see them in your mind?
+Теперь задумайтесь: как выглядят `shortEnoughReducer(..)` и `longAndShortEnoughReducer(..)` внутри? Видите ли вы их в уме?
 
 ```js
-// shortEnoughReducer, from calling z(..):
+// shortEnoughReducer, из вызова z(..):
 function reducer(list,val) {
     if (isShortEnough( val )) return listCombine( list, val );
     return list;
 }
 
-// longAndShortEnoughReducer, from calling y(..):
+// longAndShortEnoughReducer, из вызова y(..):
 function reducer(list,val) {
     if (isLongEnough( val )) return shortEnoughReducer( list, val );
     return list;
 }
 ```
 
-Do you see how `shortEnoughReducer(..)` has taken the place of `listCombine(..)` inside `longAndShortEnoughReducer(..)`? Why does that work?
+Видите, как `shortEnoughReducer(..)` занял место `listCombine(..)` внутри `longAndShortEnoughReducer(..)`? Почему это работает?
 
-Because **the shape of a `reducer(..)` and the shape of `listCombine(..)` are the same.** In other words, a reducer can be used as a combination function for another reducer; that's how they compose! The `listCombine(..)` function makes the first reducer, then *that reducer* can be used as the combination function to make the next reducer, and so on.
+Потому что **форма `reducer(..)` и форма `listCombine(..)` одинаковы.** Иными словами, редьюсер может использоваться как функция объединения для другого редьюсера — вот как они компонуются! Функция `listCombine(..)` создаёт первый редьюсер, затем *этот редьюсер* может использоваться как функция объединения для создания следующего редьюсера, и так далее.
 
-Let's test out our `longAndShortEnoughReducer(..)` with a few different values:
+Давайте протестируем наш `longAndShortEnoughReducer(..)` с несколькими значениями:
 
 ```js
 longAndShortEnoughReducer( [], "nope" );
@@ -380,18 +380,18 @@ longAndShortEnoughReducer( [], "hello world" );
 // []
 ```
 
-The `longAndShortEnoughReducer(..)` utility is filtering out both values that are not long enough and values that are not short enough, and it's doing both these filterings in the same step. It's a composed reducer!
+Утилита `longAndShortEnoughReducer(..)` фильтрует как значения, недостаточно длинные, так и значения, недостаточно короткие, делая оба фильтра в одном шаге. Это скомпонованный редьюсер!
 
-Take another moment to let that sink in. It still kinda blows my mind.
+Дайте этому ещё немного уложиться. До сих пор это взрывает мне мозг.
 
-Now, to bring `x(..)` (the uppercase reducer producer) into the composition:
+Теперь введём `x(..)` (производитель редьюсера для перевода в верхний регистр) в композицию:
 
 ```js
 var longAndShortEnoughReducer = y( z( listCombine) );
 var upperLongAndShortEnoughReducer = x( longAndShortEnoughReducer );
 ```
 
-As the name `upperLongAndShortEnoughReducer(..)` implies, it does all three steps at once -- a mapping and two filters! What it kinda look likes internally:
+Как следует из имени `upperLongAndShortEnoughReducer(..)`, он выполняет все три шага сразу — одно отображение и два фильтра! Внутри это выглядит примерно так:
 
 ```js
 // upperLongAndShortEnoughReducer:
@@ -400,11 +400,11 @@ function reducer(list,val) {
 }
 ```
 
-A string `val` is passed in, uppercased by `strUppercase(..)` and then passed along to `longAndShortEnoughReducer(..)`. *That* function only conditionally adds this uppercased string to the `list` if it's both long enough and short enough. Otherwise, `list` will remain unchanged.
+Строка `val` поступает внутрь, переводится в верхний регистр через `strUppercase(..)` и затем передаётся в `longAndShortEnoughReducer(..)`. *Та* функция условно добавляет эту строку в верхнем регистре в `list` только если она одновременно достаточно длинная и достаточно короткая. Иначе `list` остаётся без изменений.
 
-It took my brain weeks to fully understand the implications of that juggling. So don't worry if you need to stop here and re-read a few (dozen!) times to get it. Take your time.
+Моему мозгу понадобились недели, чтобы полностью осознать последствия этого жонглирования. Поэтому не беспокойтесь, если вам нужно остановиться здесь и перечитать несколько (десятков!) раз. Не торопитесь.
 
-Now let's verify:
+Теперь проверим:
 
 ```js
 upperLongAndShortEnoughReducer( [], "nope" );
@@ -417,9 +417,9 @@ upperLongAndShortEnoughReducer( [], "hello world" );
 // []
 ```
 
-This reducer is the composition of the map and both filters! That's amazing!
+Этот редьюсер является композицией отображения и обоих фильтров! Это потрясающе!
 
-Let's recap where we're at so far:
+Подведём итог того, где мы находимся:
 
 ```js
 var x = curriedMapReducer( strUppercase );
@@ -432,9 +432,9 @@ words.reduce( upperLongAndShortEnoughReducer, [] );
 // ["WRITTEN","SOMETHING"]
 ```
 
-That's pretty cool. But let's make it even better.
+Довольно круто. Но сделаем ещё лучше.
 
-`x(y(z( .. )))` is a composition. Let's skip the intermediate `x` / `y` / `z` variable names, and just express that composition directly:
+`x(y(z( .. )))` — это композиция. Пропустим промежуточные имена переменных `x` / `y` / `z` и выразим эту композицию напрямую:
 
 ```js
 var composition = compose(
@@ -449,13 +449,13 @@ words.reduce( upperLongAndShortEnoughReducer, [] );
 // ["WRITTEN","SOMETHING"]
 ```
 
-Think about the flow of "data" in that composed function:
+Подумайте о потоке «данных» в этой скомпонованной функции:
 
-1. `listCombine(..)` flows in as the combination function to make the filter-reducer for `isShortEnough(..)`.
-2. *That* resulting reducer function then flows in as the combination function to make the filter-reducer for `isLongEnough(..)`.
-3. Finally, *that* resulting reducer function flows in as the combination function to make the map-reducer for `strUppercase(..)`.
+1. `listCombine(..)` поступает как функция объединения для создания фильтрующего-редьюсера для `isShortEnough(..)`.
+2. *Эта* получившаяся функция-редьюсер затем поступает как функция объединения для создания фильтрующего-редьюсера для `isLongEnough(..)`.
+3. Наконец, *эта* получившаяся функция-редьюсер поступает как функция объединения для создания отображающего-редьюсера для `strUppercase(..)`.
 
-In the previous snippet, `composition(..)` is a composed function expecting a combination function to make a reducer; `composition(..)` here has a special name: transducer. Providing the combination function to a transducer produces the composed reducer:
+В предыдущем фрагменте `composition(..)` — это скомпонованная функция, ожидающая функцию объединения для создания редьюсера; `composition(..)` здесь имеет особое название: **трансдьюсер**. Передача функции объединения в трансдьюсер создаёт скомпонованный редьюсер:
 
 ```js
 var transducer = compose(
@@ -469,11 +469,11 @@ words
 // ["WRITTEN","SOMETHING"]
 ```
 
-**Note:** We should make an observation about the `compose(..)` order in the previous two snippets, which may be confusing. Recall that in our original example chain, we `map(strUppercase)` and then `filter(isLongEnough)` and finally `filter(isShortEnough)`; those operations indeed happen in that order. But in [Chapter 4](ch4.md/#user-content-generalcompose), we learned that `compose(..)` typically has the effect of running its functions in reverse order of listing. So why don't we need to reverse the order *here* to get the same desired outcome? The abstraction of the `combinerFn(..)` from each reducer reverses the effective applied order of operations under the hood. So counter-intuitively, when composing a transducer, you actually want to list them in desired order of execution!
+**Примечание:** Следует заметить кое-что о порядке `compose(..)` в предыдущих двух фрагментах, что может смущать. Напомним, что в нашей исходной цепочке мы применяем `map(strUppercase)`, затем `filter(isLongEnough)` и наконец `filter(isShortEnough)` — операции выполняются именно в таком порядке. Но в [Главе 4](ch4.md/#user-content-generalcompose) мы узнали, что `compose(..)` обычно запускает свои функции в обратном порядке перечисления. Почему же нам *здесь* не нужно переворачивать порядок для получения того же желаемого результата? Абстракция `combinerFn(..)` из каждого редьюсера скрыто обращает эффективный порядок применения операций. Поэтому, как ни контринтуитивно это звучит, при компоновке трансдьюсера вы на самом деле хотите перечислять их в желаемом порядке выполнения!
 
-#### List Combination: Pure vs. Impure
+#### Объединение списков: чистое vs. нечистое
 
-As a quick aside, let's revisit our `listCombine(..)` combination function implementation:
+Небольшое отступление: пересмотрим нашу реализацию функции объединения `listCombine(..)`:
 
 ```js
 function listCombine(list,val) {
@@ -481,9 +481,9 @@ function listCombine(list,val) {
 }
 ```
 
-While this approach is pure, it has negative consequences for performance: for each step in the reduction, we're creating a whole new array to append the value onto, effectively throwing away the previous array. That's a lot of arrays being created and thrown away, which is not only bad for CPU but also GC memory churn.
+Хотя этот подход чист, он имеет негативные последствия для производительности: на каждом шаге свёртки мы создаём целый новый массив для добавления значения, фактически выбрасывая предыдущий. Это огромное количество создаваемых и выбрасываемых массивов, что плохо как для процессора, так и для сборки мусора.
 
-By contrast, look again at the better-performing but impure version:
+В противоположность этому посмотрите снова на более производительную, но нечистую версию:
 
 ```js
 function listCombine(list,val) {
@@ -492,19 +492,19 @@ function listCombine(list,val) {
 }
 ```
 
-Thinking about `listCombine(..)` in isolation, there's no question it's impure and that's usually something we'd want to avoid. However, there's a bigger context we should consider.
+Рассматривая `listCombine(..)` в изоляции, нет сомнений, что она нечиста — и обычно этого хочется избегать. Однако есть более широкий контекст, который нужно учитывать.
 
-`listCombine(..)` is not a function we interact with at all. We don't directly use it anywhere in the program; instead, we let the transducing process use it.
+`listCombine(..)` — функция, с которой мы вообще не взаимодействуем напрямую. Мы не используем её нигде в программе непосредственно; вместо этого мы позволяем процессу трансдьюсирования использовать её.
 
-Back in [Chapter 5](ch5.md), we asserted that our goal with reducing side effects and defining pure functions was only that we expose pure functions to the API level of functions we'll use throughout our program. We observed that under the covers, inside a pure function, it can cheat for performance sake all it wants, as long as it doesn't violate the external contract of purity.
+В [Главе 5](ch5.md) мы утверждали, что наша цель в сокращении побочных эффектов и определении чистых функций — только в том, чтобы предоставлять чистые функции на уровне API функций, которые мы будем использовать во всей программе. Мы отмечали, что внутри чистой функции она может схитрить ради производительности сколько угодно, если только не нарушает внешний договор о чистоте.
 
-`listCombine(..)` is more an internal implementation detail of the transducing -- in fact, it'll often be provided by the transducing library for you! -- rather than a top-level method you'd interact with on a normal basis throughout your program.
+`listCombine(..)` является скорее внутренней деталью реализации трансдьюсирования — и на самом деле она нередко будет предоставлена вам библиотекой трансдьюсирования! — а не методом верхнего уровня, с которым вы обычно взаимодействуете в программе.
 
-Bottom line: I think it's perfectly acceptable, and advisable even, to use the performance-optimal impure version of `listCombine(..)`. Just make sure you document that it's impure with a code comment!
+Итог: я думаю, что использовать производительно-оптимальную нечистую версию `listCombine(..)` вполне приемлемо и даже рекомендуется. Просто убедитесь, что документируете её нечистоту комментарием к коду!
 
-### Alternative Combination
+### Альтернативное объединение
 
-So far, this is what we've derived with transducing:
+Итак, вот что мы получили с трансдьюсированием:
 
 ```js
 words
@@ -513,11 +513,11 @@ words
 // WRITTENSOMETHING
 ```
 
-That's pretty good, but we have one final trick up our sleeve with transducing. And frankly, I think this part is what makes all this mental effort you've expended thus far, actually worth it.
+Неплохо, но у нас есть ещё один финальный трюк в рукаве. И откровенно говоря, я думаю, именно эта часть делает все мысленные усилия, которые вы потратили до сих пор, действительно стоящими.
 
-Can we somehow "compose" these two `reduce(..)` calls to get it down to just one `reduce(..)`? Unfortunately, we can't just add `strConcat(..)` into the `compose(..)` call; because it's a reducer and not a combination-expecting function, its shape is not correct for the composition.
+Можем ли мы каким-то образом «скомпоновать» эти два вызова `reduce(..)` в один? К сожалению, мы не можем просто добавить `strConcat(..)` в вызов `compose(..)`; поскольку это редьюсер, а не функция, ожидающая объединения, его форма не подходит для композиции.
 
-But let's look at these two functions side by side:
+Но давайте посмотрим на эти две функции рядом:
 
 ```js
 function strConcat(str1,str2) { return str1 + str2; }
@@ -525,26 +525,26 @@ function strConcat(str1,str2) { return str1 + str2; }
 function listCombine(list,val) { list.push( val ); return list; }
 ```
 
-If you squint your eyes, you can almost see how these two functions are interchangeable. They operate with different data types, but conceptually they do the same thing: combine two values into one.
+Если прищурить глаза, можно почти увидеть, что эти две функции взаимозаменяемы. Они работают с разными типами данных, но концептуально делают одно и то же: объединяют два значения в одно.
 
-In other words, `strConcat(..)` is a combination function!
+Иными словами, `strConcat(..)` является функцией объединения!
 
-That means we can use *it* instead of `listCombine(..)` if our end goal is to get a string concatenation rather than a list:
+Это означает, что мы можем использовать *её* вместо `listCombine(..)`, если наша конечная цель — конкатенация строк, а не список:
 
 ```js
 words.reduce( transducer( strConcat ), "" );
 // WRITTENSOMETHING
 ```
 
-Boom! That's transducing for you. I won't actually drop the mic here, but just gently set it down...
+Бум! Вот оно — трансдьюсирование. Я не брошу микрофон, просто аккуратно положу его...
 
-## What, Finally
+## Наконец — что
 
-Take a deep breath. That was a lot to digest.
+Сделайте глубокий вдох. Это было непросто.
 
-Clearing our brains for a minute, let's turn our attention back to just using transducing in our applications without jumping through all those mental hoops to derive how it works.
+Очистив голову на минуту, переключим внимание обратно на использование трансдьюсирования в наших приложениях, не проходя через все эти мысленные прыжки для понимания того, как это работает.
 
-Recall the helpers we defined earlier; let's rename them for clarity:
+Вспомним хелперы, которые мы определили ранее; переименуем их для ясности:
 
 ```js
 var transduceMap =
@@ -563,7 +563,7 @@ var transduceFilter =
     } );
 ```
 
-Also recall that we use them like this:
+Также вспомним, как мы их используем:
 
 ```js
 var transducer = compose(
@@ -573,9 +573,9 @@ var transducer = compose(
 );
 ```
 
-`transducer(..)` still needs a combination function (like `listCombine(..)` or `strConcat(..)`) passed to it to produce a transduce-reducer function, which can then be used (along with an initial value) in `reduce(..)`.
+`transducer(..)` всё ещё нужна функция объединения (как `listCombine(..)` или `strConcat(..)`), переданная в неё для создания функции-редьюсера для трансдьюсирования, которую затем можно использовать (вместе с начальным значением) в `reduce(..)`.
 
-But to express all these transducing steps more declaratively, let's make a `transduce(..)` utility that does these steps for us:
+Но чтобы выразить все эти шаги трансдьюсирования более декларативно, создадим утилиту `transduce(..)`, которая выполняет эти шаги за нас:
 
 ```js
 function transduce(transducer,combinerFn,initialValue,list) {
@@ -584,7 +584,7 @@ function transduce(transducer,combinerFn,initialValue,list) {
 }
 ```
 
-Here's our running example, cleaned up:
+Вот наш текущий пример, приведённый в порядок:
 
 ```js
 var transducer = compose(
@@ -600,11 +600,11 @@ transduce( transducer, strConcat, "", words );
 // WRITTENSOMETHING
 ```
 
-Not bad, huh!? See the `listCombine(..)` and `strConcat(..)` functions used interchangeably as combination functions?
+Неплохо, правда!? Видите, как функции `listCombine(..)` и `strConcat(..)` используются взаимозаменяемо как функции объединения?
 
 ### Transducers.js
 
-Finally, let's illustrate our running example using the [`transducers-js` library](https://github.com/cognitect-labs/transducers-js):
+Наконец, проиллюстрируем наш текущий пример с использованием библиотеки [`transducers-js`](https://github.com/cognitect-labs/transducers-js):
 
 ```js
 var transformer = transducers.comp(
@@ -620,15 +620,15 @@ transducers.transduce( transformer, strConcat, "", words );
 // WRITTENSOMETHING
 ```
 
-Looks almost identical to above.
+Выглядит почти идентично тому, что выше.
 
-**Note:** The preceding snippet uses `transformers.comp(..)` because the library provides it, but in this case our [`compose(..)` from Chapter 4](ch4.md/#user-content-generalcompose) would produce the same outcome. In other words, composition itself isn't a transducing-sensitive operation.
+**Примечание:** Предыдущий фрагмент использует `transformers.comp(..)`, поскольку библиотека его предоставляет, но в данном случае наш [`compose(..)` из Главы 4](ch4.md/#user-content-generalcompose) дал бы тот же результат. Иными словами, композиция сама по себе не является чувствительной к трансдьюсированию операцией.
 
-The composed function in this snippet is named `transformer` instead of `transducer`. That's because if we call `transformer( listCombine )` (or `transformer( strConcat )`), we won't get a straight-up transduce-reducer function as earlier.
+Скомпонованная функция в этом фрагменте называется `transformer` вместо `transducer`. Это потому, что при вызове `transformer( listCombine )` (или `transformer( strConcat )`) мы не получим простую функцию-редьюсер-для-трансдьюсирования как раньше.
 
-`transducers.map(..)` and `transducers.filter(..)` are special helpers that adapt regular predicate or mapper functions into functions that produce a special transform object (with the transducer function wrapped underneath); the library uses these transform objects for transducing. The extra capabilities of this transform object abstraction are beyond what we'll explore, so consult the library's documentation for more information.
+`transducers.map(..)` и `transducers.filter(..)` — специальные хелперы, адаптирующие обычные предикатные или маппер-функции в функции, создающие специальный объект-трансформер (с функцией трансдьюсера внутри); библиотека использует эти объекты-трансформеры для трансдьюсирования. Дополнительные возможности этой абстракции объекта-трансформера выходят за рамки того, что мы рассмотрим здесь, поэтому обратитесь к документации библиотеки для получения дополнительной информации.
 
-Because calling `transformer(..)` produces a transform object and not a typical binary transduce-reducer function, the library also provides `toFn(..)` to adapt the transform object to be useable by native array `reduce(..)`:
+Поскольку вызов `transformer(..)` создаёт объект-трансформер, а не типичную бинарную функцию-редьюсер-для-трансдьюсирования, библиотека также предоставляет `toFn(..)` для адаптации объекта-трансформера для использования нативным `reduce(..)` массива:
 
 ```js
 words.reduce(
@@ -638,7 +638,7 @@ words.reduce(
 // WRITTENSOMETHING
 ```
 
-`into(..)` is another provided helper that automatically selects a default combination function based on the type of empty/initial value specified:
+`into(..)` — ещё один предоставляемый хелпер, автоматически выбирающий функцию объединения по умолчанию на основе типа указанного пустого/начального значения:
 
 ```js
 transducers.into( [], transformer, words );
@@ -648,16 +648,16 @@ transducers.into( "", transformer, words );
 // WRITTENSOMETHING
 ```
 
-When specifying an empty `[]` array, the `transduce(..)` called under the covers uses a default implementation of a function like our `listCombine(..)` helper. But when specifying an empty `""` string, something like our `strConcat(..)` is used. Cool!
+При указании пустого массива `[]` вызываемый внутри `transduce(..)` использует реализацию по умолчанию, аналогичную нашему хелперу `listCombine(..)`. Но при указании пустой строки `""` используется нечто похожее на наш `strConcat(..)`. Круто!
 
-As you can see, the `transducers-js` library makes transducing pretty straightforward. We can very effectively leverage the power of this technique without getting into the weeds of defining all those intermediate transducer-producing utilities ourselves.
+Как видите, библиотека `transducers-js` делает трансдьюсирование достаточно простым. Мы можем очень эффективно использовать мощь этой техники, не углубляясь в определение всех тех промежуточных утилит для создания трансдьюсеров самостоятельно.
 
-## Summary
+## Резюме
 
-To transduce means to transform with a reduce. More specifically, a transducer is a composable reducer.
+Трансдьюсировать означает преобразовывать через свёртку. Точнее, трансдьюсер — это компонуемый редьюсер.
 
-We use transducing to compose adjacent `map(..)`, `filter(..)`, and `reduce(..)` operations together. We accomplish this by first expressing `map(..)`s and `filter(..)`s as `reduce(..)`s, and then abstracting out the common combination operation to create unary reducer-producing functions that are easily composed.
+Мы используем трансдьюсирование для компоновки соседних операций `map(..)`, `filter(..)` и `reduce(..)`. Достигается это сначала выражением `map(..)` и `filter(..)` через `reduce(..)`, а затем абстрагированием общей операции объединения для создания унарных функций, производящих редьюсеры, которые легко компонуются.
 
-Transducing primarily improves performance, which is especially obvious if used on an observable.
+Трансдьюсирование прежде всего улучшает производительность, что особенно заметно при использовании с Observable.
 
-But more broadly, transducing is how we express a more declarative composition of functions that would otherwise not be directly composable. The result, if used appropriately as with all other techniques in this book, is clearer, more readable code! A single `reduce(..)` call with a transducer is easier to reason about than tracing through multiple `reduce(..)` calls.
+Но в более широком смысле трансдьюсирование — это способ выразить более декларативную композицию функций, которые иначе не могли бы напрямую компоноваться. Результат при правильном использовании, как и все другие техники этой книги, — более ясный, более читаемый код! Единственный вызов `reduce(..)` с трансдьюсером проще осмыслить, чем прослеживать несколько вызовов `reduce(..)`.
